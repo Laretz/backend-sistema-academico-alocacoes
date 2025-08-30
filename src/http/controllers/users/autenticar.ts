@@ -1,0 +1,53 @@
+import {z} from "zod";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { PrismaUsersRepository } from "../../../repositories/prisma-repositories/prisma-users-repository";
+import { AuthenticateUseCase } from "../../../use-cases/authenticate";
+import { CredenciaisInvalidas } from "../../../use-cases/errors/credenciais-invalidas";
+import { makeAuthenticateUseCase } from "../../../use-cases/@factories/make-authenticate-use-case";
+    
+export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
+
+    const autenticarBodySchema = z.object({
+        email: z.string().email(),
+        senha: z.string().min(6),
+    });
+
+    const {  email, senha } = autenticarBodySchema.parse(request.body);
+
+    try {
+        const authenticateUseCase =  makeAuthenticateUseCase()
+
+        const {user} = await authenticateUseCase.execute({  email, senha});
+
+        const token = await reply.jwtSign(
+            {
+                role: user.role
+            },
+            {
+                sign: { sub: user.id}
+            }
+        )
+
+        const refreshToken = await reply.jwtSign(
+            {
+                roler: user.role,
+            },
+            {
+                sign: { sub: user.id, 
+                expiresIn: '7d' }
+            }
+        )
+
+        return reply
+        .setCookie('refreshToken', refreshToken, {path: '/', secure: true, httpOnly: true, sameSite: true})
+        .status(200)
+        .send({ token });
+    } catch (error) {
+        if (error instanceof CredenciaisInvalidas){
+            return reply.status(400).send({ message: error.message });
+        }
+        
+        throw error;
+    }
+
+}

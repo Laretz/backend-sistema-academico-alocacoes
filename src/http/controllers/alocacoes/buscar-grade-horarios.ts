@@ -1,0 +1,33 @@
+import { FastifyRequest, FastifyReply } from "fastify";
+import { z } from "zod";
+import { makeBuscarGradeHorariosUseCase } from "../../../use-cases/@factories/make-buscar-grade-horarios-use-case";
+import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
+
+export async function buscarGradeHorarios(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const buscarGradeHorariosQuerySchema = z.object({
+    id_turma: z.string().uuid().optional(),
+    id_user: z.string().uuid().optional(),
+    id_sala: z.string().uuid().optional(),
+  });
+
+  const { id_turma, id_user, id_sala } = buscarGradeHorariosQuerySchema.parse(
+    request.query
+  );
+
+  try {
+    const buscarGradeHorariosUseCase = makeBuscarGradeHorariosUseCase();
+
+    const { gradeHorarios } = await buscarGradeHorariosUseCase.execute({
+      id_turma,
+      id_user,
+      id_sala: id_sala ?? undefined,
+    });
+
+    return reply.status(200).send({ gradeHorarios });
+  } catch (error) {
+    throw error;
+  }
+}

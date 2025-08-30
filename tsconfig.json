@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    // Entrada e saída
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    // Ambiente
+    "target": "es2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["es2020"],
+    "types": ["node"],
+
+    // Mapas e tipagem
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Regras mais seguras
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Recomendações úteis
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

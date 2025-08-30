@@ -1,0 +1,33 @@
+import { TurmasRepository } from "../../repositories/turmas-repository";
+import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
+
+interface AtualizarTurmaUseCaseRequest {
+    id: string;
+    nome: string | undefined;
+    numAlunos: number | undefined;
+    periodo: number | undefined;
+    turno: string | undefined;
+}
+
+export class AtualizarTurmaUseCase {
+    constructor(private turmasRepository: TurmasRepository) {}
+
+    async execute({ id, nome, numAlunos, periodo, turno }: AtualizarTurmaUseCaseRequest) {
+        const turmaExiste = await this.turmasRepository.findById(id);
+
+        if (!turmaExiste) {
+            throw new RecursoNaoEncontradoError();
+        }
+
+        // Cria um objeto com apenas os campos que foram fornecidos
+        const updateData: any = {};
+        if (nome !== undefined) updateData.nome = nome;
+        if (numAlunos !== undefined) updateData.numAlunos = numAlunos;
+        if (periodo !== undefined) updateData.periodo = periodo;
+        if (turno !== undefined) updateData.turno = turno;
+        
+        const turma = await this.turmasRepository.update(id, updateData);
+
+        return { turma };
+    }
+}
