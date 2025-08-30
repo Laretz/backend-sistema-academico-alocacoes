@@ -6,21 +6,20 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    dir: "src",
     projects: [
       {
-        extends: true,
+        plugins: [tsconfigPaths()],
         test: {
           name: 'unit',
-          dir: 'src/use-cases',
+          include: ['src/use-cases/**/*.spec.ts'],
           environment: 'node',
         }
       },
       {
-        extends: true,
+        plugins: [tsconfigPaths()],
         test: {
           name: 'e2e',
-          dir: 'src/http/controllers',
+          include: ['src/http/**/*.spec.ts'],
           environment: './prisma/vitest-environment-prisma/prisma-test-environment.ts',
         },
       }

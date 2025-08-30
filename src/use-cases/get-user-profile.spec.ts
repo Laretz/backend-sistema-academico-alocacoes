@@ -32,7 +32,7 @@ describe('Get  User Profile Use Case', () => {
 
     it('Nao deve ser possivel acessar perfil do usuario com id errado', async () => {
 
-        expect(() =>  sut.execute({
+        await expect(() =>  sut.execute({
           userId: 'id-errado',
         })).rejects.toBeInstanceOf(RecursoNaoEncontradoError)
 
