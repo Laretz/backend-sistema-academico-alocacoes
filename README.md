@@ -7,6 +7,7 @@ Sistema desenvolvido para otimizar a alocação de turmas, disciplinas, professo
 O projeto segue os princípios da **Clean Architecture** e **Domain-Driven Design (DDD)**, implementando os princípios **SOLID**:
 
 ### 📁 Estrutura de Pastas
+
 ```
 src/
 ├── domain/           # 🏛️ Entidades de domínio
@@ -25,49 +26,59 @@ src/
 ### 🎯 Princípios SOLID Implementados
 
 #### **S** - Single Responsibility Principle
+
 - ✅ **Use Cases**: Cada caso de uso tem uma única responsabilidade
 - ✅ **Repositories**: Cada repository gerencia apenas uma entidade
 - ✅ **Controllers**: Cada controller trata apenas um endpoint específico
 
 #### **O** - Open/Closed Principle
+
 - ✅ **Interfaces de Repository**: Abertas para extensão, fechadas para modificação
 - ✅ **Use Cases**: Podem ser estendidos sem modificar código existente
 
 #### **L** - Liskov Substitution Principle
+
 - ✅ **Repository Pattern**: Implementações Prisma e In-Memory são intercambiáveis
 - ✅ **Testes**: Use cases funcionam com qualquer implementação de repository
 
 #### **I** - Interface Segregation Principle
+
 - ✅ **Repositories**: Interfaces específicas para cada entidade
 - ✅ **Use Cases**: Dependem apenas das interfaces necessárias
 
 #### **D** - Dependency Inversion Principle
+
 - ✅ **Factory Pattern**: Use cases dependem de abstrações, não de implementações
 - ✅ **Injeção de Dependência**: Controllers recebem use cases via factories
 
 ## 🛠️ Stack Tecnológica
 
 ### 🚀 **Core**
+
 - **Node.js** - Runtime JavaScript
 - **TypeScript** - Tipagem estática
 - **Fastify** - Framework web performático
 
 ### 🗄️ **Banco de Dados**
+
 - **PostgreSQL** - Banco relacional
 - **Prisma ORM** - Object-Relational Mapping
 - **Docker** - Containerização do banco
 
 ### 🔐 **Segurança & Validação**
+
 - **JWT** - Autenticação via tokens
 - **bcryptjs** - Criptografia de senhas
 - **Zod** - Validação de schemas
 
 ### 🧪 **Testes & Qualidade**
+
 - **Vitest** - Framework de testes
 - **@vitest/coverage-v8** - Cobertura de testes
 - **ESLint** - Linting de código
 
 ### 🔧 **Build & Deploy**
+
 - **tsup** - Bundler TypeScript
 - **tsx** - Execução TypeScript
 - **Docker Compose** - Orquestração de containers
@@ -75,6 +86,7 @@ src/
 ## 📋 Setup e Comandos
 
 ### 🐳 **Docker (Banco de Dados)**
+
 ```bash
 # Subir banco PostgreSQL
 docker compose up -d
@@ -85,6 +97,7 @@ docker start postgresbd
 ```
 
 ### 📦 **Instalação**
+
 ```bash
 # Instalar dependências
 npm install
@@ -100,6 +113,7 @@ npm run setup:horarios
 ```
 
 ### 🚀 **Execução**
+
 ```bash
 # Desenvolvimento
 npm run dev
@@ -128,6 +142,7 @@ npm run test:coverage
 ## ⚙️ Requisitos Funcionais (RF)
 
 ### ✅ **Implementados**
+
 - **👥 Gestão de Usuários**: Cadastro de professores e coordenadores com autenticação JWT
 - **🏫 Gestão de Salas**: CRUD completo de salas de aula
 - **📚 Gestão de Disciplinas**: CRUD completo de disciplinas
@@ -139,12 +154,14 @@ npm run test:coverage
 - **📄 Paginação**: Listas com até 20 itens por página
 
 ### 🚧 **Pendentes**
+
 - **🤖 Alocação Automática**: Considerando restrições e preferências
 - **📈 Relatórios**: Geração de relatórios de horários e ocupação
 
 ## 🔧 Requisitos Não Funcionais (RNFs)
 
 ### ✅ **Implementados**
+
 - **🔐 Segurança**: Senhas criptografadas com bcryptjs
 - **🗄️ Persistência**: Dados em banco PostgreSQL
 - **📄 Paginação**: Listas limitadas a 20 itens
@@ -154,18 +171,21 @@ npm run test:coverage
 - **❌ Tratamento de Erros**: Padronizado e centralizado
 
 ### 🚧 **Pendentes**
+
 - **📱 Responsividade**: Adaptação para desktop e mobile
 - **🔄 Transações**: Para operações críticas
 
-## 🚀 Melhorias Sugeridas
+## 🚀 Melhorias Sugeridas X
 
 ### 🔐 **Segurança e Autorização**
+
 - [ ] Middleware de autorização baseado em roles (COORDENADOR vs PROFESSOR)
 - [ ] Rate limiting para APIs
 - [ ] Refresh tokens para JWT
 - [ ] Validação de força de senha
 
 ### ⭐ **Funcionalidades Avançadas**
+
 - [ ] Sistema de notificações para conflitos de horário
 - [ ] Backup automático de dados
 - [ ] Logs de auditoria para alterações
@@ -173,12 +193,14 @@ npm run test:coverage
 - [ ] Dashboard com estatísticas de uso
 
 ### ✅ **Validações de Negócio**
+
 - [ ] Validação de capacidade da sala vs número de alunos
 - [ ] Controle de carga horária por disciplina
 - [ ] Validação de pré-requisitos entre disciplinas
 - [ ] Limite de horas por professor por dia
 
 ### ⚡ **Performance e Monitoramento**
+
 - [ ] Cache para consultas frequentes
 - [ ] Métricas de performance da API
 - [ ] Health check endpoints

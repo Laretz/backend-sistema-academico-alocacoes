@@ -24,6 +24,11 @@ enum Role {
   COORDENADOR
 }
 
+enum TipoDeSala {
+  Lab
+  Sala
+}
+
 model User {
   id                 String     @id @default(uuid())
   nome               String
@@ -40,7 +45,8 @@ model User {
 model Disciplina {
   id           String     @id @default(uuid())
   nome             String
-  cargaHorariaTotal Int
+  carga_horaria_atual Int
+  tipo_de_sala      TipoDeSala @default(Sala)
 
   alocacoes        Alocacao[]
 }
@@ -61,6 +67,7 @@ model Sala {
   predio     String
   capacidade Int
   tipo       String
+  computadores Int         @default(0)
 
   alocacoes  Alocacao[]
 }

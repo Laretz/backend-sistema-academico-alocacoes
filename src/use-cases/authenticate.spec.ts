@@ -35,7 +35,7 @@ describe('Authenticate Use Case', () => {
 
         it('Nao deve ser possivel se autenticar com email que nao existe', async () => {
 
-        expect(() =>  sut.execute({
+        await expect(() =>  sut.execute({
             email: 'jonhdoe@email.com',
             senha: '123456',
         })).rejects.toBeInstanceOf(CredenciaisInvalidas)
