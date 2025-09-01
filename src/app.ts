@@ -4,9 +4,15 @@ import { ZodError } from 'zod';
 import { env } from './env';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import fastifyCors from '@fastify/cors';
 
 
 export const app = fastify();
+
+app.register(fastifyCors, {
+    origin: ['http://localhost:3000'],
+    credentials: true
+});
 
 app.register(fastifyJwt, {
     secret: env.JWT_SECRET,

@@ -26,5 +26,33 @@ export class PrismaUsersRepository implements UsersRepository {
         return user;
     }
 
+    async findMany(page: number, search?: string): Promise<User[]> {
+        const users = await prisma.user.findMany({
+            where: search ? {
+                OR: [
+                    { nome: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { especializacao: { contains: search, mode: 'insensitive' } },
+                ]
+            } : {},
+            skip: (page - 1) * 20,
+            take: 20,
+            orderBy: { nome: 'asc' },
+        });
+        return users;
+    }
 
+    async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
+        const user = await prisma.user.update({
+            where: { id },
+            data,
+        });
+        return user;
+    }
+
+    async delete(id: string): Promise<void> {
+        await prisma.user.delete({
+            where: { id },
+        });
+    }
 }

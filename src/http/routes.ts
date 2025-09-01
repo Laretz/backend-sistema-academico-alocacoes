@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { register, autenticar, profile, refresh } from "./controllers/users";
+import { register, autenticar, profile, refresh, buscarUsuarios, buscarUsuario, atualizarUsuario, excluirUsuario } from "./controllers/users";
 import { criarDisciplina, buscarDisciplinas, buscarDisciplina, atualizarDisciplina, excluirDisciplina } from "./controllers/disciplinas";
 import { criarTurma, buscarTurmas, buscarTurma, atualizarTurma, excluirTurma, buscarGradeHorariosTurma } from "./controllers/turmas";
 import { criarSala, buscarSalas, buscarSala, atualizarSala, excluirSala, buscarGradeHorariosSala } from "./controllers/salas";
@@ -16,6 +16,10 @@ export async function appRoutes(app: FastifyInstance){
     app.patch('/token/refresh', refresh);
     //Autenticado
     app.get('/me', {onRequest: [verifyJWT]}, profile);
+    app.get('/users', {onRequest: [verifyJWT, verifyUseRole('ADMIN')]}, buscarUsuarios);
+    app.get('/users/:id', {onRequest: [verifyJWT, verifyUseRole('ADMIN')]}, buscarUsuario);
+    app.put('/users/:id', {onRequest: [verifyJWT, verifyUseRole('ADMIN')]}, atualizarUsuario);
+    app.delete('/users/:id', {onRequest: [verifyJWT, verifyUseRole('ADMIN')]}, excluirUsuario);
     
     // Disciplinas
     app.post('/disciplinas', {onRequest: [verifyJWT, verifyUseRole('COORDENADOR')]} , criarDisciplina);

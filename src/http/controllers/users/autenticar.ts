@@ -41,7 +41,18 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
         return reply
         .setCookie('refreshToken', refreshToken, {path: '/', secure: true, httpOnly: true, sameSite: true})
         .status(200)
-        .send({ token });
+        .send({ 
+            token,
+            user: {
+                id: user.id,
+                nome: user.nome,
+                email: user.email,
+                role: user.role,
+                especializacao: user.especializacao,
+                cargaHorariaMax: user.cargaHorariaMax,
+                preferencia: user.preferencia
+            }
+        });
     } catch (error) {
         if (error instanceof CredenciaisInvalidas){
             return reply.status(400).send({ message: error.message });
