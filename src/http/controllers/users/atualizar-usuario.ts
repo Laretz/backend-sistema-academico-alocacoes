@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Role } from "@prisma/client";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
 import { UserJaExisteError } from "../../../use-cases/errors/email-ja-existe";
-import { makeAtualizarUsuarioUseCase } from "../../../use-cases/@factories/make-atualizar-usuario-use-case";
+import { makeAtualizarUsuarioUseCase } from "@/use-cases/@factories/usuario/make-atualizar-usuario-use-case";
 
 export async function atualizarUsuario(
   request: FastifyRequest,
@@ -19,7 +19,7 @@ export async function atualizarUsuario(
     senha: z.string().min(6).optional(),
     role: z.nativeEnum(Role).optional(),
     especializacao: z.string().optional(),
-    cargaHorariaMax: z.number().optional(),
+    carga_horaria_max: z.number().optional(),
     preferencia: z.string().optional(),
   });
 

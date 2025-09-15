@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeExcluirHorarioUseCase } from "../../../use-cases/@factories/make-excluir-horario-use-case";
+import { makeExcluirHorarioUseCase } from "@/use-cases/@factories/horario/make-excluir-horario-use-case";
 
 export async function excluirHorario(request: FastifyRequest, reply: FastifyReply) {
     const excluirHorarioParamsSchema = z.object({

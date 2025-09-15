@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeBuscarDisciplinasUseCase } from '../../../use-cases/@factories/make-buscar-disciplinas-use-case';
+import { makeBuscarDisciplinasUseCase } from '@/use-cases/@factories/disciplina/make-buscar-disciplinas-use-case';
 
 export async function buscarDisciplinas(
   request: FastifyRequest,

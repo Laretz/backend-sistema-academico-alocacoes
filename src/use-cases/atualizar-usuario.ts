@@ -11,7 +11,7 @@ interface AtualizarUsuarioUseCaseRequest {
   senha?: string | undefined;
   role?: Role | undefined;
   especializacao?: string | undefined;
-  cargaHorariaMax?: number | undefined;
+  carga_horaria_max?: number | undefined;
   preferencia?: string | undefined;
 }
 
@@ -29,7 +29,7 @@ export class AtualizarUsuarioUseCase {
     senha,
     role,
     especializacao,
-    cargaHorariaMax,
+    carga_horaria_max,
     preferencia,
   }: AtualizarUsuarioUseCaseRequest): Promise<AtualizarUsuarioUseCaseResponse> {
     const usuario = await this.usersRepository.findById(id);
@@ -56,8 +56,8 @@ export class AtualizarUsuarioUseCase {
     if (role !== undefined) updateData.role = role;
     if (especializacao !== undefined)
       updateData.especializacao = especializacao;
-    if (cargaHorariaMax !== undefined)
-      updateData.cargaHorariaMax = cargaHorariaMax;
+    if (carga_horaria_max !== undefined)
+      updateData.carga_horaria_max = carga_horaria_max;
     if (preferencia !== undefined) updateData.preferencia = preferencia;
 
     const usuarioAtualizado = await this.usersRepository.update(id, updateData);

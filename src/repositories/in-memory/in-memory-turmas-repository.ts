@@ -8,9 +8,12 @@ export class InMemoryTurmasRepository implements TurmasRepository {
     const turma: Turma = {
       id: `turma-${this.turmas.length + 1}`,
       nome: data.nome,
-      numAlunos: data.numAlunos,
-      periodo: data.periodo,
-      turno: data.turno,
+      num_alunos: data.num_alunos || 30,
+      periodo: data.periodo || 1,
+      turno: data.turno || 'MATUTINO',
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso ? data.curso.connect!.id : '',
+      semestre: data.semestre || 1,
+      ativa: data.ativa !== undefined ? data.ativa : true,
     };
 
     this.turmas.push(turma);
@@ -45,7 +48,7 @@ export class InMemoryTurmasRepository implements TurmasRepository {
     const turmaAtualizada: Turma = {
       ...turmaAtual,
       nome: (data.nome as string) ?? turmaAtual.nome,
-      numAlunos: (data.numAlunos as number) ?? turmaAtual.numAlunos,
+      num_alunos: (data.num_alunos as number) ?? turmaAtual.num_alunos,
       periodo: (data.periodo as number) ?? turmaAtual.periodo,
       turno: (data.turno as string) ?? turmaAtual.turno,
     };

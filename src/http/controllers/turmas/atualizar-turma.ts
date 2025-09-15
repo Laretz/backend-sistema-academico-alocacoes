@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeAtualizarTurmaUseCase } from "../../../use-cases/@factories/make-atualizar-turma-use-case";
+import { makeAtualizarTurmaUseCase } from "@/use-cases/@factories/turma/make-atualizar-turma-use-case";
 
 export async function atualizarTurma(request: FastifyRequest, reply: FastifyReply) {
     const atualizarTurmaParamsSchema = z.object({
@@ -10,13 +10,13 @@ export async function atualizarTurma(request: FastifyRequest, reply: FastifyRepl
 
     const atualizarTurmaBodySchema = z.object({
         nome: z.string().optional(),
-        numAlunos: z.number().optional(),
+        num_alunos: z.number().optional(),
         periodo: z.number().optional(),
         turno: z.string().optional(),
     });
 
     const { id } = atualizarTurmaParamsSchema.parse(request.params);
-    const { nome, numAlunos, periodo, turno } = atualizarTurmaBodySchema.parse(request.body);
+    const { nome, num_alunos, periodo, turno } = atualizarTurmaBodySchema.parse(request.body);
 
     try {
         const atualizarTurmaUseCase = makeAtualizarTurmaUseCase();
@@ -24,7 +24,7 @@ export async function atualizarTurma(request: FastifyRequest, reply: FastifyRepl
         const { turma } = await atualizarTurmaUseCase.execute({
             id,
             nome,
-            numAlunos,
+            num_alunos,
             periodo,
             turno,
         });

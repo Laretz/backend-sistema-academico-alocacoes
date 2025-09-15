@@ -15,17 +15,17 @@ describe('Buscar Disciplinas Use Case', () => {
         // Criar algumas disciplinas para teste
         await disciplinasRepository.create({
             nome: 'Matemática',
-            cargaHorariaTotal: 80,
+            carga_horaria_total: 80,
         });
 
         await disciplinasRepository.create({
             nome: 'Física',
-            cargaHorariaTotal: 60,
+            carga_horaria_total: 60,
         });
 
         await disciplinasRepository.create({
             nome: 'Química',
-            cargaHorariaTotal: 40,
+            carga_horaria_total: 40,
         });
 
         const { disciplinas } = await sut.execute({

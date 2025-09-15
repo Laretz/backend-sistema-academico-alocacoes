@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeExcluirDisciplinaUseCase } from '../../../use-cases/@factories/make-excluir-disciplina-use-case';
+import { makeExcluirDisciplinaUseCase } from '@/use-cases/@factories/disciplina/make-excluir-disciplina-use-case';
 
 export async function excluirDisciplina(
   request: FastifyRequest,

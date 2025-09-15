@@ -54,15 +54,15 @@ async function criarHorariosPadrao() {
 
                     
                     // Criar objetos Date apenas com tempo (sem timezone)
-                    const horarioInicio = new Date(`1970-01-01T${horario.inicio.hora.toString().padStart(2, '0')}:${horario.inicio.minuto.toString().padStart(2, '0')}:00.000Z`);
-                    const horarioFim = new Date(`1970-01-01T${horario.fim.hora.toString().padStart(2, '0')}:${horario.fim.minuto.toString().padStart(2, '0')}:00.000Z`);
+                    const horario_inicio = new Date(`1970-01-01T${horario.inicio.hora.toString().padStart(2, '0')}:${horario.inicio.minuto.toString().padStart(2, '0')}:00.000Z`);
+                    const horario_fim = new Date(`1970-01-01T${horario.fim.hora.toString().padStart(2, '0')}:${horario.fim.minuto.toString().padStart(2, '0')}:00.000Z`);
                     
                     const codigo = `${turno}${numeroHorario}`;
                     
                     // Verificar se já existe
                     const existente = await prisma.horario.findFirst({
                         where: {
-                            diaSemana: dia,
+                            dia_semana: dia,
                             codigo: codigo
                         }
                     });
@@ -70,10 +70,10 @@ async function criarHorariosPadrao() {
                     if (!existente) {
                         await prisma.horario.create({
                             data: {
-                                diaSemana: dia,
+                                dia_semana: dia,
                                 codigo: codigo,
-                                horarioInicio: horarioInicio,
-                                horarioFim: horarioFim
+                                horario_inicio: horario_inicio,
+                                horario_fim: horario_fim
                             }
                         });
                         

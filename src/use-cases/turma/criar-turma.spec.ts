@@ -14,14 +14,15 @@ describe('Criar Turma Use Case', () => {
   it('deve ser possível criar uma turma', async () => {
     const { turma } = await sut.execute({
       nome: 'Turma A',
-      numAlunos: 30,
+      num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
+      id_curso: 'curso-id-teste',
     });
 
     expect(turma.id).toEqual(expect.any(String));
     expect(turma.nome).toEqual('Turma A');
-    expect(turma.numAlunos).toEqual(30);
+    expect(turma.num_alunos).toEqual(30);
     expect(turma.periodo).toEqual(1);
     expect(turma.turno).toEqual('MATUTINO');
   });
@@ -29,23 +30,26 @@ describe('Criar Turma Use Case', () => {
   it('deve ser possível criar turmas com diferentes turnos', async () => {
     const { turma: turmaMatutino } = await sut.execute({
       nome: 'Turma Manhã',
-      numAlunos: 25,
+      num_alunos: 25,
       periodo: 2,
       turno: 'MATUTINO',
+      id_curso: 'curso-id-teste-1',
     });
 
     const { turma: turmaVespertino } = await sut.execute({
       nome: 'Turma Tarde',
-      numAlunos: 28,
+      num_alunos: 28,
       periodo: 3,
       turno: 'VESPERTINO',
+      id_curso: 'curso-id-teste-2',
     });
 
     const { turma: turmaNoturno } = await sut.execute({
       nome: 'Turma Noite',
-      numAlunos: 20,
+      num_alunos: 20,
       periodo: 4,
       turno: 'NOTURNO',
+      id_curso: 'curso-id-teste-3',
     });
 
     expect(turmaMatutino.turno).toEqual('MATUTINO');
@@ -56,19 +60,21 @@ describe('Criar Turma Use Case', () => {
   it('deve ser possível criar turmas com diferentes números de alunos', async () => {
     const { turma: turmaPequena } = await sut.execute({
       nome: 'Turma Pequena',
-      numAlunos: 15,
+      num_alunos: 15,
       periodo: 1,
       turno: 'MATUTINO',
+      id_curso: 'curso-id-teste-4',
     });
 
     const { turma: turmaGrande } = await sut.execute({
       nome: 'Turma Grande',
-      numAlunos: 40,
+      num_alunos: 40,
       periodo: 1,
       turno: 'VESPERTINO',
+      id_curso: 'curso-id-teste-5',
     });
 
-    expect(turmaPequena.numAlunos).toEqual(15);
-    expect(turmaGrande.numAlunos).toEqual(40);
+    expect(turmaPequena.num_alunos).toEqual(15);
+    expect(turmaGrande.num_alunos).toEqual(40);
   });
 });

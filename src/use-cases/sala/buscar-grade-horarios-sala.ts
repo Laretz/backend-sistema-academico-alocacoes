@@ -19,21 +19,21 @@ interface AlocacaoInfo {
   turma: {
     id: string;
     nome: string;
-    numAlunos: number;
+    num_alunos: number;
     periodo: number;
     turno: string;
   };
   horario: {
     id: string;
     codigo: string;
-    diaSemana: string;
-    horarioInicio: Date;
-    horarioFim: Date;
+    dia_semana: string;
+    horario_inicio: Date;
+  horario_fim: Date;
   };
 }
 
 interface GradeHorarios {
-  [diaSemana: string]: {
+  [dia_semana: string]: {
     [codigoHorario: string]: AlocacaoInfo | null;
   };
 }
@@ -98,10 +98,10 @@ export class BuscarGradeHorariosSalaUseCase {
 
     // Preencher grade com alocações
     alocacoes.forEach((alocacao: any) => {
-      const diaSemana = alocacao.horario.diaSemana;
-      const codigoHorario = alocacao.horario.codigo;
+      const dia_semana = alocacao.horario.dia_semana;
+    const codigoHorario = alocacao.horario.codigo;
 
-      grade[diaSemana][codigoHorario] = {
+    grade[dia_semana][codigoHorario] = {
         id: alocacao.id,
         disciplina: {
           id: alocacao.disciplina.id,
@@ -116,16 +116,16 @@ export class BuscarGradeHorariosSalaUseCase {
         turma: {
           id: alocacao.turma.id,
           nome: alocacao.turma.nome,
-          numAlunos: alocacao.turma.numAlunos,
+          num_alunos: alocacao.turma.num_alunos,
           periodo: alocacao.turma.periodo,
           turno: alocacao.turma.turno,
         },
         horario: {
           id: alocacao.horario.id,
           codigo: alocacao.horario.codigo,
-          diaSemana: alocacao.horario.diaSemana,
-          horarioInicio: alocacao.horario.horarioInicio,
-          horarioFim: alocacao.horario.horarioFim,
+          dia_semana: alocacao.horario.dia_semana,
+          horario_inicio: alocacao.horario.horario_inicio,
+        horario_fim: alocacao.horario.horario_fim,
         },
       };
     });

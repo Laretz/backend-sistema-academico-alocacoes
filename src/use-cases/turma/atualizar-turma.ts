@@ -4,7 +4,7 @@ import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 interface AtualizarTurmaUseCaseRequest {
     id: string;
     nome: string | undefined;
-    numAlunos: number | undefined;
+    num_alunos: number | undefined;
     periodo: number | undefined;
     turno: string | undefined;
 }
@@ -12,7 +12,7 @@ interface AtualizarTurmaUseCaseRequest {
 export class AtualizarTurmaUseCase {
     constructor(private turmasRepository: TurmasRepository) {}
 
-    async execute({ id, nome, numAlunos, periodo, turno }: AtualizarTurmaUseCaseRequest) {
+    async execute({ id, nome, num_alunos, periodo, turno }: AtualizarTurmaUseCaseRequest) {
         const turmaExiste = await this.turmasRepository.findById(id);
 
         if (!turmaExiste) {
@@ -22,7 +22,7 @@ export class AtualizarTurmaUseCase {
         // Cria um objeto com apenas os campos que foram fornecidos
         const updateData: any = {};
         if (nome !== undefined) updateData.nome = nome;
-        if (numAlunos !== undefined) updateData.numAlunos = numAlunos;
+        if (num_alunos !== undefined) updateData.num_alunos = num_alunos;
         if (periodo !== undefined) updateData.periodo = periodo;
         if (turno !== undefined) updateData.turno = turno;
         

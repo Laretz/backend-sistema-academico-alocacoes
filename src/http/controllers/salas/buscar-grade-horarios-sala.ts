@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeBuscarGradeHorariosSalaUseCase } from "../../../use-cases/@factories/make-buscar-grade-horarios-sala-use-case";
+import { makeBuscarGradeHorariosSalaUseCase } from "@/use-cases/@factories/sala/make-buscar-grade-horarios-sala-use-case";
 
 export async function buscarGradeHorariosSala(
   request: FastifyRequest,

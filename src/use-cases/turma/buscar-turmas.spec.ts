@@ -89,9 +89,12 @@ describe('Buscar Turmas Use Case', () => {
   it('deve retornar turmas com todas as propriedades corretas', async () => {
     await turmasRepository.create({
       nome: 'Turma Teste',
-      numAlunos: 35,
+      num_alunos: 30,
       periodo: 3,
       turno: 'NOTURNO',
+      curso: {
+        connect: { id: 'curso-id-teste' }
+      }
     });
 
     const { turmas } = await sut.execute({
@@ -101,9 +104,12 @@ describe('Buscar Turmas Use Case', () => {
     expect(turmas[0]).toEqual({
       id: expect.any(String),
       nome: 'Turma Teste',
-      numAlunos: 35,
+      num_alunos: 30,
       periodo: 3,
       turno: 'NOTURNO',
+      id_curso: 'curso-id-teste',
+      semestre: 1,
+      ativa: true,
     });
   });
 });

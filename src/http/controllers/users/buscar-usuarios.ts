@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeBuscarUsuariosUseCase } from "../../../use-cases/@factories/make-buscar-usuarios-use-case";
+import { makeBuscarUsuariosUseCase } from "@/use-cases/@factories/usuario/make-buscar-usuarios-use-case";
 
 export async function buscarUsuarios(
   request: FastifyRequest,

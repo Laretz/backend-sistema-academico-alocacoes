@@ -3,166 +3,212 @@ import { prisma } from "../../lib/prisma";
 import { AlocacoesRepository } from "../alocacoes-repository";
 
 export class PrismaAlocacoesRepository implements AlocacoesRepository {
-    async create(data: Prisma.AlocacaoCreateInput) {
-        const alocacao = await prisma.alocacao.create({
-            data,
-        });
-        return alocacao;
-    }
+  async create(data: Prisma.AlocacaoCreateInput) {
+    const alocacao = await prisma.alocacao.create({
+      data,
+    });
+    return alocacao;
+  }
 
-    async findById(id: string) {
-        const alocacao = await prisma.alocacao.findUnique({
-            where: { id },
-            include: {
-                user: true,
-                disciplina: true,
-                turma: true,
-                sala: true,
-                horario: true
-            }
-        });
+  async findById(id: string) {
+    const alocacao = await prisma.alocacao.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: true,
+        horario: true,
+      },
+    });
 
-        return alocacao;
-    }
+    return alocacao;
+  }
 
-    async findByUserIdAndHorarioId(id_user: string, id_horario: string) {
-        const alocacao = await prisma.alocacao.findFirst({
-            where: {
-                id_user,
-                id_horario
-            },
-        });
+  async findByUserIdAndHorarioId(id_user: string, id_horario: string) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_user,
+        id_horario,
+      },
+    });
 
-        return alocacao;
-    }
+    return alocacao;
+  }
 
-    async findBySalaIdAndHorarioId(id_sala: string, id_horario: string) {
-        const alocacao = await prisma.alocacao.findFirst({
-            where: {
-                id_sala,
-                id_horario
-            },
-        });
+  async findBySalaIdAndHorarioId(id_sala: string, id_horario: string) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_sala,
+        id_horario,
+      },
+    });
 
-        return alocacao;
-    }
+    return alocacao;
+  }
 
-    async findByTurmaIdAndHorarioId(id_turma: string, id_horario: string) {
-        const alocacao = await prisma.alocacao.findFirst({
-            where: {
-                id_turma,
-                id_horario
-            },
-        });
+  async findByTurmaIdAndHorarioId(id_turma: string, id_horario: string) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_turma,
+        id_horario,
+      },
+    });
 
-        return alocacao;
-    }
+    return alocacao;
+  }
 
-    async findMany(page: number) {
-        const alocacoes = await prisma.alocacao.findMany({
-            take: 20,
-            skip: (page - 1) * 20,
-            include: {
-                user: true,
-                disciplina: true,
-                turma: true,
-                sala: true,
-                horario: true
-            }
-        });
+  async findMany(page: number) {
+    const ordemDias = {
+      SEGUNDA: 1,
+      TERCA: 2,
+      QUARTA: 3,
+      QUINTA: 4,
+      SEXTA: 5,
+      SABADO: 6,
+    };
 
-        return alocacoes;
-    }
+    const alocacoes = await prisma.alocacao.findMany({
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: true,
+        horario: true,
+      },
+      orderBy: [
+        {
+          created_at: "desc",
+        },
+      ],
+    });
 
-    async findByUserId(id_user: string, page: number) {
-        const alocacoes = await prisma.alocacao.findMany({
-            where: {
-                id_user
-            },
-            take: 20,
-            skip: (page - 1) * 20,
-            include: {
-                disciplina: true,
-                turma: true,
-                sala: true,
-                horario: true
-            }
-        });
+    return alocacoes.sort((a, b) => {
+      const diaA =
+        ordemDias[a.horario?.dia_semana as keyof typeof ordemDias] || 7;
+      const diaB =
+        ordemDias[b.horario?.dia_semana as keyof typeof ordemDias] || 7;
 
-        return alocacoes;
-    }
+      if (diaA !== diaB) {
+        return diaA - diaB;
+      }
 
-    async findByTurmaId(id_turma: string, page: number) {
-        const alocacoes = await prisma.alocacao.findMany({
-            where: {
-                id_turma
-            },
-            take: 20,
-            skip: (page - 1) * 20,
-            include: {
-                user: true,
-                disciplina: true,
-                sala: true,
-                horario: true
-            }
-        });
+      // Depois ordenar por código do horário (M1, M2, T1, T2, N1, N2)
+      const getOrdemCodigo = (codigo: string) => {
+        if (!codigo) return 999;
+        const periodo = codigo.charAt(0);
+        const numero = parseInt(codigo.charAt(1)) || 0;
+        const ordemPeriodo = { M: 0, T: 1, N: 2 };
+        return (
+          (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 3) * 10 +
+          numero
+        );
+      };
 
-        return alocacoes;
-    }
+      const codigoA = getOrdemCodigo(a.horario?.codigo || "");
+      const codigoB = getOrdemCodigo(b.horario?.codigo || "");
 
-    async findAllByTurmaId(id_turma: string) {
-        const alocacoes = await prisma.alocacao.findMany({
-            where: {
-                id_turma
-            },
-            include: {
-                user: true,
-                disciplina: true,
-                sala: true,
-                horario: true
-            }
-        });
+      if (codigoA !== codigoB) {
+        return codigoA - codigoB;
+      }
 
-        return alocacoes;
-    }
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+  }
 
-    async findBySalaId(id_sala: string, page: number) {
-        const alocacoes = await prisma.alocacao.findMany({
-            where: {
-                id_sala
-            },
-            take: 20,
-            skip: (page - 1) * 20,
-            include: {
-                user: true,
-                disciplina: true,
-                turma: true,
-                horario: true
-            }
-        });
+  async findByUserId(id_user: string, page: number) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_user,
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        disciplina: true,
+        turma: true,
+        sala: true,
+        horario: true,
+      },
+    });
 
-        return alocacoes;
-    }
+    return alocacoes;
+  }
 
-    async update(id: string, data: Prisma.AlocacaoUpdateInput) {
-        const alocacao = await prisma.alocacao.update({
-            where: { id },
-            data,
-            include: {
-                user: true,
-                disciplina: true,
-                turma: true,
-                sala: true,
-                horario: true
-            }
-        });
+  async findByTurmaId(id_turma: string, page: number) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_turma,
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        user: true,
+        disciplina: true,
+        sala: true,
+        horario: true,
+      },
+    });
 
-        return alocacao;
-    }
+    return alocacoes;
+  }
 
-    async delete(id: string) {
-        await prisma.alocacao.delete({
-            where: { id },
-        });
-    }
+  async findAllByTurmaId(id_turma: string) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_turma,
+      },
+      include: {
+        user: true,
+        disciplina: true,
+        sala: true,
+        horario: true,
+      },
+    });
+
+    return alocacoes;
+  }
+
+  async findBySalaId(id_sala: string, page: number) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_sala,
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        horario: true,
+      },
+    });
+
+    return alocacoes;
+  }
+
+  async update(id: string, data: Prisma.AlocacaoUpdateInput) {
+    const alocacao = await prisma.alocacao.update({
+      where: { id },
+      data,
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: true,
+        horario: true,
+      },
+    });
+
+    return alocacao;
+  }
+
+  async delete(id: string) {
+    await prisma.alocacao.delete({
+      where: { id },
+    });
+  }
 }

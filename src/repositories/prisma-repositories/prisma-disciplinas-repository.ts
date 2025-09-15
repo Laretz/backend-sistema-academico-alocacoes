@@ -30,6 +30,15 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
         const disciplinas = await prisma.disciplina.findMany({
             take: 20,
             skip: (page - 1) * 20,
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
         });
 
         return disciplinas;

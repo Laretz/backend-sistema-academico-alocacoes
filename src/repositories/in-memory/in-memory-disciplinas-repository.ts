@@ -1,4 +1,4 @@
-import { Prisma, Disciplina } from "@prisma/client";
+import { Prisma, Disciplina, TipoDeSala } from "@prisma/client";
 import { DisciplinasRepository } from "../disciplinas-repository";
 
 export class InMemoryDisciplinasRepository implements DisciplinasRepository {
@@ -8,7 +8,20 @@ export class InMemoryDisciplinasRepository implements DisciplinasRepository {
     const disciplina: Disciplina = {
       id: `disciplina-${this.disciplinas.length + 1}`,
       nome: data.nome,
-      cargaHorariaTotal: data.cargaHorariaTotal,
+      carga_horaria: (data.carga_horaria as number) || 60,
+      carga_horaria_atual: data.carga_horaria_atual || 0,
+      total_aulas: data.total_aulas || 72,
+      aulas_ministradas: data.aulas_ministradas || 0,
+      tipo_de_sala: (data.tipo_de_sala as TipoDeSala) || 'Sala',
+      data_inicio: data.data_inicio ? new Date(data.data_inicio as string) : null,
+      data_fim_prevista: data.data_fim_prevista ? new Date(data.data_fim_prevista as string) : null,
+      data_fim_real: data.data_fim_real ? new Date(data.data_fim_real as string) : null,
+      periodo_letivo: data.periodo_letivo || null,
+      horario_consolidado: data.horario_consolidado || null,
+      codigo: data.codigo || null,
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso ? data.curso.connect!.id : '',
+      semestre: data.semestre || 1,
+      obrigatoria: data.obrigatoria !== undefined ? data.obrigatoria : true,
     };
 
     this.disciplinas.push(disciplina);
@@ -44,7 +57,7 @@ export class InMemoryDisciplinasRepository implements DisciplinasRepository {
     this.disciplinas[disciplinaIndex] = {
       ...disciplina,
       nome: data.nome as string ?? disciplina.nome,
-      cargaHorariaTotal: data.cargaHorariaTotal as number ?? disciplina.cargaHorariaTotal,
+      carga_horaria: data.carga_horaria as number ?? disciplina.carga_horaria,
     };
 
     return this.disciplinas[disciplinaIndex];

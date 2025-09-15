@@ -11,7 +11,7 @@ interface RegisterUseCaseRequest {
     senha: string;
     role: Role | undefined;
     especializacao: string | undefined;
-    cargaHorariaMax: number | undefined;
+    carga_horaria_max: number | undefined;
     preferencia: string | undefined;
 }
 

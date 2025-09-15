@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeBuscarGradeHorariosTurmaUseCase } from "../../../use-cases/@factories/make-buscar-grade-horarios-turma-use-case";
+import { makeBuscarGradeHorariosTurmaUseCase } from "@/use-cases/@factories/turma/make-buscar-grade-horarios-turma-use-case";
 
 export async function buscarGradeHorariosTurma(
   request: FastifyRequest,

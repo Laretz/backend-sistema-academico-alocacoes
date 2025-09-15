@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeBuscarUsuarioUseCase } from "../../../use-cases/@factories/make-buscar-usuario-use-case";
+import { makeBuscarUsuarioUseCase } from "@/use-cases/@factories/usuario/make-buscar-usuario-use-case";
 
 export async function buscarUsuario(
   request: FastifyRequest,
