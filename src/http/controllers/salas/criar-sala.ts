@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeCriarSalaUseCase } from "../../../use-cases/@factories/make-criar-sala-use-case";
+import { makeCriarSalaUseCase } from "@/use-cases/@factories/sala/make-criar-sala-use-case";
 
 export async function criarSala(request: FastifyRequest, reply: FastifyReply) {
     const criarSalaBodySchema = z.object({
@@ -8,9 +8,10 @@ export async function criarSala(request: FastifyRequest, reply: FastifyReply) {
         predio: z.string(),
         capacidade: z.number(),
         tipo: z.string(),
+        computadores: z.number().optional().default(0),
     });
 
-    const { nome, predio, capacidade, tipo } = criarSalaBodySchema.parse(request.body);
+    const { nome, predio, capacidade, tipo, computadores } = criarSalaBodySchema.parse(request.body);
 
     try {
         const criarSalaUseCase = makeCriarSalaUseCase();
@@ -20,6 +21,7 @@ export async function criarSala(request: FastifyRequest, reply: FastifyReply) {
             predio,
             capacidade,
             tipo,
+            computadores,
         });
 
         return reply.status(201).send({ sala });

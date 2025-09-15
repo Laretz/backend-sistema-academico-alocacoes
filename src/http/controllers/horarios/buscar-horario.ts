@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeBuscarHorarioUseCase } from "../../../use-cases/@factories/make-buscar-horario-use-case";
+import { makeBuscarHorarioUseCase } from "@/use-cases/@factories/horario/make-buscar-horario-use-case";
 
 export async function buscarHorario(request: FastifyRequest, reply: FastifyReply) {
     const buscarHorarioParamsSchema = z.object({

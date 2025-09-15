@@ -14,7 +14,7 @@ export class InMemoryUsersRepository implements UsersRepository {
       role: data.role as "PROFESSOR" | "ADMIN" | "COORDENADOR",
       especializacao: data.especializacao ?? null,
       preferencia: data.preferencia ?? null,
-      cargaHorariaMax: data.cargaHorariaMax ?? null,
+      carga_horaria_max: data.carga_horaria_max ?? null,
     };
 
     this.users.push(user);

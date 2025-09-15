@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeAtualizarAlocacaoUseCase } from "../../../use-cases/@factories/make-atualizar-alocacao-use-case";
+import { makeAtualizarAlocacaoUseCase } from "@/use-cases/@factories/alocacao/make-atualizar-alocacao-use-case";
 
 export async function atualizarAlocacao(
   request: FastifyRequest,

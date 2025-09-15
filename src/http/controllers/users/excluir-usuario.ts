@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeExcluirUsuarioUseCase } from "../../../use-cases/@factories/make-excluir-usuario-use-case";
+import { makeExcluirUsuarioUseCase } from "@/use-cases/@factories/usuario/make-excluir-usuario-use-case";
 
 export async function excluirUsuario(
   request: FastifyRequest,

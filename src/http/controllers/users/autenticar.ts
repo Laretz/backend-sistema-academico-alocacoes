@@ -3,7 +3,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { PrismaUsersRepository } from "../../../repositories/prisma-repositories/prisma-users-repository";
 import { AuthenticateUseCase } from "../../../use-cases/authenticate";
 import { CredenciaisInvalidas } from "../../../use-cases/errors/credenciais-invalidas";
-import { makeAuthenticateUseCase } from "../../../use-cases/@factories/make-authenticate-use-case";
+import { makeAuthenticateUseCase } from "@/use-cases/@factories/usuario/make-authenticate-use-case";
     
 export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
 
@@ -49,7 +49,7 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
                 email: user.email,
                 role: user.role,
                 especializacao: user.especializacao,
-                cargaHorariaMax: user.cargaHorariaMax,
+                carga_horaria_max: user.carga_horaria_max,
                 preferencia: user.preferencia
             }
         });

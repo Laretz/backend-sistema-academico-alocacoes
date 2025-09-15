@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeExcluirSalaUseCase } from "../../../use-cases/@factories/make-excluir-sala-use-case";
+import { makeExcluirSalaUseCase } from "@/use-cases/@factories/sala/make-excluir-sala-use-case";
 
 export async function excluirSala(request: FastifyRequest, reply: FastifyReply) {
     const excluirSalaParamsSchema = z.object({

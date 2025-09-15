@@ -2,7 +2,7 @@ import {z} from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {  Role } from "@prisma/client";
 import { UserJaExisteError } from "../../../use-cases/errors/email-ja-existe";
-import { makeRegisterUseCase } from "../../../use-cases/@factories/make-register-use-case";
+import { makeRegisterUseCase } from "@/use-cases/@factories/usuario/make-register-use-case";
     
 export async function register(request: FastifyRequest, reply: FastifyReply) {
     const registerBodySchema = z.object({
@@ -11,16 +11,16 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
         senha: z.string().min(6),
         role: z.enum(Role).optional(),
         especializacao: z.string().optional(),
-        cargaHorariaMax: z.number().optional(),
+        carga_horaria_max: z.number().optional(),
         preferencia: z.string().optional(),
     });
 
-    const { nome, email, senha, role, especializacao, cargaHorariaMax, preferencia } = registerBodySchema.parse(request.body);
+    const { nome, email, senha, role, especializacao, carga_horaria_max, preferencia } = registerBodySchema.parse(request.body);
 
     try {
         const registerUseCase = makeRegisterUseCase()
 
-        await registerUseCase.execute({ nome, email, senha, role, especializacao, cargaHorariaMax, preferencia });
+        await registerUseCase.execute({ nome, email, senha, role, especializacao, carga_horaria_max, preferencia });
 
     } catch (error) {
         if (error instanceof UserJaExisteError){

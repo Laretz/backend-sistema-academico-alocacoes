@@ -2,16 +2,17 @@ import { HorariosRepository } from "../../repositories/horarios-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface AtualizarHorarioUseCaseRequest {
-    id: string;
-    diaSemana: string | undefined;
-    horarioInicio: Date | undefined;
-    horarioFim: Date | undefined;
+  id: string;
+  codigo?: string | undefined;
+  dia_semana?: string | undefined;
+  horario_inicio?: Date | undefined;
+  horario_fim?: Date | undefined;
 }
 
 export class AtualizarHorarioUseCase {
     constructor(private horariosRepository: HorariosRepository) {}
 
-    async execute({ id, diaSemana, horarioInicio, horarioFim }: AtualizarHorarioUseCaseRequest) {
+    async execute({ id, codigo, dia_semana, horario_inicio, horario_fim }: AtualizarHorarioUseCaseRequest) {
         const horarioExiste = await this.horariosRepository.findById(id);
 
         if (!horarioExiste) {
@@ -20,9 +21,10 @@ export class AtualizarHorarioUseCase {
 
         // Cria um objeto com apenas os campos que foram fornecidos
         const updateData: any = {};
-        if (diaSemana !== undefined) updateData.diaSemana = diaSemana;
-        if (horarioInicio !== undefined) updateData.horarioInicio = horarioInicio;
-        if (horarioFim !== undefined) updateData.horarioFim = horarioFim;
+        if (codigo !== undefined) updateData.codigo = codigo;
+        if (dia_semana !== undefined) updateData.dia_semana = dia_semana;
+        if (horario_inicio !== undefined) updateData.horario_inicio = horario_inicio;
+    if (horario_fim !== undefined) updateData.horario_fim = horario_fim;
         
         const horario = await this.horariosRepository.update(id, updateData);
 

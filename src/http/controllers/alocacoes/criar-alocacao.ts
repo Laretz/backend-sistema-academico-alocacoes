@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeCriarAlocacaoUseCase } from "../../../use-cases/@factories/make-criar-alocacao-use-case";
+import { makeCriarAlocacaoUseCase } from "@/use-cases/@factories/alocacao/make-criar-alocacao-use-case";
 
 export async function criarAlocacao(
   request: FastifyRequest,

@@ -5,10 +5,10 @@ interface CriarHorarioCodigoUseCaseRequest {
 }
 
 interface HorarioInfo {
-  diaSemana: string;
+  dia_semana: string;
   codigo: string;
-  horarioInicio: Date;
-  horarioFim: Date;
+  horario_inicio: Date;
+  horario_fim: Date;
 }
 
 export class CriarHorarioCodigoUseCase {
@@ -36,8 +36,8 @@ export class CriarHorarioCodigoUseCase {
       "7": "SABADO",
     };
 
-    const diaSemana = diasSemana[dia];
-    if (!diaSemana) {
+    const dia_semana = diasSemana[dia];
+    if (!dia_semana) {
       throw new Error("Dia da semana inválido no código");
     }
 
@@ -60,24 +60,24 @@ export class CriarHorarioCodigoUseCase {
     }
 
     // Calcular horário de início e fim considerando intervalos
-    const { horarioInicio, horarioFim } = this.calcularHorarios(
+    const { horario_inicio, horario_fim } = this.calcularHorarios(
       turno,
       primeiroHorario,
       ultimoHorario
     );
 
     // Criar objetos Date apenas com tempo (sem timezone)
-    const inicio = new Date(`1970-01-01T${horarioInicio.hora.toString().padStart(2, '0')}:${horarioInicio.minuto.toString().padStart(2, '0')}:00.000Z`);
-    const fim = new Date(`1970-01-01T${horarioFim.hora.toString().padStart(2, '0')}:${horarioFim.minuto.toString().padStart(2, '0')}:00.000Z`);
+    const inicio = new Date(`1970-01-01T${horario_inicio.hora.toString().padStart(2, '0')}:${horario_inicio.minuto.toString().padStart(2, '0')}:00.000Z`);
+    const fim = new Date(`1970-01-01T${horario_fim.hora.toString().padStart(2, '0')}:${horario_fim.minuto.toString().padStart(2, '0')}:00.000Z`);
 
     // Gerar código do horário (ex: M1, T2, N3)
     const codigoHorario = `${turno}${primeiroHorario}`;
     
     return {
-      diaSemana,
+      dia_semana,
       codigo: codigoHorario,
-      horarioInicio: inicio,
-      horarioFim: fim,
+      horario_inicio: inicio,
+      horario_fim: fim,
     };
   }
 
@@ -86,8 +86,8 @@ export class CriarHorarioCodigoUseCase {
     primeiroHorario: number,
     ultimoHorario: number
   ): {
-    horarioInicio: { hora: number; minuto: number };
-    horarioFim: { hora: number; minuto: number };
+    horario_inicio: { hora: number; minuto: number };
+    horario_fim: { hora: number; minuto: number };
   } {
     // Definir horários por turno considerando intervalos
     const horariosDefinidos: {
@@ -141,13 +141,13 @@ export class CriarHorarioCodigoUseCase {
     throw new Error("Horário fora do intervalo válido");
     }
 
-    const horarioInicio = inicioHorarioObj.inicio;
-    const horarioFim = fimHorarioObj.fim;
+    const horario_inicio = inicioHorarioObj.inicio;
+    const horario_fim = fimHorarioObj.fim;
 
 
     return {
-      horarioInicio,
-      horarioFim,
+      horario_inicio,
+      horario_fim,
     };
   }
 
@@ -156,9 +156,9 @@ export class CriarHorarioCodigoUseCase {
 
     // Verificar se já existe um horário igual
     const horarioExistente = await this.horariosRepository.findByDiaEHorario(
-      horarioInfo.diaSemana,
-      horarioInfo.horarioInicio,
-      horarioInfo.horarioFim
+      horarioInfo.dia_semana,
+      horarioInfo.horario_inicio,
+      horarioInfo.horario_fim
     );
 
     if (horarioExistente) {
@@ -167,10 +167,10 @@ export class CriarHorarioCodigoUseCase {
 
     // Criar novo horário
     const horario = await this.horariosRepository.create({
-      diaSemana: horarioInfo.diaSemana,
+      dia_semana: horarioInfo.dia_semana,
       codigo: horarioInfo.codigo,
-      horarioInicio: horarioInfo.horarioInicio,
-      horarioFim: horarioInfo.horarioFim,
+      horario_inicio: horarioInfo.horario_inicio,
+      horario_fim: horarioInfo.horario_fim,
     });
 
     return { horario };

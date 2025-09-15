@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeBuscarAlocacaoUseCase } from "../../../use-cases/@factories/make-buscar-alocacao-use-case";
+import { makeBuscarAlocacaoUseCase } from "@/use-cases/@factories/alocacao/make-buscar-alocacao-use-case";
 
 export async function buscarAlocacao(
   request: FastifyRequest,

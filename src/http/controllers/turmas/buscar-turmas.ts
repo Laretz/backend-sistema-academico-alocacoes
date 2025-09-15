@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeBuscarTurmasUseCase } from "../../../use-cases/@factories/make-buscar-turmas-use-case";
+import { makeBuscarTurmasUseCase } from "@/use-cases/@factories/turma/make-buscar-turmas-use-case";
 
 export async function buscarTurmas(request: FastifyRequest, reply: FastifyReply) {
     const buscarTurmasQuerySchema = z.object({

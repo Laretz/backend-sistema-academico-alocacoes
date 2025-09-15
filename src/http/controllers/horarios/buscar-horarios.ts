@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeBuscarHorariosUseCase } from "../../../use-cases/@factories/make-buscar-horarios-use-case";
+import { makeBuscarHorariosUseCase } from "@/use-cases/@factories/horario/make-buscar-horarios-use-case";
 
 export async function buscarHorarios(request: FastifyRequest, reply: FastifyReply) {
     const buscarHorariosQuerySchema = z.object({

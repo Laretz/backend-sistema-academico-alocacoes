@@ -9,9 +9,9 @@ interface BuscarGradeHorariosUseCaseRequest {
 
 interface HorarioAlocacao {
     id: string;
-    diaSemana: string;
-    horarioInicio: Date;
-    horarioFim: Date;
+    dia_semana: string;
+    horario_inicio: Date;
+  horario_fim: Date;
     disciplina: {
         id: string;
         nome: string;
@@ -32,7 +32,7 @@ interface HorarioAlocacao {
     turma: {
         id: string;
         nome: string;
-        numAlunos: number;
+        num_alunos: number;
         periodo: number;
         turno: string;
     };
@@ -78,9 +78,9 @@ export class BuscarGradeHorariosUseCase {
         alocacoes.forEach((alocacao: any) => {
             const horarioAlocacao: HorarioAlocacao = {
                 id: alocacao.id,
-                diaSemana: alocacao.horario.diaSemana,
-                horarioInicio: alocacao.horario.horarioInicio,
-                horarioFim: alocacao.horario.horarioFim,
+                dia_semana: alocacao.horario.dia_semana,
+                horario_inicio: alocacao.horario.horario_inicio,
+        horario_fim: alocacao.horario.horario_fim,
                 disciplina: {
                     id: alocacao.disciplina.id,
                     nome: alocacao.disciplina.nome,
@@ -101,15 +101,15 @@ export class BuscarGradeHorariosUseCase {
                 turma: {
                     id: alocacao.turma.id,
                     nome: alocacao.turma.nome,
-                    numAlunos: alocacao.turma.numAlunos,
+                    num_alunos: alocacao.turma.num_alunos,
                     periodo: alocacao.turma.periodo,
                     turno: alocacao.turma.turno
                 }
             };
 
             // Mapeia o dia da semana para a propriedade correspondente
-            const diaSemana = alocacao.horario.diaSemana.toLowerCase();
-            switch (diaSemana) {
+            const dia_semana = alocacao.horario.dia_semana.toLowerCase();
+    switch (dia_semana) {
                 case 'segunda':
                 case 'segunda-feira':
                     gradeHorarios.segunda.push(horarioAlocacao);
@@ -142,7 +142,7 @@ export class BuscarGradeHorariosUseCase {
         // Ordena os horários de cada dia por horário de início
         Object.keys(gradeHorarios).forEach(dia => {
             gradeHorarios[dia as keyof GradeHorarios].sort((a, b) => 
-                new Date(a.horarioInicio).getTime() - new Date(b.horarioInicio).getTime()
+                new Date(a.horario_inicio).getTime() - new Date(b.horario_inicio).getTime()
             );
         });
 

@@ -74,7 +74,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: horarioId,
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },
@@ -137,7 +137,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-01',
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },
@@ -182,7 +182,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-02',
         codigo: 'M2',
-        diaSemana: 'TERCA',
+        dia_semana: 'TERCA',
         horarioInicio: new Date('2024-01-01T09:00:00'),
         horarioFim: new Date('2024-01-01T10:00:00'),
       },
@@ -244,7 +244,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-01',
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },
@@ -289,7 +289,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-02',
         codigo: 'M2',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T09:00:00'),
         horarioFim: new Date('2024-01-01T10:00:00'),
       },
@@ -346,7 +346,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-01',
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },
@@ -391,7 +391,7 @@ describe('Buscar Grade Horários Sala Use Case', () => {
       horario: {
         id: 'horario-02',
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },

@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { makeAuthenticateUseCase } from "../../../use-cases/@factories/make-authenticate-use-case";
+import { makeAuthenticateUseCase } from "@/use-cases/@factories/usuario/make-authenticate-use-case";
     
 export async function refresh(request: FastifyRequest, reply: FastifyReply) {
 

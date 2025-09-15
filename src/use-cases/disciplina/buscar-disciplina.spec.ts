@@ -15,7 +15,7 @@ describe('Buscar Disciplina Use Case', () => {
     it('deve ser possível buscar uma disciplina pelo id', async () => {
         const disciplinaCriada = await disciplinasRepository.create({
             nome: 'Matemática',
-            cargaHorariaTotal: 80,
+            carga_horaria: 80,
         });
 
         const { disciplina } = await sut.execute({
@@ -24,7 +24,7 @@ describe('Buscar Disciplina Use Case', () => {
 
         expect(disciplina.id).toEqual(disciplinaCriada.id);
         expect(disciplina.nome).toEqual('Matemática');
-        expect(disciplina.cargaHorariaTotal).toEqual(80);
+        expect(disciplina.carga_horaria).toEqual(80);
     });
 
     it('não deve ser possível buscar disciplina com id inexistente', async () => {

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeCriarHorarioCodigoUseCase } from "../../../use-cases/@factories/make-criar-horario-codigo-use-case";
+import { makeCriarHorarioCodigoUseCase } from "@/use-cases/@factories/horario/make-criar-horario-codigo-use-case";
 
 export async function criarHorarioCodigo(request: FastifyRequest, reply: FastifyReply) {
     const criarHorarioCodigoBodySchema = z.object({

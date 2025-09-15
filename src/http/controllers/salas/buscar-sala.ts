@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeBuscarSalaUseCase } from "../../../use-cases/@factories/make-buscar-sala-use-case";
+import { makeBuscarSalaUseCase } from "@/use-cases/@factories/sala/make-buscar-sala-use-case";
 
 export async function buscarSala(request: FastifyRequest, reply: FastifyReply) {
     const buscarSalaParamsSchema = z.object({

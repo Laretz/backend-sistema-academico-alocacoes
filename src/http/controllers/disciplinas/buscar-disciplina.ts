@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
-import { makeBuscarDisciplinaUseCase } from '../../../use-cases/@factories/make-buscar-disciplina-use-case';
+import { makeBuscarDisciplinaUseCase } from '@/use-cases/@factories/disciplina/make-buscar-disciplina-use-case';
 
 export async function buscarDisciplina(
   request: FastifyRequest,

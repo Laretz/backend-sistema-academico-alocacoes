@@ -18,7 +18,7 @@ type AlocacaoWithRelations = Alocacao & {
   turma: {
     id: string;
     nome: string;
-    numAlunos: number;
+    num_alunos: number;
     periodo: number;
     turno: string;
   };
@@ -32,7 +32,7 @@ type AlocacaoWithRelations = Alocacao & {
   horario: {
     id: string;
     codigo: string;
-    diaSemana: string;
+    dia_semana: string;
     horarioInicio: Date;
     horarioFim: Date;
   };
@@ -65,7 +65,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       turma: {
         id: typeof data.turma === 'object' && 'connect' in data.turma ? data.turma.connect!.id : '',
         nome: 'Turma Teste',
-        numAlunos: 30,
+        num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
       },
@@ -79,7 +79,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       horario: {
         id: typeof data.horario === 'object' && 'connect' in data.horario ? data.horario.connect!.id : '',
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },
@@ -210,7 +210,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       turma: alocacaoData.turma || {
         id: alocacaoData.id_turma || randomUUID(),
         nome: 'Turma Teste',
-        numAlunos: 30,
+        num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
       },
@@ -224,7 +224,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       horario: alocacaoData.horario || {
         id: alocacaoData.id_horario || randomUUID(),
         codigo: 'M1',
-        diaSemana: 'SEGUNDA',
+        dia_semana: 'SEGUNDA',
         horarioInicio: new Date('2024-01-01T08:00:00'),
         horarioFim: new Date('2024-01-01T09:00:00'),
       },

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeBuscarAlocacoesUseCase } from "../../../use-cases/@factories/make-buscar-alocacoes-use-case";
+import { makeBuscarAlocacoesUseCase } from "@/use-cases/@factories/alocacao/make-buscar-alocacoes-use-case";
 
 export async function buscarAlocacoes(
   request: FastifyRequest,
