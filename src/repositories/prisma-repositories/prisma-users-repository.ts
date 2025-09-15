@@ -39,6 +39,11 @@ export class PrismaUsersRepository implements UsersRepository {
             take: 20,
             orderBy: { nome: 'asc' },
         });
+        
+        if (!users) {
+            return [];
+        }
+        
         return users;
     }
 

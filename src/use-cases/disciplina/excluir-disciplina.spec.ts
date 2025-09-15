@@ -15,7 +15,12 @@ describe('Excluir Disciplina Use Case', () => {
     it('deve ser possível excluir uma disciplina', async () => {
         const disciplinaCriada = await disciplinasRepository.create({
             nome: 'Matemática',
-            carga_horaria_total: 80,
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1'
+                }
+            }
         });
 
         await sut.execute({
@@ -38,12 +43,22 @@ describe('Excluir Disciplina Use Case', () => {
     it('deve ser possível excluir uma disciplina e manter outras intactas', async () => {
         const disciplina1 = await disciplinasRepository.create({
             nome: 'Matemática',
-            cargaHorariaTotal: 80,
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1'
+                }
+            }
         });
 
         const disciplina2 = await disciplinasRepository.create({
             nome: 'Física',
-            cargaHorariaTotal: 60,
+            carga_horaria: 60,
+            curso: {
+                connect: {
+                    id: 'curso-1'
+                }
+            }
         });
 
         await sut.execute({

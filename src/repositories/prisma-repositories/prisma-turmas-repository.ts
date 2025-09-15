@@ -32,6 +32,10 @@ export class PrismaTurmasRepository implements TurmasRepository {
             skip: (page - 1) * 20,
         });
 
+        if (!turmas) {
+            return [];
+        }
+
         return turmas;
     }
 

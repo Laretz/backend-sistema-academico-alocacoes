@@ -20,7 +20,12 @@ export class AtualizarHorarioUseCase {
         }
 
         // Cria um objeto com apenas os campos que foram fornecidos
-        const updateData: any = {};
+        const updateData: Partial<{
+            codigo: string;
+            dia_semana: string;
+            horario_inicio: Date;
+            horario_fim: Date;
+        }> = {};
         if (codigo !== undefined) updateData.codigo = codigo;
         if (dia_semana !== undefined) updateData.dia_semana = dia_semana;
         if (horario_inicio !== undefined) updateData.horario_inicio = horario_inicio;

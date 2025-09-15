@@ -32,6 +32,10 @@ export class PrismaSalasRepository implements SalasRepository {
             skip: (page - 1) * 20,
         });
 
+        if (!salas) {
+            return [];
+        }
+
         return salas;
     }
 
@@ -39,9 +43,6 @@ export class PrismaSalasRepository implements SalasRepository {
         const sala = await prisma.sala.update({
             where: { id },
             data,
-            include: {
-                alocacoes: true
-            }
         });
 
         return sala;

@@ -17,7 +17,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         user: true,
         disciplina: true,
         turma: true,
-        sala: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
     });
@@ -75,7 +79,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         user: true,
         disciplina: true,
         turma: true,
-        sala: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
       orderBy: [
@@ -130,7 +138,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         disciplina: true,
         turma: true,
-        sala: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
     });
@@ -148,7 +160,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
-        sala: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
     });
@@ -164,7 +180,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
-        sala: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
     });
@@ -183,6 +203,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         user: true,
         disciplina: true,
         turma: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
         horario: true,
       },
     });

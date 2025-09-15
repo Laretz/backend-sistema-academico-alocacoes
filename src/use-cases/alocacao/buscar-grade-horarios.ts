@@ -94,7 +94,7 @@ export class BuscarGradeHorariosUseCase {
                 sala: {
                     id: alocacao.sala.id,
                     nome: alocacao.sala.nome,
-                    predio: alocacao.sala.predio,
+                    predio: alocacao.sala.predio?.nome || '',
                     capacidade: alocacao.sala.capacidade,
                     tipo: alocacao.sala.tipo
                 },

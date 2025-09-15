@@ -2,41 +2,7 @@ import { Prisma, Alocacao } from '@prisma/client';
 import { AlocacoesRepository } from '../alocacoes-repository';
 import { randomUUID } from 'node:crypto';
 
-// Tipos para simular as relações do Prisma
-type AlocacaoWithRelations = Alocacao & {
-  user: {
-    id: string;
-    nome: string;
-    email: string;
-    especializacao?: string | null;
-  };
-  disciplina: {
-    id: string;
-    nome: string;
-    cargaHorariaTotal: number;
-  };
-  turma: {
-    id: string;
-    nome: string;
-    num_alunos: number;
-    periodo: number;
-    turno: string;
-  };
-  sala: {
-    id: string;
-    nome: string;
-    predio: string;
-    capacidade: number;
-    tipo: string;
-  };
-  horario: {
-    id: string;
-    codigo: string;
-    dia_semana: string;
-    horarioInicio: Date;
-    horarioFim: Date;
-  };
-};
+import { AlocacaoWithRelations } from '../alocacoes-repository';
 
 export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   public items: AlocacaoWithRelations[] = [];
@@ -44,44 +10,54 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   async create(data: Prisma.AlocacaoCreateInput): Promise<Alocacao> {
     const alocacao: AlocacaoWithRelations = {
       id: randomUUID(),
-      id_user: typeof data.user === 'object' && 'connect' in data.user ? data.user.connect!.id : '',
-      id_disciplina: typeof data.disciplina === 'object' && 'connect' in data.disciplina ? data.disciplina.connect!.id : '',
-      id_turma: typeof data.turma === 'object' && 'connect' in data.turma ? data.turma.connect!.id : '',
-      id_sala: typeof data.sala === 'object' && 'connect' in data.sala ? data.sala.connect!.id : '',
-      id_horario: typeof data.horario === 'object' && 'connect' in data.horario ? data.horario.connect!.id : '',
+      id_user: typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id ? data.user.connect.id : randomUUID(),
+      id_disciplina: typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id ? data.disciplina.connect.id : randomUUID(),
+      id_turma: typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id ? data.turma.connect.id : randomUUID(),
+      id_sala: typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id ? data.sala.connect.id : randomUUID(),
+      id_horario: typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id ? data.horario.connect.id : randomUUID(),
+      is_modulo_principal: true,
       created_at: new Date(),
       // Dados mockados para as relações - em um teste real, você forneceria estes dados
       user: {
-        id: typeof data.user === 'object' && 'connect' in data.user ? data.user.connect!.id : '',
+        id: typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id ? data.user.connect.id : randomUUID(),
         nome: 'Professor Teste',
         email: 'professor@teste.com',
         especializacao: 'Especialização Teste',
       },
       disciplina: {
-        id: typeof data.disciplina === 'object' && 'connect' in data.disciplina ? data.disciplina.connect!.id : '',
+        id: typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id ? data.disciplina.connect.id : randomUUID(),
         nome: 'Disciplina Teste',
+        codigo: 'DISC001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       turma: {
-        id: typeof data.turma === 'object' && 'connect' in data.turma ? data.turma.connect!.id : '',
+        id: typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id ? data.turma.connect.id : randomUUID(),
         nome: 'Turma Teste',
         num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
       },
       sala: {
-        id: typeof data.sala === 'object' && 'connect' in data.sala ? data.sala.connect!.id : '',
+        id: typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id ? data.sala.connect.id : randomUUID(),
         nome: 'Sala Teste',
-        predio: 'Prédio A',
+        numero: '101',
         capacidade: 40,
         tipo: 'AULA',
+        computadores: 0,
+        predioId: randomUUID(),
+        ativa: true,
+        predio: {
+          id: randomUUID(),
+          nome: 'Prédio A',
+        },
       },
       horario: {
-        id: typeof data.horario === 'object' && 'connect' in data.horario ? data.horario.connect!.id : '',
+        id: typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id ? data.horario.connect.id : randomUUID(),
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     };
 
@@ -154,22 +130,25 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     }
 
     const alocacao = this.items[alocacaoIndex];
+    if (!alocacao) {
+      throw new Error('Alocação não encontrada');
+    }
     
     // Atualizar campos básicos
-    if (data.user && typeof data.user === 'object' && 'connect' in data.user) {
-      alocacao.id_user = data.user.connect!.id;
+    if (data.user && typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id) {
+      alocacao.id_user = data.user.connect.id;
     }
-    if (data.disciplina && typeof data.disciplina === 'object' && 'connect' in data.disciplina) {
-      alocacao.id_disciplina = data.disciplina.connect!.id;
+    if (data.disciplina && typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id) {
+      alocacao.id_disciplina = data.disciplina.connect.id;
     }
-    if (data.turma && typeof data.turma === 'object' && 'connect' in data.turma) {
-      alocacao.id_turma = data.turma.connect!.id;
+    if (data.turma && typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id) {
+      alocacao.id_turma = data.turma.connect.id;
     }
-    if (data.sala && typeof data.sala === 'object' && 'connect' in data.sala) {
-      alocacao.id_sala = data.sala.connect!.id;
+    if (data.sala && typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id) {
+      alocacao.id_sala = data.sala.connect.id;
     }
-    if (data.horario && typeof data.horario === 'object' && 'connect' in data.horario) {
-      alocacao.id_horario = data.horario.connect!.id;
+    if (data.horario && typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id) {
+      alocacao.id_horario = data.horario.connect.id;
     }
 
     this.items[alocacaoIndex] = alocacao;
@@ -195,6 +174,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       id_turma: alocacaoData.id_turma || randomUUID(),
       id_sala: alocacaoData.id_sala || randomUUID(),
       id_horario: alocacaoData.id_horario || randomUUID(),
+      is_modulo_principal: alocacaoData.is_modulo_principal !== undefined ? alocacaoData.is_modulo_principal : true,
       created_at: alocacaoData.created_at || new Date(),
       user: alocacaoData.user || {
         id: alocacaoData.id_user || randomUUID(),
@@ -205,6 +185,8 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       disciplina: alocacaoData.disciplina || {
         id: alocacaoData.id_disciplina || randomUUID(),
         nome: 'Disciplina Teste',
+        codigo: 'DISC001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       turma: alocacaoData.turma || {
@@ -217,16 +199,23 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       sala: alocacaoData.sala || {
         id: alocacaoData.id_sala || randomUUID(),
         nome: 'Sala Teste',
-        predio: 'Prédio A',
+        numero: '101',
         capacidade: 40,
         tipo: 'AULA',
+        computadores: 0,
+        predioId: randomUUID(),
+        ativa: true,
+        predio: {
+          id: randomUUID(),
+          nome: 'Prédio A',
+        },
       },
       horario: alocacaoData.horario || {
         id: alocacaoData.id_horario || randomUUID(),
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     };
 

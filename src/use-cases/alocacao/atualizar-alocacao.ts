@@ -21,7 +21,13 @@ export class AtualizarAlocacaoUseCase {
         }
 
         // Cria um objeto com apenas os campos que foram fornecidos
-        const updateData: any = {};
+        const updateData: {
+            user?: { connect: { id: string } };
+            disciplina?: { connect: { id: string } };
+            turma?: { connect: { id: string } };
+            sala?: { connect: { id: string } };
+            horario?: { connect: { id: string } };
+        } = {};
         
         if (id_user !== undefined) {
             updateData.user = {

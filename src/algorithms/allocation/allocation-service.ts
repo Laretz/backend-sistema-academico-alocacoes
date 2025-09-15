@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import { GeneticAlgorithm, GeneticAlgorithmParams, Cromossomo } from '../genetic/genetic-algorithm';
 import { GeneticOperators } from '../genetic/genetic-operators';
 import { constraintManager } from '../genetic/constraints';
@@ -8,10 +8,17 @@ interface AllocationRequest {
   params?: Partial<GeneticAlgorithmParams>;
 }
 
+interface AlocacaoData {
+  disciplinaId: string;
+  professorId: string;
+  salaId: string;
+  horarioId: string;
+}
+
 interface AllocationResult {
   success: boolean;
   cromossomo?: Cromossomo;
-  alocacoes?: any[];
+  alocacoes?: AlocacaoData[];
   metrics?: {
     fitness: number;
     generations: number;
@@ -32,12 +39,29 @@ interface AllocationMetrics {
   taxaSucesso: number;
 }
 
+interface AllocationStatus {
+  turmaId: string;
+  status: 'completed' | 'not_started' | 'in_progress' | 'error';
+  totalAlocacoes: number;
+  ultimaExecucao: Date | null;
+}
+
+interface AllocationMetrics {
+  turmaId: string;
+  alocacoes: AlocacaoData[];
+  estatisticas: {
+    totalAlocacoes: number;
+    disciplinasUnicas: number;
+    professoresUnicos: number;
+    turmasUnicas: number;
+  };
+  gradeHorarios: Record<string, AlocacaoData[]>;
+}
+
 export class AllocationService {
-  private prisma: PrismaClient;
   private defaultParams: GeneticAlgorithmParams;
 
   constructor() {
-    this.prisma = new PrismaClient();
     this.defaultParams = {
       populationSize: 100,
       generations: 500,
@@ -50,7 +74,7 @@ export class AllocationService {
   /**
    * Executa o algoritmo genético para alocar disciplinas de uma turma
    */
-  public async execute(request: AllocationRequest): Promise<any> {
+  public async execute(request: AllocationRequest): Promise<AllocationResult> {
     const result = await this.allocateSchedule(request);
     
     if (!result.success) {
@@ -91,7 +115,7 @@ export class AllocationService {
       if (!validation.isValid) {
         return {
           success: false,
-          error: validation.error
+          error: validation.error || 'Erro de validação desconhecido'
         };
       }
 
@@ -161,9 +185,9 @@ export class AllocationService {
   /**
    * Salva as alocações geradas no banco de dados
    */
-  public async saveAllocations(turmaId: string, alocacoes: any[]): Promise<boolean> {
+  public async saveAllocations(turmaId: string, alocacoes: AlocacaoData[]): Promise<boolean> {
     try {
-      await this.prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
         // Remover alocações existentes da turma
         await tx.alocacao.deleteMany({
           where: { id_turma: turmaId }
@@ -198,7 +222,7 @@ export class AllocationService {
    */
   private async fetchAllocationData(turmaId: string) {
     try {
-      const turma = await this.prisma.turma.findUnique({
+      const turma = await prisma.turma.findUnique({
         where: { id: turmaId },
         include: {
           alocacoes: {
@@ -213,20 +237,40 @@ export class AllocationService {
         throw new Error(`Turma ${turmaId} não encontrada`);
       }
 
-      const professores = await this.prisma.user.findMany({
+      const professores = await prisma.user.findMany({
         where: { role: 'PROFESSOR' }
       });
 
-      const salas = await this.prisma.sala.findMany();
-      const horarios = await this.prisma.horario.findMany();
+      if (!professores || professores.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhum professor encontrado'
+        };
+      }
+
+      const salas = await prisma.sala.findMany();
+      if (!salas || salas.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhuma sala encontrada'
+        };
+      }
+
+      const horarios = await prisma.horario.findMany();
+      if (!horarios || horarios.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhum horário encontrado'
+        };
+      }
 
       // Obter disciplinas únicas das alocações existentes
-      const disciplinasUnicas = turma.alocacoes.reduce((acc, alocacao) => {
+      const disciplinasUnicas = turma.alocacoes.reduce((acc: any[], alocacao: any) => {
         if (!acc.find(d => d.id === alocacao.disciplina.id)) {
           acc.push(alocacao.disciplina);
         }
         return acc;
-      }, [] as any[]);
+      }, []);
 
       // Converter para formato esperado pelo algoritmo
       const turmaData = {
@@ -284,7 +328,7 @@ export class AllocationService {
     }
 
     // Verificar se a turma existe
-    const turma = await this.prisma.turma.findUnique({
+    const turma = await prisma.turma.findUnique({
       where: { id: request.turmaId },
       include: { 
         alocacoes: {
@@ -334,7 +378,13 @@ export class AllocationService {
   /**
    * Valida a solução gerada pelo algoritmo
    */
-  private validateSolution(cromossomo: Cromossomo, data: any): { isValid: boolean; violations: string[] } {
+  private validateSolution(cromossomo: Cromossomo, data: {
+    professores: any[];
+    salas: any[];
+    horarios: any[];
+    disciplinas: any[];
+    turma: any;
+  }): { isValid: boolean; violations: string[] } {
     const violations: string[] = [];
     const context = {
       allGenes: cromossomo.genes,
@@ -359,8 +409,14 @@ export class AllocationService {
   /**
    * Converte cromossomo para formato de alocações
    */
-  private async convertToAllocations(cromossomo: Cromossomo, data: any): Promise<any[]> {
-    const alocacoes: any[] = [];
+  private async convertToAllocations(cromossomo: Cromossomo, data: {
+    professores: any[];
+    salas: any[];
+    horarios: any[];
+    disciplinas: any[];
+    turma: any;
+  }): Promise<AlocacaoData[]> {
+    const alocacoes: AlocacaoData[] = [];
 
     for (const gene of cromossomo.genes) {
       // Para cada horário do gene, criar uma alocação
@@ -433,7 +489,7 @@ export class AllocationService {
    */
   public async generateAllocationReport(turmaId: string): Promise<AllocationMetrics | null> {
     try {
-      const alocacoes = await this.prisma.alocacao.findMany({
+      const alocacoes = await prisma.alocacao.findMany({
          where: { id_turma: turmaId },
          include: {
            disciplina: true,
@@ -471,7 +527,7 @@ export class AllocationService {
   /**
    * Analisa conflitos nas alocações existentes
    */
-  private analyzeConflicts(alocacoes: any[]): { total: number; byType: { [key: string]: number } } {
+  private analyzeConflicts(alocacoes: AlocacaoData[]): { total: number; byType: { [key: string]: number } } {
     const conflicts = { total: 0, byType: { professor: 0, sala: 0, capacity: 0 } };
     
     const professorHorarios = new Map<string, Set<string>>();
@@ -511,11 +567,11 @@ export class AllocationService {
   /**
    * Obtém status de uma execução de algoritmo genético
    */
-  async getStatus(turmaId: string): Promise<any> {
+  async getStatus(turmaId: string): Promise<AllocationStatus> {
     try {
       // Verificar se existe uma execução em andamento
       // Por simplicidade, vamos retornar um status básico
-      const alocacoes = await this.prisma.alocacao.findMany({
+      const alocacoes = await prisma.alocacao.findMany({
         where: { turmaId },
         include: {
           disciplina: true,
@@ -561,9 +617,9 @@ export class AllocationService {
   /**
    * Obtém relatório detalhado de uma alocação
    */
-  async getDetailedReport(turmaId: string): Promise<any> {
+  async getDetailedReport(turmaId: string): Promise<DetailedReport> {
     try {
-      const alocacoes = await this.prisma.alocacao.findMany({
+      const alocacoes = await prisma.alocacao.findMany({
          where: { id_turma: turmaId },
          include: {
            disciplina: true,
@@ -589,7 +645,7 @@ export class AllocationService {
         if (!acc[dia]) acc[dia] = [];
         acc[dia].push(alocacao);
         return acc;
-      }, {} as Record<string, any[]>);
+      }, {} as Record<string, AlocacaoData[]>);
 
       return {
         turmaId,
@@ -625,7 +681,7 @@ export class AllocationService {
    * Limpa recursos
    */
   public async cleanup(): Promise<void> {
-    await this.prisma.$disconnect();
+    await prisma.$disconnect();
   }
 }
 

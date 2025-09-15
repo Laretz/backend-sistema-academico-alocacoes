@@ -21,19 +21,58 @@ interface ConflictDetail {
   suggestedFix?: string;
 }
 
+interface Professor {
+  id: string;
+  nome: string;
+  email: string;
+  carga_horaria_maxima?: number;
+}
+
+interface Sala {
+  id: string;
+  nome: string;
+  predio: string;
+  capacidade: number;
+  tipo?: string;
+}
+
+interface Horario {
+  id: string;
+  codigo: string;
+  dia_semana: string;
+  horario_inicio: Date;
+  horario_fim: Date;
+}
+
+interface Disciplina {
+  id: string;
+  nome: string;
+  codigo: string;
+  carga_horaria: number;
+  tipo?: string;
+}
+
+interface Turma {
+  id: string;
+  nome: string;
+  semestre: number;
+  ano: number;
+  capacidade?: number;
+}
+
 interface ResolutionStrategy {
   name: string;
   priority: number;
-  canResolve: (conflict: ConflictDetail, context: any) => boolean;
-  resolve: (conflict: ConflictDetail, cromossomo: Cromossomo, context: any) => Promise<boolean>;
+  canResolve: (conflict: ConflictDetail, context: ConflictContext) => boolean;
+  resolve: (conflict: ConflictDetail, cromossomo: Cromossomo, context: ConflictContext) => Promise<boolean>;
 }
 
 interface ConflictContext {
-  professores: any[];
-  salas: any[];
-  horarios: any[];
-  disciplinas: any[];
-  turma: any;
+  professores: Professor[];
+  salas: Sala[];
+  horarios: Horario[];
+  disciplinas: Disciplina[];
+  turma: Turma;
 }
 
 export class ConflictResolver {
@@ -579,7 +618,7 @@ export class ConflictResolver {
   /**
    * Obtém slots de horário disponíveis
    */
-  private getAvailableTimeSlots(horarios: any[], cromossomo: Cromossomo, excludeGene: Gene): any[] {
+  private getAvailableTimeSlots(horarios: Horario[], cromossomo: Cromossomo, excludeGene: Gene): Horario[] {
     const occupiedSlots = new Set<string>();
     
     // Marcar slots ocupados (excluindo o gene atual)

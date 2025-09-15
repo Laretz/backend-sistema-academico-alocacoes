@@ -10,6 +10,10 @@ export class BuscarSalasUseCase {
     async execute({ page }: BuscarSalasUseCaseRequest) {
         const salas = await this.salasRepository.findMany(page);
 
+        if (!salas) {
+            return { salas: [] };
+        }
+
         return { salas };
     }
 }

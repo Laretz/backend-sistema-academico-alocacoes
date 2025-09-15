@@ -30,7 +30,14 @@ export class AtualizarDisciplinaUseCase {
     }
 
     // Cria um objeto com apenas os campos que foram fornecidos
-    const updateData: any = {};
+    const updateData: Partial<{
+      nome: string;
+      carga_horaria: number;
+      tipo_de_sala: 'Sala' | 'Lab';
+      data_inicio: Date;
+      data_fim_prevista: Date;
+      data_fim_real: Date;
+    }> = {};
     if (nome !== undefined) updateData.nome = nome;
     if (carga_horaria !== undefined) updateData.carga_horaria = carga_horaria;
     if (tipo_de_sala !== undefined) updateData.tipo_de_sala = tipo_de_sala;

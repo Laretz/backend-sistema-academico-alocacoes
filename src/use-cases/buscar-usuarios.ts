@@ -19,6 +19,12 @@ export class BuscarUsuariosUseCase {
   }: BuscarUsuariosUseCaseRequest): Promise<BuscarUsuariosUseCaseResponse> {
     const usuarios = await this.usersRepository.findMany(page, search);
 
+    if (!usuarios) {
+      return {
+        usuarios: [],
+      };
+    }
+
     return {
       usuarios,
     };

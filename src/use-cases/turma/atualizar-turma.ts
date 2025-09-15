@@ -20,7 +20,12 @@ export class AtualizarTurmaUseCase {
         }
 
         // Cria um objeto com apenas os campos que foram fornecidos
-        const updateData: any = {};
+        const updateData: Partial<{
+            nome: string;
+            num_alunos: number;
+            periodo: number;
+            turno: string;
+        }> = {};
         if (nome !== undefined) updateData.nome = nome;
         if (num_alunos !== undefined) updateData.num_alunos = num_alunos;
         if (periodo !== undefined) updateData.periodo = periodo;

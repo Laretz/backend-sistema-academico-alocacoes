@@ -1,4 +1,4 @@
-import { Prisma, User } from "@prisma/client";
+import { Prisma, User, Role } from "@prisma/client";
 import { UsersRepository } from "../users-repository";
 
 export class InMemoryUsersRepository implements UsersRepository {
@@ -11,10 +11,11 @@ export class InMemoryUsersRepository implements UsersRepository {
       nome: data.nome,
       email: data.email,
       senha: data.senha,
-      role: data.role as "PROFESSOR" | "ADMIN" | "COORDENADOR",
+      role: data.role as Role,
       especializacao: data.especializacao ?? null,
       preferencia: data.preferencia ?? null,
       carga_horaria_max: data.carga_horaria_max ?? null,
+      id_curso: data.curso?.connect?.id ?? null,
     };
 
     this.users.push(user);
@@ -58,10 +59,22 @@ export class InMemoryUsersRepository implements UsersRepository {
       throw new Error('User not found');
     }
     
-    const updatedUser = {
-      ...this.users[userIndex],
-      ...data,
-    } as User;
+    const currentUser = this.users[userIndex];
+    if (!currentUser) {
+      throw new Error('User not found');
+    }
+    
+    const updatedUser: User = {
+      ...currentUser,
+      nome: (data.nome as string) ?? currentUser.nome,
+      email: (data.email as string) ?? currentUser.email,
+      senha: (data.senha as string) ?? currentUser.senha,
+      role: (data.role as Role) ?? currentUser.role,
+      especializacao: data.especializacao !== undefined ? (data.especializacao as string | null) : currentUser.especializacao,
+      preferencia: data.preferencia !== undefined ? (data.preferencia as string | null) : currentUser.preferencia,
+      carga_horaria_max: data.carga_horaria_max !== undefined ? (data.carga_horaria_max as number | null) : currentUser.carga_horaria_max,
+      id_curso: data.curso?.connect?.id ?? currentUser.id_curso,
+    };
     
     this.users[userIndex] = updatedUser;
     

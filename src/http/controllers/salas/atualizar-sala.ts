@@ -10,13 +10,13 @@ export async function atualizarSala(request: FastifyRequest, reply: FastifyReply
 
     const atualizarSalaBodySchema = z.object({
         nome: z.string().optional(),
-        predio: z.string().optional(),
+        predioId: z.string().optional(),
         capacidade: z.number().optional(),
         tipo: z.string().optional(),
     });
 
     const { id } = atualizarSalaParamsSchema.parse(request.params);
-    const { nome, predio, capacidade, tipo } = atualizarSalaBodySchema.parse(request.body);
+    const { nome, predioId, capacidade, tipo } = atualizarSalaBodySchema.parse(request.body);
 
     try {
         const atualizarSalaUseCase = makeAtualizarSalaUseCase();
@@ -24,7 +24,7 @@ export async function atualizarSala(request: FastifyRequest, reply: FastifyReply
         const { sala } = await atualizarSalaUseCase.execute({
             id,
             nome,
-            predio,
+            predioId,
             capacidade,
             tipo,
         });

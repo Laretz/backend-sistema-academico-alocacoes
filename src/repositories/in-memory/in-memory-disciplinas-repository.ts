@@ -19,7 +19,7 @@ export class InMemoryDisciplinasRepository implements DisciplinasRepository {
       periodo_letivo: data.periodo_letivo || null,
       horario_consolidado: data.horario_consolidado || null,
       codigo: data.codigo || null,
-      id_curso: typeof data.curso === 'object' && 'connect' in data.curso ? data.curso.connect!.id : '',
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso && data.curso.connect?.id ? data.curso.connect.id : 'curso-default',
       semestre: data.semestre || 1,
       obrigatoria: data.obrigatoria !== undefined ? data.obrigatoria : true,
     };
@@ -53,11 +53,27 @@ export class InMemoryDisciplinasRepository implements DisciplinasRepository {
     }
 
     const disciplina = this.disciplinas[disciplinaIndex];
+    if (!disciplina) {
+      throw new Error('Disciplina não encontrada');
+    }
     
     this.disciplinas[disciplinaIndex] = {
       ...disciplina,
       nome: data.nome as string ?? disciplina.nome,
       carga_horaria: data.carga_horaria as number ?? disciplina.carga_horaria,
+      carga_horaria_atual: data.carga_horaria_atual as number ?? disciplina.carga_horaria_atual,
+      total_aulas: data.total_aulas as number ?? disciplina.total_aulas,
+      aulas_ministradas: data.aulas_ministradas as number ?? disciplina.aulas_ministradas,
+      tipo_de_sala: data.tipo_de_sala as TipoDeSala ?? disciplina.tipo_de_sala,
+      data_inicio: data.data_inicio ? new Date(data.data_inicio as string) : disciplina.data_inicio,
+      data_fim_prevista: data.data_fim_prevista ? new Date(data.data_fim_prevista as string) : disciplina.data_fim_prevista,
+      data_fim_real: data.data_fim_real ? new Date(data.data_fim_real as string) : disciplina.data_fim_real,
+      periodo_letivo: data.periodo_letivo as string ?? disciplina.periodo_letivo,
+      horario_consolidado: data.horario_consolidado as string ?? disciplina.horario_consolidado,
+      codigo: data.codigo as string ?? disciplina.codigo,
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso && data.curso.connect?.id ? data.curso.connect.id : disciplina.id_curso,
+      semestre: data.semestre as number ?? disciplina.semestre,
+      obrigatoria: data.obrigatoria !== undefined ? (data.obrigatoria as boolean) : disciplina.obrigatoria,
     };
 
     return this.disciplinas[disciplinaIndex];
