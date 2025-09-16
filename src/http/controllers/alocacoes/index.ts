@@ -4,3 +4,6 @@ export { buscarAlocacao } from './buscar-alocacao';
 export { atualizarAlocacao } from './atualizar-alocacao';
 export { excluirAlocacao } from './excluir-alocacao';
 export { buscarGradeHorarios } from './buscar-grade-horarios-geral';
+export { buscarAlocacoesPeriodoManha } from './buscar-alocacoes-periodo-manha';
+export { buscarAlocacoesTurmaPeriodo } from './buscar-alocacoes-turma-periodo';
+export { excluirTodasAlocacoesTurma } from './excluir-todas-alocacoes-turma';

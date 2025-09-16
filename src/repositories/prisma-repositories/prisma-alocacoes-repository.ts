@@ -231,6 +231,122 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
+  async findByDisciplinaId(id_disciplina: string) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: { id_disciplina },
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
+        horario: true,
+      },
+      orderBy: [
+        {
+          horario: {
+            dia_semana: 'asc'
+          }
+        },
+        {
+          horario: {
+            codigo: 'asc'
+          }
+        }
+      ]
+    });
+
+    return alocacoes;
+  }
+
+  async findByPeriodoManha(page: number) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        horario: {
+          codigo: {
+            startsWith: 'M'
+          }
+        }
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
+        horario: true,
+      },
+      orderBy: [
+        {
+          horario: {
+            dia_semana: 'asc'
+          }
+        },
+        {
+          horario: {
+            codigo: 'asc'
+          }
+        }
+      ]
+    });
+
+    return alocacoes;
+  }
+
+  async findByTurmaIdWithPeriodo(id_turma: string, periodo: string, page: number) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_turma,
+        horario: {
+          codigo: {
+            startsWith: periodo.toUpperCase()
+          }
+        }
+      },
+      take: 20,
+      skip: (page - 1) * 20,
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
+        horario: true,
+      },
+      orderBy: [
+        {
+          horario: {
+            dia_semana: 'asc'
+          }
+        },
+        {
+          horario: {
+            codigo: 'asc'
+          }
+        }
+      ]
+    });
+
+    return alocacoes;
+  }
+
+  async deleteAllByTurmaId(id_turma: string) {
+    await prisma.alocacao.deleteMany({
+      where: { id_turma },
+    });
+  }
+
   async delete(id: string) {
     await prisma.alocacao.delete({
       where: { id },

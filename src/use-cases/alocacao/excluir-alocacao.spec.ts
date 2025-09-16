@@ -1,18 +1,33 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import { ExcluirAlocacaoUseCase } from "./excluir-alocacao";
 import { InMemoryAlocacoesRepository } from "../../repositories/in-memory/in-memory-alocacoes-repository";
+import { InMemoryDisciplinasRepository } from "../../repositories/in-memory/in-memory-disciplinas-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let disciplinasRepository: InMemoryDisciplinasRepository;
 let sut: ExcluirAlocacaoUseCase;
 
 describe('Excluir Alocação Use Case', () => {
     beforeEach(() => {
         alocacoesRepository = new InMemoryAlocacoesRepository();
-        sut = new ExcluirAlocacaoUseCase(alocacoesRepository);
+        disciplinasRepository = new InMemoryDisciplinasRepository();
+        sut = new ExcluirAlocacaoUseCase(alocacoesRepository, disciplinasRepository);
     });
 
     it('deve ser possível excluir uma alocação', async () => {
+        // Criar disciplina primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
         const alocacaoCriada = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',
@@ -40,6 +55,29 @@ describe('Excluir Alocação Use Case', () => {
     });
 
     it('deve ser possível excluir uma alocação e manter outras intactas', async () => {
+        // Criar disciplinas primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
+        await disciplinasRepository.create({
+            id: 'disciplina-2',
+            nome: 'Física',
+            carga_horaria: 60,
+            curso: {
+                connect: {
+                    id: 'curso-2',
+                },
+            },
+        });
+
         const alocacao1 = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',

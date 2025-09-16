@@ -1,4 +1,6 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
+import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
+import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
 
 interface CriarAlocacaoUseCaseRequest {
     id_user: string;
@@ -9,7 +11,10 @@ interface CriarAlocacaoUseCaseRequest {
 }
 
 export class CriarAlocacaoUseCase {
-    constructor(private alocacoesRepository: AlocacoesRepository) {}
+    constructor(
+        private alocacoesRepository: AlocacoesRepository,
+        private disciplinasRepository: DisciplinasRepository
+    ) {}
 
     async execute({ id_user, id_disciplina, id_turma, id_sala, id_horarios }: CriarAlocacaoUseCaseRequest) {
         const alocacoes = [];
@@ -50,6 +55,15 @@ export class CriarAlocacaoUseCase {
             });
 
             alocacoes.push(alocacao);
+        }
+
+        // Gerar horário consolidado automaticamente após criar alocações
+        const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
+        const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId: id_disciplina });
+        
+        // Atualizar disciplina com o horário consolidado
+        if (horarioConsolidado) {
+            await this.disciplinasRepository.update(id_disciplina, { horario_consolidado: horarioConsolidado });
         }
 
         return { alocacoes };

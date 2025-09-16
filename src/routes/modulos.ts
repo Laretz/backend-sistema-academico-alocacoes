@@ -228,7 +228,7 @@ async function recalcularDataFimDisciplina(id_disciplina: string) {
 
     // Calcular quantas semanas são necessárias
     const semanasNecessarias = Math.ceil(
-      disciplina.carga_horaria_total / horasSemanais
+      disciplina.carga_horaria / horasSemanais
     );
 
     // Calcular nova data de fim
@@ -241,7 +241,7 @@ async function recalcularDataFimDisciplina(id_disciplina: string) {
       data: {
         data_fim_real: dataFimReal,
         carga_horaria_atual: Math.min(
-          disciplina.carga_horaria_total,
+          disciplina.carga_horaria,
           horasSemanais * semanasNecessarias
         ),
       },

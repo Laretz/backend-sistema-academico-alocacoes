@@ -13,7 +13,7 @@ export async function atualizarDisciplina(
 
   const atualizarDisciplinaBodySchema = z.object({
     nome: z.string().optional(),
-    carga_horaria_total: z.number().optional(),
+    carga_horaria: z.number().optional(),
     tipo_de_sala: z.enum(['Sala', 'Lab']).optional(),
     data_inicio: z.string().datetime().optional(),
     data_fim_prevista: z.string().datetime().optional(),
@@ -21,7 +21,7 @@ export async function atualizarDisciplina(
   });
 
   const { id } = atualizarDisciplinaParamsSchema.parse(request.params);
-  const { nome, carga_horaria_total, tipo_de_sala, data_inicio, data_fim_prevista, data_fim_real } = atualizarDisciplinaBodySchema.parse(
+  const { nome, carga_horaria, tipo_de_sala, data_inicio, data_fim_prevista, data_fim_real } = atualizarDisciplinaBodySchema.parse(
     request.body
   );
 
@@ -31,7 +31,7 @@ export async function atualizarDisciplina(
     const { disciplina } = await atualizarDisciplinaUseCase.execute({
       id,
       nome,
-      carga_horaria_total,
+      carga_horaria,
       tipo_de_sala,
       data_inicio: data_inicio ? new Date(data_inicio) : undefined,
       data_fim_prevista: data_fim_prevista ? new Date(data_fim_prevista) : undefined,

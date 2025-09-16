@@ -114,6 +114,52 @@ export class ConstraintManager {
   private initializeSoftConstraints(): SoftConstraint[] {
     return [
       {
+        name: "avoid_consecutive_days",
+        weight: 40, // Peso alto para dar prioridade a essa regra
+        score: (gene, context) => {
+          const { horarios } = gene;
+          if (horarios.length <= 1) return 0; // Regra não se aplica a aulas de 1 dia
+
+          const diasUsados = new Set(horarios.map((h) => h.split("_")[0]));
+          const diasOrdenados = Array.from(diasUsados) as string[]; // Correção de tipagem aqui
+
+          // A sua constante `ordem` já está declarada, então você pode usá-la.
+          const ordem = [
+            "SEGUNDA",
+            "TERCA",
+            "QUARTA",
+            "QUINTA",
+            "SEXTA",
+            "SABADO",
+          ];
+
+          diasOrdenados.sort((a, b) => {
+            return ordem.indexOf(a) - ordem.indexOf(b);
+          });
+
+          let penalidade = 0;
+          let bonus = 0;
+
+          for (let i = 0; i < diasOrdenados.length - 1; i++) {
+            const diaAtual = diasOrdenados[i];
+            const proximoDia = diasOrdenados[i + 1];
+
+            if (
+              typeof diaAtual === "string" &&
+              typeof proximoDia === "string"
+            ) {
+              if (ordem.indexOf(proximoDia) - ordem.indexOf(diaAtual) === 1) {
+                penalidade += 50; // Penalidade para dias seguidos
+              } else {
+                bonus += 20; // Bônus para dias com intervalo
+              }
+            }
+          }
+
+          return bonus - penalidade;
+        },
+      },
+      {
         name: "professor_preferences",
         weight: 50,
         score: (gene, context) => {
@@ -130,20 +176,72 @@ export class ConstraintManager {
       },
       {
         name: "schedule_distribution",
-        weight: 30,
+        weight: 50,
         score: (gene, context) => {
-          // Bonificar distribuição equilibrada ao longo da semana
-          const { horarios } = gene;
+          // Aplicar regras específicas de distribuição baseadas na carga horária
+          const { horarios, disciplinaId } = gene;
+          const { disciplinas } = context;
+
+          const disciplina = disciplinas.find((d) => d.id === disciplinaId);
+          if (!disciplina) return 0;
+
+          const cargaHoraria =
+            disciplina.cargaHoraria || disciplina.carga_horaria_total;
           const dias = new Set(horarios.map((h) => h.split("_")[0]));
-          return dias.size; // Mais dias = melhor distribuição
+          const diasArray = Array.from(dias);
+
+          // Regras específicas por carga horária
+          if (cargaHoraria === 30) {
+            // 30h: deve ter 2 aulas no mesmo dia
+            if (diasArray.length === 1 && horarios.length === 2) {
+              return 100; // Bonificação alta para distribuição correta
+            } else if (diasArray.length > 1) {
+              return -50; // Penalidade por distribuir em dias diferentes
+            }
+          } else if (cargaHoraria === 45) {
+            // 45h: deve ter 3 aulas no mesmo dia
+            if (diasArray.length === 1 && horarios.length === 3) {
+              return 100; // Bonificação alta para distribuição correta
+            } else if (diasArray.length > 1) {
+              return -50; // Penalidade por distribuir em dias diferentes
+            }
+          } else if (cargaHoraria === 60) {
+            // 60h: deve ter 4 aulas em 2 dias diferentes (2+2)
+            if (diasArray.length === 2 && horarios.length === 4) {
+              return 100; // Bonificação alta para distribuição correta
+            } else if (diasArray.length === 1) {
+              return -75; // Penalidade severa por colocar tudo no mesmo dia
+            } else if (diasArray.length > 2) {
+              return -25; // Penalidade por distribuir em muitos dias
+            }
+          } else if (cargaHoraria === 90) {
+            // 90h: deve ter 6 aulas em 2 dias diferentes (3+3)
+            if (diasArray.length === 2 && horarios.length === 6) {
+              return 100; // Bonificação alta para distribuição correta
+            } else if (diasArray.length === 1) {
+              return -100; // Penalidade muito severa por colocar tudo no mesmo dia
+            } else if (diasArray.length > 2) {
+              return -25; // Penalidade por distribuir em muitos dias
+            }
+          }
+
+          // Fallback: bonificar distribuição equilibrada
+          return diasArray.length * 10;
         },
       },
       {
         name: "consecutive_classes",
-        weight: 20,
+        weight: 30,
         score: (gene, context) => {
-          // Bonificar aulas consecutivas da mesma disciplina
-          const { horarios } = gene;
+          // Aplicar regras de consecutividade baseadas na carga horária
+          const { horarios, disciplinaId } = gene;
+          const { disciplinas } = context;
+
+          const disciplina = disciplinas.find((d) => d.id === disciplinaId);
+          if (!disciplina) return 0;
+
+          const cargaHoraria =
+            disciplina.cargaHoraria || disciplina.carga_horaria_total;
           let consecutiveScore = 0;
 
           // Agrupar por dia
@@ -159,10 +257,52 @@ export class ConstraintManager {
           // Verificar consecutividade em cada dia
           for (const [dia, slots] of horariosPorDia) {
             const sortedSlots = slots.sort();
+            const aulasPorDia = slots.length;
+
+            // Contar aulas consecutivas
+            let consecutivas = 0;
             for (let i = 1; i < sortedSlots.length; i++) {
               if (this.areConsecutive(sortedSlots[i - 1], sortedSlots[i])) {
-                consecutiveScore += 5;
+                consecutivas++;
               }
+            }
+
+            // Aplicar regras específicas por carga horária
+            if (cargaHoraria === 30) {
+              // 30h: deve ter 2 aulas consecutivas no mesmo dia
+              if (aulasPorDia === 2 && consecutivas === 1) {
+                consecutiveScore += 50; // Bonificação alta
+              } else if (aulasPorDia === 2 && consecutivas === 0) {
+                consecutiveScore -= 30; // Penalidade por não serem consecutivas
+              }
+            } else if (cargaHoraria === 45) {
+              // 45h: deve ter 3 aulas consecutivas no mesmo dia
+              if (aulasPorDia === 3 && consecutivas === 2) {
+                consecutiveScore += 50; // Bonificação alta
+              } else if (aulasPorDia === 3 && consecutivas < 2) {
+                consecutiveScore -= 40; // Penalidade por não serem todas consecutivas
+              }
+            } else if (cargaHoraria === 60) {
+              // 60h: deve ter 2 aulas consecutivas em cada dia (2+2)
+              if (aulasPorDia === 2 && consecutivas === 1) {
+                consecutiveScore += 25; // Bonificação por par consecutivo
+              } else if (aulasPorDia === 2 && consecutivas === 0) {
+                consecutiveScore -= 20; // Penalidade por não serem consecutivas
+              } else if (aulasPorDia > 2) {
+                consecutiveScore -= 30; // Penalidade por mais de 2 aulas no mesmo dia
+              }
+            } else if (cargaHoraria === 90) {
+              // 90h: deve ter 3 aulas consecutivas em cada dia (3+3)
+              if (aulasPorDia === 3 && consecutivas === 2) {
+                consecutiveScore += 25; // Bonificação por trio consecutivo
+              } else if (aulasPorDia === 3 && consecutivas < 2) {
+                consecutiveScore -= 30; // Penalidade por não serem todas consecutivas
+              } else if (aulasPorDia > 3) {
+                consecutiveScore -= 50; // Penalidade severa por mais de 3 aulas no mesmo dia
+              }
+            } else {
+              // Para outras cargas horárias, bonificar consecutividade moderadamente
+              consecutiveScore += consecutivas * 5;
             }
           }
 
@@ -217,14 +357,14 @@ export class ConstraintManager {
           // Penalizar fortemente aulas aos sábados
           const { horarios } = gene;
           let saturdayPenalty = 0;
-          
+
           for (const horario of horarios) {
             const dia = horario.split("_")[0];
             if (dia === "SABADO") {
               saturdayPenalty -= 50; // Penalidade alta por aula no sábado
             }
           }
-          
+
           return saturdayPenalty;
         },
       },
@@ -237,19 +377,19 @@ export class ConstraintManager {
           const { turma } = context;
           const turnoPreferido = turma?.turno?.toUpperCase();
           if (!turnoPreferido) return 0;
-          
+
           const codigosPorTurno = {
-            "MATUTINO": ["M1", "M2", "M3", "M4", "M5", "M6"],
-            "VESPERTINO": ["T1", "T2", "T3", "T4", "T5", "T6"],
-            "NOTURNO": ["N1", "N2", "N3", "N4"]
+            MATUTINO: ["M1", "M2", "M3", "M4", "M5", "M6"],
+            VESPERTINO: ["T1", "T2", "T3", "T4", "T5", "T6"],
+            NOTURNO: ["N1", "N2", "N3", "N4"],
           };
-          
+
           const codigosPreferidos = codigosPorTurno[turnoPreferido] || [];
           let alignmentScore = 0;
-          
+
           for (const horario of horarios) {
             const codigo = horario.split("_")[1];
-            
+
             if (codigosPreferidos.includes(codigo)) {
               alignmentScore += 15; // Bonificação por horário no turno preferido
             } else {
@@ -257,7 +397,7 @@ export class ConstraintManager {
               alignmentScore -= 5;
             }
           }
-          
+
           return alignmentScore;
         },
       },

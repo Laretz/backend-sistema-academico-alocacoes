@@ -1,18 +1,44 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import { AtualizarAlocacaoUseCase } from "./atualizar-alocacao";
 import { InMemoryAlocacoesRepository } from "../../repositories/in-memory/in-memory-alocacoes-repository";
+import { InMemoryDisciplinasRepository } from "../../repositories/in-memory/in-memory-disciplinas-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let disciplinasRepository: InMemoryDisciplinasRepository;
 let sut: AtualizarAlocacaoUseCase;
 
 describe('Atualizar Alocação Use Case', () => {
     beforeEach(() => {
         alocacoesRepository = new InMemoryAlocacoesRepository();
-        sut = new AtualizarAlocacaoUseCase(alocacoesRepository);
+        disciplinasRepository = new InMemoryDisciplinasRepository();
+        sut = new AtualizarAlocacaoUseCase(alocacoesRepository, disciplinasRepository);
     });
 
     it('deve ser possível atualizar uma alocação', async () => {
+        // Criar disciplinas primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
+        await disciplinasRepository.create({
+            id: 'disciplina-2',
+            nome: 'Física',
+            carga_horaria: 60,
+            curso: {
+                connect: {
+                    id: 'curso-2',
+                },
+            },
+        });
+
         const alocacaoCriada = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',
@@ -40,6 +66,18 @@ describe('Atualizar Alocação Use Case', () => {
     });
 
     it('deve ser possível atualizar apenas o usuário da alocação', async () => {
+        // Criar disciplina primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
         const alocacaoCriada = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',
@@ -66,6 +104,18 @@ describe('Atualizar Alocação Use Case', () => {
     });
 
     it('deve ser possível atualizar apenas a sala da alocação', async () => {
+        // Criar disciplina primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
         const alocacaoCriada = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',
@@ -92,6 +142,18 @@ describe('Atualizar Alocação Use Case', () => {
     });
 
     it('deve ser possível atualizar apenas o horário da alocação', async () => {
+        // Criar disciplina primeiro
+        await disciplinasRepository.create({
+            id: 'disciplina-1',
+            nome: 'Matemática',
+            carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1',
+                },
+            },
+        });
+
         const alocacaoCriada = await alocacoesRepository.createWithCustomData({
             id: 'alocacao-1',
             id_user: 'user-1',

@@ -222,4 +222,8 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     this.items.push(alocacao);
     return alocacao;
   }
+
+  async findByDisciplinaId(id_disciplina: string): Promise<AlocacaoWithRelations[]> {
+    return this.items.filter(item => item.id_disciplina === id_disciplina);
+  }
 }

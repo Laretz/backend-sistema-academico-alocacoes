@@ -25,7 +25,9 @@ export async function buscarGradeHorarios(
       id_user,
       id_sala: id_sala ?? undefined,
     });
-
+    if (!gradeHorarios) {
+      throw new RecursoNaoEncontradoError();
+    }
     return reply.status(200).send({ gradeHorarios });
   } catch (error) {
     throw error;

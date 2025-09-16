@@ -2,19 +2,19 @@ import { SalasRepository } from "../../repositories/salas-repository";
 
 interface CriarSalaUseCaseRequest {
     nome: string;
-    predio: string;
+    numero?: string;
+    predioId: string;
     capacidade: number;
     tipo: string;
     computadores?: number;
-}
-
-export class CriarSalaUseCase {
+}export class CriarSalaUseCase {
     constructor(private salasRepository: SalasRepository) {}
 
-    async execute({ nome, predio, capacidade, tipo, computadores }: CriarSalaUseCaseRequest) {
+  async execute({ nome, numero, predioId, capacidade, tipo, computadores }: CriarSalaUseCaseRequest) {
         const sala = await this.salasRepository.create({
             nome,
-            predio,
+            numero: numero || '999',
+            predioId,
             capacidade,
             tipo,
             computadores,

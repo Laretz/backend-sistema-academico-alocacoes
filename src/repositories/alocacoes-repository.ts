@@ -56,6 +56,10 @@ export interface AlocacoesRepository {
     findByTurmaId(id_turma: string, page: number): Promise<AlocacaoWithRelations[]>
     findAllByTurmaId(id_turma: string): Promise<AlocacaoWithRelations[]>
     findBySalaId(id_sala: string, page: number): Promise<AlocacaoWithRelations[]>
+    findByDisciplinaId(id_disciplina: string): Promise<AlocacaoWithRelations[]>
+    findByPeriodoManha(page: number): Promise<AlocacaoWithRelations[]>
+    findByTurmaIdWithPeriodo(id_turma: string, periodo: string, page: number): Promise<AlocacaoWithRelations[]>
+    deleteAllByTurmaId(id_turma: string): Promise<void>
     update(id: string, data: Prisma.AlocacaoUpdateInput): Promise<Alocacao>
     delete(id: string): Promise<void>
 }

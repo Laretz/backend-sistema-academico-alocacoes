@@ -129,6 +129,7 @@ export class BuscarGradeHorariosTurmaUseCase {
           nome: alocacao.disciplina?.nome || "",
           codigo: alocacao.disciplina?.codigo || "",
           cargaHoraria: alocacao.disciplina?.carga_horaria || 0,
+          horario_consolidado: alocacao.disciplina?.horario_consolidado || "",
         },
         professor: {
           id: alocacao.user?.id || "",

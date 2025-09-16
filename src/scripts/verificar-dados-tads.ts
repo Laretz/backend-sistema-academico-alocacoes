@@ -6,15 +6,22 @@ async function verificarDadosTADS() {
   console.log('🔍 Verificando dados do TADS criados...');
 
   try {
-    // Verificar curso TADS
-    const cursoTADS = await prisma.curso.findFirst({
+    // Verificar curso TADS (buscar pelo nome da turma)
+    const turmaTADS = await prisma.turma.findFirst({
       where: {
-        OR: [
-          { codigo: 'TADS' },
-          { codigo: 'ADS' }
-        ]
+        nome: 'TADS 2025'
+      },
+      include: {
+        curso: true
       }
     });
+
+    if (!turmaTADS) {
+      console.error('❌ Turma TADS 2025 não encontrada!');
+      return;
+    }
+
+    const cursoTADS = turmaTADS.curso;
 
     if (!cursoTADS) {
       console.error('❌ Curso TADS/ADS não encontrado!');
@@ -39,7 +46,7 @@ async function verificarDadosTADS() {
     if (disciplinas.length > 0) {
       console.log('\n📋 Lista de disciplinas:');
       disciplinas.forEach(d => {
-        console.log(`- ${d.nome} (${d.codigo}) - ${d.semestre}º semestre - ${d.carga_horaria_total}h - ${d.tipo_de_sala}`);
+        console.log(`- ${d.nome} (${d.codigo}) - ${d.semestre}º semestre - ${d.carga_horaria}h - ${d.tipo_de_sala}`);
       });
     }
 
@@ -64,16 +71,25 @@ async function verificarDadosTADS() {
       });
     }
 
+    // Mostrar nomes reais das disciplinas encontradas
+    if (disciplinas.length > 0) {
+      console.log('\n🔍 Nomes reais das disciplinas no banco:');
+      disciplinas.forEach(d => {
+        console.log(`- "${d.nome}"`);
+      });
+    }
+
     // Verificar disciplinas específicas solicitadas
     console.log('\n🎯 Verificando disciplinas específicas solicitadas...');
     const disciplinasEsperadas = [
-      'Algoritmos e Programação',
+      'Algoritmos e Estruturas de Dados',
       'Banco de Dados',
-      'Interação Humano-Computador',
-      'Processo de Desenvolvimento de Software',
-      'Programação Visual e Autoria Web',
+      'Programação Orientada a Objetos',
+      'Cálculo I',
+      'Física I',
+      'Engenharia de Software',
       'Redes de Computadores',
-      'Sistemas Digitais'
+      'Inteligência Artificial'
     ];
 
     const disciplinasEncontradas = [];

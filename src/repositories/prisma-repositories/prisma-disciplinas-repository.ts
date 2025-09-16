@@ -13,6 +13,15 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
     async findById(id: string) {
         const disciplina = await prisma.disciplina.findUnique({
             where: { id },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
         });
 
         return disciplina;
@@ -30,7 +39,23 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
         const disciplinas = await prisma.disciplina.findMany({
             take: 20,
             skip: (page - 1) * 20,
-            include: {
+            select: {
+                id: true,
+                nome: true,
+                codigo: true,
+                carga_horaria: true,
+                carga_horaria_atual: true,
+                total_aulas: true,
+                aulas_ministradas: true,
+                data_inicio: true,
+                data_fim_prevista: true,
+                data_fim_real: true,
+                periodo_letivo: true,
+                tipo_de_sala: true,
+                horario_consolidado: true,
+                obrigatoria: true,
+                semestre: true,
+                id_curso: true,
                 curso: {
                     select: {
                         id: true,

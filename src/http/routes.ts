@@ -1,11 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { register, autenticar, profile, refresh, buscarUsuarios, buscarUsuario, atualizarUsuario, excluirUsuario } from "./controllers/users";
 import { criarDisciplina, buscarDisciplinas, buscarDisciplina, atualizarDisciplina, excluirDisciplina } from "./controllers/disciplinas";
+import { atualizarHorarioConsolidado } from "./controllers/disciplinas/atualizar-horario-consolidado";
 import { criarTurma, buscarTurmas, buscarTurma, atualizarTurma, excluirTurma, buscarGradeHorariosTurma } from "./controllers/turmas";
 import { criarSala, buscarSalas, buscarSala, atualizarSala, excluirSala, buscarGradeHorariosSala } from "./controllers/salas";
 import { criarHorario, buscarHorarios, buscarHorario, atualizarHorario, excluirHorario, criarHorarioCodigo } from "./controllers/horarios";
-import { criarAlocacao, buscarAlocacoes, buscarAlocacao, atualizarAlocacao, excluirAlocacao, buscarGradeHorarios } from "./controllers/alocacoes";
+import { criarAlocacao, buscarAlocacoes, buscarAlocacao, atualizarAlocacao, excluirAlocacao, buscarGradeHorarios, buscarAlocacoesPeriodoManha, buscarAlocacoesTurmaPeriodo, excluirTodasAlocacoesTurma } from "./controllers/alocacoes";
 import { executeGeneticAllocation, getGeneticAllocationStatus, cancelGeneticAllocation, getGeneticAllocationReport } from "./controllers/alocacoes-geneticas";
+import { previewGeneticAllocation } from "./controllers/alocacoes-geneticas-preview";
 import { criarModulo, buscarModulos, buscarModulo, atualizarModulo, excluirModulo, buscarModulosPorDisciplina } from "./controllers/modulos";
 import { criarCurso, buscarCursos, buscarCurso, atualizarCurso, excluirCurso } from "./controllers/cursos";
 import { criarPredio, buscarPredios, buscarPredio, atualizarPredio, excluirPredio } from "./controllers/predios";
@@ -45,6 +47,7 @@ export async function appRoutes(app: FastifyInstance){
     app.get('/disciplinas', buscarDisciplinas);
     app.get('/disciplinas/:id', buscarDisciplina);
     app.put('/disciplinas/:id', atualizarDisciplina);
+    app.put('/disciplinas/:id/horario-consolidado', atualizarHorarioConsolidado);
     app.delete('/disciplinas/:id', excluirDisciplina);
     
     // Turmas
@@ -74,15 +77,19 @@ export async function appRoutes(app: FastifyInstance){
     // Alocações
     app.post('/alocacoes', criarAlocacao);
     app.get('/alocacoes', buscarAlocacoes);
+    app.get('/alocacoes/periodo/manha', buscarAlocacoesPeriodoManha);
+    app.get('/alocacoes/turma/:id_turma/periodo', buscarAlocacoesTurmaPeriodo);
     app.get('/alocacoes/:id', buscarAlocacao);
     app.put('/alocacoes/:id', atualizarAlocacao);
     app.delete('/alocacoes/:id', excluirAlocacao);
+    app.delete('/alocacoes/turma/:id_turma/todas', excluirTodasAlocacoesTurma);
     
     // Grade de Horários
     app.get('/grade-horarios', buscarGradeHorarios);
     
     // Alocações Genéticas (sem autenticação para testes)
     app.post('/alocacoes/genetica', executeGeneticAllocation);
+    app.post('/alocacoes/genetica/preview', previewGeneticAllocation);
     app.get('/alocacoes/genetica/:turmaId/status', getGeneticAllocationStatus);
     app.delete('/alocacoes/genetica/:turmaId', cancelGeneticAllocation);
     app.get('/alocacoes/genetica/:turmaId/relatorio', getGeneticAllocationReport);

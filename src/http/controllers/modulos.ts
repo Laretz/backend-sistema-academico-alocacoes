@@ -46,7 +46,7 @@ export async function buscarModulosPorDisciplina(request: FastifyRequest, reply:
           select: {
             id: true,
             nome: true,
-            carga_horaria_total: true,
+            carga_horaria: true,
             carga_horaria_atual: true
           }
         },
@@ -92,7 +92,7 @@ export async function buscarModulo(request: FastifyRequest, reply: FastifyReply)
           select: {
             id: true,
             nome: true,
-            carga_horaria_total: true,
+            carga_horaria: true,
             carga_horaria_atual: true
           }
         },
@@ -177,7 +177,7 @@ export async function criarModulo(request: FastifyRequest, reply: FastifyReply) 
           select: {
             id: true,
             nome: true,
-            carga_horaria_total: true,
+            carga_horaria: true,
             carga_horaria_atual: true
           }
         },
@@ -240,7 +240,7 @@ export async function atualizarModulo(request: FastifyRequest, reply: FastifyRep
           select: {
             id: true,
             nome: true,
-            carga_horaria_total: true,
+            carga_horaria: true,
             carga_horaria_atual: true
           }
         },
@@ -337,7 +337,7 @@ async function recalcularDataFimDisciplina(id_disciplina: string) {
     }
 
     // Calcular quantas semanas são necessárias
-    const semanasNecessarias = Math.ceil(disciplina.carga_horaria_total / horasSemanais);
+    const semanasNecessarias = Math.ceil(disciplina.carga_horaria / horasSemanais);
     
     // Calcular nova data de fim
     const dataFimReal = new Date(disciplina.data_inicio);
@@ -348,7 +348,7 @@ async function recalcularDataFimDisciplina(id_disciplina: string) {
       where: { id: id_disciplina },
       data: {
         data_fim_real: dataFimReal,
-        carga_horaria_atual: Math.min(disciplina.carga_horaria_total, horasSemanais * semanasNecessarias)
+        carga_horaria_atual: Math.min(disciplina.carga_horaria, horasSemanais * semanasNecessarias)
       }
     });
   } catch (error) {
@@ -368,7 +368,7 @@ export async function buscarModulos(request: FastifyRequest, reply: FastifyReply
           select: {
             id: true,
             nome: true,
-            carga_horaria_total: true,
+            carga_horaria: true,
             carga_horaria_atual: true
           }
         },

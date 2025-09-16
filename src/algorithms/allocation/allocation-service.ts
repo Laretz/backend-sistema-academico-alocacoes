@@ -13,6 +13,7 @@ interface AlocacaoData {
   professorId: string;
   salaId: string;
   horarioId: string;
+  horarioStr?: string;
 }
 
 interface AllocationResult {
@@ -104,6 +105,87 @@ export class AllocationService {
   }
 
   /**
+   * Gera preview de alocações sem salvar no banco de dados
+   */
+  public async generatePreview(request: {
+    turmaId: string;
+    disciplinaIds: string[];
+    params?: Partial<GeneticAlgorithmParams>;
+  }): Promise<AllocationResult> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🔄 Iniciando geração de preview para:', { turmaId: request.turmaId, disciplinaIds: request.disciplinaIds });
+      
+      // Criar alocações temporárias para as disciplinas selecionadas
+      console.log('📝 Criando alocações temporárias...');
+      await this.createTemporaryAllocations(request.turmaId, request.disciplinaIds);
+      console.log('✅ Alocações temporárias criadas');
+      
+      // Executar algoritmo genético apenas para as disciplinas selecionadas
+      console.log('🧬 Executando algoritmo genético...');
+      const result = await this.allocateScheduleForPreview({
+        turmaId: request.turmaId,
+        disciplinaIds: request.disciplinaIds,
+        params: request.params
+      });
+      
+      console.log('🧬 Resultado do algoritmo genético:', { success: result.success, error: result.error, alocacoes: result.alocacoes?.length });
+      
+      if (!result.success) {
+        console.error('❌ Falha no algoritmo genético:', result.error);
+        return {
+          success: false,
+          error: result.error
+        };
+      }
+
+      // Atualizar horário consolidado das disciplinas
+      console.log('📅 Atualizando horários consolidados...');
+      await this.updateConsolidatedSchedules(request.disciplinaIds);
+      
+      // Gerar grade de horários para visualização
+      console.log('📊 Gerando grade de horários...');
+      const gradeHorarios = await this.generateScheduleGrid(result.alocacoes || []);
+      console.log('📊 Grade de horários gerada:', Object.keys(gradeHorarios).length, 'slots');
+      
+      const finalResult = {
+        success: true,
+        turmaId: request.turmaId,
+        alocacoes: result.alocacoes,
+        fitness: result.cromossomo?.fitness,
+        conflitos: await this.detectConflicts(result.alocacoes || []),
+        geracoes: result.metrics?.generations,
+        tempoExecucao: result.metrics?.executionTime,
+        melhorFitness: result.cromossomo?.fitness,
+        convergencia: true,
+        gradeHorarios
+      };
+      
+      console.log('✅ Preview gerado com sucesso:', {
+        alocacoes: finalResult.alocacoes?.length,
+        fitness: finalResult.fitness,
+        conflitos: finalResult.conflitos,
+        gradeSlots: Object.keys(finalResult.gradeHorarios || {}).length
+      });
+      
+      return finalResult;
+      
+    } catch (error) {
+      console.error('❌ Erro durante geração de preview:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      };
+    } finally {
+      // Limpar alocações temporárias
+      console.log('🧹 Limpando alocações temporárias...');
+      await this.cleanupTemporaryAllocations(request.turmaId);
+      console.log('🧹 Limpeza concluída');
+    }
+  }
+
+  /**
    * Executa o algoritmo genético para alocar disciplinas de uma turma
    */
   public async allocateSchedule(request: AllocationRequest): Promise<AllocationResult> {
@@ -183,6 +265,72 @@ export class AllocationService {
   }
 
   /**
+   * Executa o algoritmo de alocação apenas para disciplinas específicas (preview)
+   */
+  public async allocateScheduleForPreview(request: {
+    turmaId: string;
+    disciplinaIds: string[];
+    params?: Partial<GeneticAlgorithmParams>;
+  }): Promise<AllocationResult> {
+    const startTime = Date.now();
+    
+    try {
+      // Buscar dados filtrados apenas para as disciplinas selecionadas
+      const data = await this.fetchAllocationDataForPreview(request.turmaId, request.disciplinaIds);
+      if (!data || 'success' in data) {
+        return {
+          success: false,
+          error: data && 'error' in data ? data.error : 'Erro ao buscar dados da turma'
+        };
+      }
+
+      // Configurar parâmetros do algoritmo genético
+      const params = { ...this.defaultParams, ...request.params };
+      
+      // Executar algoritmo genético
+      const geneticAlgorithm = new GeneticAlgorithm(
+        params,
+        data.turma,
+        data.professores,
+        data.salas,
+        data.horarios
+      );
+      const bestChromosome = await geneticAlgorithm.execute();
+      
+      if (!bestChromosome || bestChromosome.fitness === 0) {
+        return {
+          success: false,
+          error: 'Falha na execução do algoritmo genético'
+        };
+      }
+
+      // Converter cromossomo para alocações
+      const alocacoes = await this.convertToAllocations(bestChromosome, data);
+      
+      const executionTime = Date.now() - startTime;
+      
+      return {
+        success: true,
+        cromossomo: bestChromosome,
+        alocacoes,
+        metrics: {
+          fitness: bestChromosome.fitness,
+          generations: params.generations,
+          executionTime,
+          conflictsResolved: this.countResolvedConflicts(bestChromosome)
+        }
+      };
+      
+    } catch (error) {
+      console.error('Erro durante alocação de preview:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      };
+    }
+  }
+
+  /**
    * Salva as alocações geradas no banco de dados
    */
   public async saveAllocations(turmaId: string, alocacoes: AlocacaoData[]): Promise<boolean> {
@@ -214,6 +362,114 @@ export class AllocationService {
     } catch (error) {
       console.error('Erro ao salvar alocações:', error);
       return false;
+    }
+  }
+
+  /**
+   * Busca dados filtrados para preview de disciplinas específicas
+   */
+  private async fetchAllocationDataForPreview(turmaId: string, disciplinaIds: string[]) {
+    try {
+      const turma = await prisma.turma.findUnique({
+        where: { id: turmaId },
+        include: {
+          alocacoes: {
+            include: {
+              disciplina: true
+            }
+          }
+        }
+      });
+
+      if (!turma) {
+        throw new Error(`Turma ${turmaId} não encontrada`);
+      }
+
+      const professores = await prisma.user.findMany({
+        where: { role: 'PROFESSOR' }
+      });
+
+      if (!professores || professores.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhum professor encontrado'
+        };
+      }
+
+      const salas = await prisma.sala.findMany();
+      if (!salas || salas.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhuma sala encontrada'
+        };
+      }
+
+      const horarios = await prisma.horario.findMany();
+      if (!horarios || horarios.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhum horário encontrado'
+        };
+      }
+
+      // Buscar apenas as disciplinas selecionadas
+      const disciplinas = await prisma.disciplina.findMany({
+        where: { 
+          id: { in: disciplinaIds }
+        }
+      });
+
+      if (!disciplinas || disciplinas.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhuma disciplina encontrada para o preview'
+        };
+      }
+
+      // Converter para formato esperado pelo algoritmo
+      const turmaData = {
+        id: turma.id,
+        num_alunos: turma.num_alunos,
+        turno: turma.turno || 'MATUTINO',
+        disciplinas: disciplinas.map(d => ({
+          id: d.id,
+          nome: d.nome,
+          cargaHoraria: d.carga_horaria || 60,
+          tipoSala: d.tipo_de_sala === 'Lab' ? 'Lab' : 'Sala'
+        }))
+      };
+
+      const professoresData = professores.map(p => ({
+        id: p.id,
+        nome: p.nome,
+        carga_horaria_max: p.carga_horaria_max || 40,
+        preferencias: []
+      }));
+
+      const salasData = salas.map(s => ({
+        id: s.id,
+        nome: s.nome,
+        capacidade: s.capacidade,
+        tipo: s.tipo,
+        computadores: s.computadores
+      }));
+
+      const horariosData = horarios.map(h => ({
+        id: h.id,
+        codigo: h.codigo,
+        dia_semana: h.dia_semana
+      }));
+
+      return {
+        turma: turmaData,
+        professores: professoresData,
+        salas: salasData,
+        horarios: horariosData
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar dados para preview:', error);
+      return null;
     }
   }
 
@@ -264,23 +520,30 @@ export class AllocationService {
         };
       }
 
-      // Obter disciplinas únicas das alocações existentes
-      const disciplinasUnicas = turma.alocacoes.reduce((acc: any[], alocacao: any) => {
-        if (!acc.find(d => d.id === alocacao.disciplina.id)) {
-          acc.push(alocacao.disciplina);
+      // Buscar disciplinas do curso da turma
+      const disciplinas = await prisma.disciplina.findMany({
+        where: { 
+          id_curso: turma.id_curso,
+          obrigatoria: true // Apenas disciplinas obrigatórias por enquanto
         }
-        return acc;
-      }, []);
+      });
+
+      if (!disciplinas || disciplinas.length === 0) {
+        return {
+          success: false,
+          error: 'Nenhuma disciplina encontrada para o curso desta turma'
+        };
+      }
 
       // Converter para formato esperado pelo algoritmo
       const turmaData = {
         id: turma.id,
         num_alunos: turma.num_alunos,
         turno: turma.turno || 'MATUTINO', // Incluir turno da turma
-        disciplinas: disciplinasUnicas.map(d => ({
+        disciplinas: disciplinas.map(d => ({
           id: d.id,
           nome: d.nome,
-          cargaHoraria: d.carga_horaria_total || 60,
+          cargaHoraria: d.carga_horaria || 60,
           tipoSala: d.tipo_de_sala === 'Lab' ? 'Lab' : 'Sala'
         }))
       };
@@ -331,11 +594,7 @@ export class AllocationService {
     const turma = await prisma.turma.findUnique({
       where: { id: request.turmaId },
       include: { 
-        alocacoes: {
-          include: {
-            disciplina: true
-          }
-        }
+        curso: true
       }
     });
 
@@ -343,8 +602,16 @@ export class AllocationService {
       return { isValid: false, error: 'Turma não encontrada' };
     }
 
-    if (turma.alocacoes.length === 0) {
-      return { isValid: false, error: 'Turma não possui alocações cadastradas para processar' };
+    // Verificar se existem disciplinas no curso da turma
+    const disciplinas = await prisma.disciplina.findMany({
+      where: { 
+        id_curso: turma.id_curso,
+        obrigatoria: true
+      }
+    });
+
+    if (disciplinas.length === 0) {
+      return { isValid: false, error: 'Curso da turma não possui disciplinas obrigatórias cadastradas' };
     }
 
     // Validar parâmetros do algoritmo
@@ -675,6 +942,206 @@ export class AllocationService {
       console.error('Erro ao gerar relatório detalhado:', error);
       return null;
     }
+  }
+
+  /**
+   * Cria alocações temporárias para preview
+   */
+  private async createTemporaryAllocations(turmaId: string, disciplinaIds: string[]): Promise<void> {
+    try {
+      // Buscar dados necessários
+      const professores = await prisma.user.findMany({
+        where: { role: 'PROFESSOR' }
+      });
+      const salas = await prisma.sala.findMany();
+      const horarios = await prisma.horario.findMany();
+
+      if (!professores.length || !salas.length || !horarios.length) {
+        throw new Error('Dados insuficientes para gerar preview');
+      }
+
+      // Criar alocações temporárias para cada disciplina
+      for (const disciplinaId of disciplinaIds) {
+        await prisma.alocacao.create({
+          data: {
+            id_turma: turmaId,
+            id_disciplina: disciplinaId,
+            id_user: professores[0].id, // Temporário
+            id_sala: salas[0].id, // Temporário
+            id_horario: horarios[0].id, // Temporário
+            is_modulo_principal: true
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao criar alocações temporárias:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza o horário consolidado das disciplinas
+   */
+  private async updateConsolidatedSchedules(disciplinaIds: string[]): Promise<void> {
+    try {
+      const { GerarHorarioConsolidadoUseCase } = await import('../../use-cases/disciplina/gerar-horario-consolidado');
+      const { PrismaAlocacoesRepository } = await import('../../repositories/prisma/prisma-alocacoes-repository');
+      const { PrismaDisciplinasRepository } = await import('../../repositories/prisma/prisma-disciplinas-repository');
+      
+      const alocacoesRepository = new PrismaAlocacoesRepository();
+      const disciplinasRepository = new PrismaDisciplinasRepository();
+      const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(alocacoesRepository);
+      
+      for (const disciplinaId of disciplinaIds) {
+        const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
+        if (horarioConsolidado) {
+          await disciplinasRepository.update(disciplinaId, { horario_consolidado: horarioConsolidado });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar horários consolidados:', error);
+    }
+  }
+
+  /**
+   * Limpa alocações temporárias após preview
+   */
+  private async cleanupTemporaryAllocations(turmaId: string): Promise<void> {
+    try {
+      // Remover apenas alocações criadas nos últimos 5 minutos (temporárias)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      await prisma.alocacao.deleteMany({
+        where: {
+          id_turma: turmaId,
+          created_at: {
+            gte: fiveMinutesAgo
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao limpar alocações temporárias:', error);
+    }
+  }
+
+  /**
+   * Gera grade de horários para visualização
+   */
+  private async generateScheduleGrid(alocacoes: AlocacaoData[]): Promise<Record<string, any[]>> {
+    const grid: Record<string, any[]> = {};
+    
+    // Buscar todos os dados necessários em uma única consulta para otimizar
+    const disciplinaIds = [...new Set(alocacoes.map(a => a.disciplinaId))];
+    const professorIds = [...new Set(alocacoes.map(a => a.professorId))];
+    const salaIds = [...new Set(alocacoes.map(a => a.salaId))];
+    const horarioIds = [...new Set(alocacoes.map(a => a.horarioId))];
+    
+    const [disciplinas, professores, salas, horarios] = await Promise.all([
+      prisma.disciplina.findMany({ where: { id: { in: disciplinaIds } } }),
+      prisma.user.findMany({ where: { id: { in: professorIds } } }),
+      prisma.sala.findMany({ where: { id: { in: salaIds } } }),
+      prisma.horario.findMany({ where: { id: { in: horarioIds } } })
+    ]);
+    
+    for (const alocacao of alocacoes) {
+      try {
+        const disciplina = disciplinas.find(d => d.id === alocacao.disciplinaId);
+        const professor = professores.find(p => p.id === alocacao.professorId);
+        const sala = salas.find(s => s.id === alocacao.salaId);
+        const horario = horarios.find(h => h.id === alocacao.horarioId);
+
+        if (horario) {
+          const key = `${horario.dia_semana}_${horario.codigo}`;
+          
+          if (!grid[key]) {
+            grid[key] = [];
+          }
+          
+          grid[key].push({
+            disciplina: disciplina?.nome || 'Disciplina não encontrada',
+            codigo: disciplina?.codigo || '',
+            professor: professor?.nome || 'Professor não encontrado',
+            sala: sala?.nome || 'Sala não encontrada',
+            horario: `${horario.dia_semana} - ${horario.codigo}`,
+            disciplinaObj: disciplina,
+            professorObj: professor,
+            salaObj: sala,
+            horarioObj: horario
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao processar alocação para grade:', error);
+      }
+    }
+    
+    return grid;
+  }
+
+  /**
+   * Detecta conflitos nas alocações
+   */
+  private async detectConflicts(alocacoes: AlocacaoData[]): Promise<Array<{ message: string; type: string; severity: string }>> {
+    const conflicts: Array<{ message: string; type: string; severity: string }> = [];
+    const salaHorarios = new Map<string, AlocacaoData>();
+    const professorHorarios = new Map<string, AlocacaoData>();
+    
+    // Buscar dados das salas e turma para verificação de capacidade
+    const salaIds = [...new Set(alocacoes.map(a => a.salaId))];
+    const salas = await prisma.sala.findMany({
+      where: { id: { in: salaIds } }
+    });
+    
+    // Buscar turma através das alocações existentes
+    let turma = null;
+    if (alocacoes.length > 0) {
+      // Buscar uma alocação existente para obter o turmaId
+      const alocacaoExistente = await prisma.alocacao.findFirst({
+        where: { id_disciplina: alocacoes[0].disciplinaId },
+        include: { turma: true }
+      });
+      
+      turma = alocacaoExistente?.turma || null;
+    }
+    
+    for (const alocacao of alocacoes) {
+      // Verificar conflito de sala/horário
+      const slotKey = `${alocacao.salaId}_${alocacao.horarioId}`;
+      if (salaHorarios.has(slotKey)) {
+        const conflictingAllocation = salaHorarios.get(slotKey)!;
+        conflicts.push({
+          message: `Conflito de sala: Mesma sala alocada em horário simultâneo`,
+          type: 'room_conflict',
+          severity: 'high'
+        });
+      }
+      salaHorarios.set(slotKey, alocacao);
+      
+      // Verificar conflito de professor/horário
+      const professorSlotKey = `${alocacao.professorId}_${alocacao.horarioId}`;
+      if (professorHorarios.has(professorSlotKey)) {
+        const conflictingAllocation = professorHorarios.get(professorSlotKey)!;
+        conflicts.push({
+          message: `Conflito de professor: Mesmo professor alocado em horário simultâneo`,
+          type: 'professor_conflict',
+          severity: 'high'
+        });
+      }
+      professorHorarios.set(professorSlotKey, alocacao);
+      
+      // Verificar violação de capacidade
+      if (turma) {
+        const sala = salas.find(s => s.id === alocacao.salaId);
+        if (sala && sala.capacidade < turma.num_alunos) {
+          conflicts.push({
+            message: `Violação de capacidade: Sala ${sala.nome} (cap: ${sala.capacidade}) insuficiente para ${turma.num_alunos} alunos`,
+            type: 'capacity_violation',
+            severity: 'medium'
+          });
+        }
+      }
+    }
+    
+    return conflicts;
   }
 
   /**

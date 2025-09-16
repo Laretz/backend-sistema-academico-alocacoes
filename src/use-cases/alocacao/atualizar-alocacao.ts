@@ -1,5 +1,7 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
+import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
+import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
 
 interface AtualizarAlocacaoUseCaseRequest {
     id: string;
@@ -11,7 +13,10 @@ interface AtualizarAlocacaoUseCaseRequest {
 }
 
 export class AtualizarAlocacaoUseCase {
-    constructor(private alocacoesRepository: AlocacoesRepository) {}
+    constructor(
+        private alocacoesRepository: AlocacoesRepository,
+        private disciplinasRepository: DisciplinasRepository
+    ) {}
 
     async execute({ id, id_user, id_disciplina, id_turma, id_sala, id_horario }: AtualizarAlocacaoUseCaseRequest) {
         const alocacaoExiste = await this.alocacoesRepository.findById(id);
@@ -60,6 +65,18 @@ export class AtualizarAlocacaoUseCase {
         }
         
         const alocacao = await this.alocacoesRepository.update(id, updateData);
+
+        // Gerar horário consolidado automaticamente após atualizar alocação
+        if (id_disciplina !== undefined || alocacaoExiste.id_disciplina) {
+            const disciplinaId = id_disciplina || alocacaoExiste.id_disciplina;
+            const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
+            const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
+            
+            // Atualizar disciplina com o horário consolidado
+            if (horarioConsolidado) {
+                await this.disciplinasRepository.update(disciplinaId, { horario_consolidado: horarioConsolidado });
+            }
+        }
 
         return { alocacao };
     }

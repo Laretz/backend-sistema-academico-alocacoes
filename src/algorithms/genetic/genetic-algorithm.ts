@@ -155,10 +155,10 @@ export class GeneticAlgorithm {
       // Selecionar sala compatível com prioridade para capacidade adequada
       const sala = this.selectBestSala(disciplina, usedSalaHorarios);
       
-      // Selecionar horários com base no turno da turma e evitar sábados
-      const horariosNecessarios = Math.ceil(disciplina.cargaHoraria / 50); // 50min por aula
-      const horariosEscolhidos = this.selectOptimalHorarios(
-        horariosNecessarios, 
+      // Calcular distribuição de aulas baseada na carga horária
+      const distribuicaoAulas = this.calculateClassDistribution(disciplina.cargaHoraria);
+      const horariosEscolhidos = this.selectOptimalHorariosWithDistribution(
+        distribuicaoAulas,
         usedProfessorHorarios.get(professor.id) || new Set(),
         usedSalaHorarios.get(sala.id) || new Set()
       );
@@ -190,6 +190,305 @@ export class GeneticAlgorithm {
     };
   }
 
+  /**
+   * Calcula a distribuição ideal de aulas baseada na carga horária
+   */
+  private calculateClassDistribution(cargaHoraria: number): {
+    aulasSemanais: number;
+    preferirConsecutivas: boolean;
+    totalAulas: number;
+    distribuicaoTipo: '2-mesmo-dia' | '3-mesmo-dia' | '4-dois-dias' | '6-dois-dias' | 'padrao';
+  } {
+    // Converter carga horária para total de aulas (assumindo 50min por aula)
+    const totalAulas = Math.ceil(cargaHoraria * 1.2);
+    
+    if (cargaHoraria === 90) {
+      // 90h: 6 aulas por semana, 3 em um dia + 3 em outro dia
+      return {
+        aulasSemanais: 6,
+        preferirConsecutivas: true,
+        totalAulas,
+        distribuicaoTipo: '6-dois-dias'
+      };
+    } else if (cargaHoraria === 60) {
+      // 60h: 4 aulas por semana em dois dias diferentes, 2+2
+      return {
+        aulasSemanais: 4,
+        preferirConsecutivas: false,
+        totalAulas,
+        distribuicaoTipo: '4-dois-dias'
+      };
+    } else if (cargaHoraria === 45) {
+      // 45h: 3 aulas por semana no mesmo dia
+      return {
+        aulasSemanais: 3,
+        preferirConsecutivas: true,
+        totalAulas,
+        distribuicaoTipo: '3-mesmo-dia'
+      };
+    } else if (cargaHoraria === 30) {
+      // 30h: 2 aulas por semana no mesmo dia
+      return {
+        aulasSemanais: 2,
+        preferirConsecutivas: true,
+        totalAulas,
+        distribuicaoTipo: '2-mesmo-dia'
+      };
+    } else {
+      // Outras cargas horárias: usar distribuição padrão
+      return {
+        aulasSemanais: Math.min(4, Math.ceil(cargaHoraria / 15)),
+        preferirConsecutivas: false,
+        totalAulas,
+        distribuicaoTipo: 'padrao'
+      };
+    }
+  }
+
+  /**
+   * Seleciona horários otimizados baseados na distribuição de aulas
+   */
+  private selectOptimalHorariosWithDistribution(
+    distribuicao: { aulasSemanais: number; preferirConsecutivas: boolean; totalAulas: number; distribuicaoTipo: string },
+    professorHorariosUsados: Set<string>,
+    salaHorariosUsados: Set<string>
+  ): string[] {
+    const horariosDisponiveis = this.filterByTurnoPreference(this.horarios)
+      .filter(h => 
+        !professorHorariosUsados.has(`${h.dia_semana}_${h.codigo}`) &&
+        !salaHorariosUsados.has(`${h.dia_semana}_${h.codigo}`)
+      );
+
+    if (horariosDisponiveis.length === 0) {
+      return this.selectRandomHorarios(distribuicao.aulasSemanais);
+    }
+
+    // Implementar regras específicas baseadas no tipo de distribuição
+    switch (distribuicao.distribuicaoTipo) {
+      case '2-mesmo-dia': {
+        // 30h: 2 aulas consecutivas no mesmo dia
+        const horarios2Consecutivos = this.findConsecutiveHorarios(horariosDisponiveis, 2);
+        if (horarios2Consecutivos.length === 2) {
+          return horarios2Consecutivos;
+        }
+        // Fallback: tentar qualquer 2 horários no mesmo dia
+        const sameDayHorarios = this.findSameDayHorarios(horariosDisponiveis, 2);
+        if (sameDayHorarios.length === 2) {
+          return sameDayHorarios;
+        }
+        break;
+      }
+        
+      case '3-mesmo-dia': {
+        // 45h: 3 aulas consecutivas no mesmo dia
+        const horarios3Consecutivos = this.findConsecutiveHorarios(horariosDisponiveis, 3);
+        if (horarios3Consecutivos.length === 3) {
+          return horarios3Consecutivos;
+        }
+        // Fallback: tentar qualquer 3 horários no mesmo dia
+        const sameDayHorarios = this.findSameDayHorarios(horariosDisponiveis, 3);
+        if (sameDayHorarios.length === 3) {
+          return sameDayHorarios;
+        }
+        break;
+      }
+        
+      case '4-dois-dias': {
+        // 60h: 4 aulas em dois dias diferentes (2+2)
+        const distribuicao2x2 = this.findTwoByTwoDistribution(horariosDisponiveis);
+        if (distribuicao2x2.length === 4) {
+          return distribuicao2x2;
+        }
+        // Fallback: distribuir em dias diferentes
+        const distributedHorarios = this.findDistributedHorarios(horariosDisponiveis, 4, 2);
+        if (distributedHorarios.length === 4) {
+          return distributedHorarios;
+        }
+        break;
+      }
+        
+      case '6-dois-dias': {
+        // 90h: 6 aulas em dois dias diferentes (3+3)
+        const distribuicao3x3 = this.findThreeByThreeDistribution(horariosDisponiveis);
+        if (distribuicao3x3.length === 6) {
+          return distribuicao3x3;
+        }
+        // Fallback: distribuir em dias diferentes
+        const distributedHorarios = this.findDistributedHorarios(horariosDisponiveis, 6, 2);
+        if (distributedHorarios.length === 6) {
+          return distributedHorarios;
+        }
+        break;
+      }
+    }
+    
+    // Fallback: seleção aleatória respeitando a quantidade de aulas semanais
+    return this.selectRandomHorarios(distribuicao.aulasSemanais);
+  }
+
+  /**
+   * Encontra horários consecutivos no mesmo dia
+   */
+  private findConsecutiveHorarios(horarios: HorarioInput[], quantidade: number): string[] {
+    const diasDisponiveis = [...new Set(horarios.map(h => h.dia_semana))];
+    
+    for (const dia of diasDisponiveis) {
+      const horariosDoDia = horarios
+        .filter(h => h.dia_semana === dia)
+        .sort((a, b) => a.codigo.localeCompare(b.codigo));
+      
+      if (horariosDoDia.length >= quantidade) {
+        // Verificar se existem horários consecutivos
+        for (let i = 0; i <= horariosDoDia.length - quantidade; i++) {
+          const consecutivos = horariosDoDia.slice(i, i + quantidade);
+          const saoConsecutivos = this.areHorariosConsecutive(consecutivos);
+          
+          if (saoConsecutivos) {
+            return consecutivos.map(h => `${h.dia_semana}_${h.codigo}`);
+          }
+        }
+      }
+    }
+    
+    return [];
+  }
+
+  /**
+   * Encontra horários no mesmo dia (não necessariamente consecutivos)
+   */
+  private findSameDayHorarios(horarios: HorarioInput[], quantidade: number): string[] {
+    const diasDisponiveis = [...new Set(horarios.map(h => h.dia_semana))];
+    
+    for (const dia of diasDisponiveis) {
+      const horariosDoDia = horarios.filter(h => h.dia_semana === dia);
+      
+      if (horariosDoDia.length >= quantidade) {
+        // Selecionar os primeiros horários disponíveis no dia
+        const selecionados = horariosDoDia
+          .sort((a, b) => a.codigo.localeCompare(b.codigo))
+          .slice(0, quantidade);
+        
+        return selecionados.map(h => `${h.dia_semana}_${h.codigo}`);
+      }
+    }
+    
+    return [];
+  }
+
+  /**
+   * Distribui horários em dias diferentes
+   */
+  private findDistributedHorarios(horarios: HorarioInput[], totalAulas: number, diasDesejados: number): string[] {
+    const diasDisponiveis = [...new Set(horarios.map(h => h.dia_semana))];
+    
+    if (diasDisponiveis.length < diasDesejados) {
+      return [];
+    }
+    
+    const aulasPorDia = Math.ceil(totalAulas / diasDesejados);
+    const resultado: string[] = [];
+    
+    for (let i = 0; i < diasDesejados && resultado.length < totalAulas; i++) {
+      const dia = diasDisponiveis[i];
+      const horariosDoDia = horarios.filter(h => h.dia_semana === dia);
+      
+      const aulasParaEsseDia = Math.min(aulasPorDia, totalAulas - resultado.length);
+      const horariosEscolhidos = horariosDoDia
+        .sort((a, b) => a.codigo.localeCompare(b.codigo))
+        .slice(0, aulasParaEsseDia);
+      
+      resultado.push(...horariosEscolhidos.map(h => `${h.dia_semana}_${h.codigo}`));
+    }
+    
+    return resultado;
+  }
+
+  /**
+   * Encontra distribuição 2+2 (2 aulas em um dia + 2 em outro)
+   */
+  private findTwoByTwoDistribution(horarios: HorarioInput[]): string[] {
+    const diasDisponiveis = [...new Set(horarios.map(h => h.dia_semana))];
+    
+    for (let i = 0; i < diasDisponiveis.length; i++) {
+      for (let j = i + 1; j < diasDisponiveis.length; j++) {
+        const dia1 = diasDisponiveis[i];
+        const dia2 = diasDisponiveis[j];
+        
+        const horariosDia1 = horarios.filter(h => h.dia_semana === dia1);
+        const horariosDia2 = horarios.filter(h => h.dia_semana === dia2);
+        
+        if (horariosDia1.length >= 2 && horariosDia2.length >= 2) {
+          // Tentar encontrar 2 horários consecutivos em cada dia
+          const consecutivosDia1 = this.findConsecutiveHorarios(horariosDia1, 2);
+          const consecutivosDia2 = this.findConsecutiveHorarios(horariosDia2, 2);
+          
+          if (consecutivosDia1.length === 2 && consecutivosDia2.length === 2) {
+            return [...consecutivosDia1, ...consecutivosDia2];
+          }
+        }
+      }
+    }
+    
+    return [];
+  }
+
+  /**
+   * Encontra distribuição 3+3 (3 aulas em um dia + 3 em outro) para disciplinas de 90h
+   */
+  private findThreeByThreeDistribution(horarios: HorarioInput[]): string[] {
+    const diasDisponiveis = [...new Set(horarios.map(h => h.dia_semana))];
+    
+    for (let i = 0; i < diasDisponiveis.length; i++) {
+      for (let j = i + 1; j < diasDisponiveis.length; j++) {
+        const dia1 = diasDisponiveis[i];
+        const dia2 = diasDisponiveis[j];
+        
+        const horariosDia1 = horarios.filter(h => h.dia_semana === dia1);
+        const horariosDia2 = horarios.filter(h => h.dia_semana === dia2);
+        
+        if (horariosDia1.length >= 3 && horariosDia2.length >= 3) {
+          // Tentar encontrar 3 horários consecutivos em cada dia
+          const consecutivosDia1 = this.findConsecutiveHorarios(horariosDia1, 3);
+          const consecutivosDia2 = this.findConsecutiveHorarios(horariosDia2, 3);
+          
+          if (consecutivosDia1.length === 3 && consecutivosDia2.length === 3) {
+            return [...consecutivosDia1, ...consecutivosDia2];
+          }
+        }
+      }
+    }
+    
+    return [];
+  }
+
+  /**
+   * Verifica se os horários são consecutivos
+   */
+  private areHorariosConsecutive(horarios: HorarioInput[]): boolean {
+    if (horarios.length < 2) return true;
+    
+    const codigos = horarios.map(h => h.codigo).sort();
+    
+    for (let i = 1; i < codigos.length; i++) {
+      const atual = this.getHorarioNumber(codigos[i]);
+      const anterior = this.getHorarioNumber(codigos[i - 1]);
+      
+      if (atual !== anterior + 1) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Extrai o número do código do horário (M1 -> 1, T2 -> 2, etc.)
+   */
+  private getHorarioNumber(codigo: string): number {
+    const match = codigo.match(/\d+/);
+    return match ? parseInt(match[0]) : 0;
+  }
+
   private selectRandomHorarios(quantidade: number): string[] {
     const horariosDisponiveis = [...this.horarios];
     const selecionados: string[] = [];
@@ -210,15 +509,48 @@ export class GeneticAlgorithm {
     disciplina: DisciplinaInput,
     usedProfessorHorarios: Map<string, Set<string>>
   ): ProfessorInput {
-    // Filtrar professores com carga horária disponível
-    const professoresDisponiveis = this.professores.filter(prof => {
+    // Primeiro, filtrar professores que podem lecionar esta disciplina
+    // TODO: Implementar busca na tabela ProfessorDisciplina
+    // Por enquanto, usar lógica baseada em especialização
+    const professoresHabilitados = this.professores.filter(prof => {
+      // Lógica temporária baseada em nomes conhecidos
+      if (disciplina.nome.toLowerCase().includes('banco') || disciplina.nome.toLowerCase().includes('bd')) {
+        return prof.nome.toLowerCase().includes('carla') || prof.nome.toLowerCase().includes('edson');
+      }
+      if (disciplina.nome.toLowerCase().includes('física') || disciplina.nome.toLowerCase().includes('fis')) {
+        return prof.nome.toLowerCase().includes('leonardo');
+      }
+      if (disciplina.nome.toLowerCase().includes('web') || disciplina.nome.toLowerCase().includes('mobile')) {
+        return prof.nome.toLowerCase().includes('taniro');
+      }
+      if (disciplina.nome.toLowerCase().includes('interação') || disciplina.nome.toLowerCase().includes('ihc')) {
+        return prof.nome.toLowerCase().includes('tasia');
+      }
+      if (disciplina.nome.toLowerCase().includes('redes')) {
+        return prof.nome.toLowerCase().includes('antonino');
+      }
+      // Se não encontrar especialização específica, permitir qualquer professor
+      return true;
+    });
+    
+    // Filtrar professores habilitados com carga horária disponível
+    const professoresDisponiveis = professoresHabilitados.filter(prof => {
       const horariosUsados = usedProfessorHorarios.get(prof.id)?.size || 0;
       return horariosUsados < prof.carga_horaria_max;
     });
     
     if (professoresDisponiveis.length === 0) {
-      // Se nenhum professor disponível, retornar aleatório
-      return this.professores[Math.floor(Math.random() * this.professores.length)];
+      // Se nenhum professor habilitado disponível, usar qualquer professor disponível
+      const todosDisponiveis = this.professores.filter(prof => {
+        const horariosUsados = usedProfessorHorarios.get(prof.id)?.size || 0;
+        return horariosUsados < prof.carga_horaria_max;
+      });
+      
+      if (todosDisponiveis.length === 0) {
+        return this.professores[Math.floor(Math.random() * this.professores.length)];
+      }
+      
+      return todosDisponiveis[Math.floor(Math.random() * todosDisponiveis.length)];
     }
     
     // Priorizar professores com menos horários já alocados
@@ -468,6 +800,12 @@ export class GeneticAlgorithm {
     // Bonificar alinhamento com turno da turma
     bonus += this.calculateTurnoAlignmentBonus(cromossomo);
     
+    // NOVA: Penalizar dias consecutivos e bonificar dias alternados
+    bonus += this.calculateDayDistributionBonus(cromossomo);
+    
+    // NOVA: Bonificar aulas sequenciais sem brechas
+    bonus += this.calculateSequentialClassBonus(cromossomo);
+    
     return bonus;
   }
   
@@ -539,7 +877,179 @@ export class GeneticAlgorithm {
     return alignmentRatio * 100;
   }
 
-  private checkConflicts(cromossomo: Cromossomo): { professorConflicts: number; salaConflicts: number } {
+  /**
+   * Penaliza dias consecutivos e bonifica dias alternados
+   */
+  private calculateDayDistributionBonus(cromossomo: Cromossomo): number {
+    let bonus = 0;
+    
+    // Mapear dias da semana para números para facilitar cálculos
+    const dayNumbers: { [key: string]: number } = {
+      'SEGUNDA': 1, 'TERCA': 2, 'QUARTA': 3, 'QUINTA': 4, 'SEXTA': 5, 'SABADO': 6
+    };
+    
+    for (const gene of cromossomo.genes) {
+      const diasUsados = new Set<number>();
+      
+      // Coletar todos os dias usados por esta disciplina
+      for (const horario of gene.horarios) {
+        const dia = horario.split('_')[0];
+        const dayNumber = dayNumbers[dia];
+        if (dayNumber) {
+          diasUsados.add(dayNumber);
+        }
+      }
+      
+      const diasArray = Array.from(diasUsados).sort();
+      
+      // Encontrar a disciplina para verificar carga horária
+      const disciplina = this.turma.disciplinas.find(d => d.id === gene.disciplinaId);
+      if (!disciplina) continue;
+      
+      const cargaHoraria = disciplina.cargaHoraria;
+      
+      // Aplicar regras específicas baseadas na carga horária com penalidades mais severas
+      if (cargaHoraria === 30) {
+        // 30h: deve ter 2 aulas no mesmo dia
+        if (diasArray.length === 1) {
+          bonus += 100; // Bonificação alta por estar no mesmo dia
+        } else {
+          bonus -= 200; // Penalidade muito severa por estar em dias diferentes
+        }
+      } else if (cargaHoraria === 45) {
+        // 45h: deve ter 3 aulas no mesmo dia
+        if (diasArray.length === 1) {
+          bonus += 100; // Bonificação alta por estar no mesmo dia
+        } else {
+          bonus -= 250; // Penalidade extremamente severa por estar em dias diferentes
+        }
+      } else if (cargaHoraria === 60) {
+        // 60h: deve ter 4 aulas em exatamente 2 dias diferentes (2+2)
+        if (diasArray.length === 2) {
+          // Verificar se há dias consecutivos (não desejado para 60h)
+          const [dia1, dia2] = diasArray;
+          if (dia2 - dia1 === 1) {
+            bonus -= 100; // Penalidade severa por dias consecutivos
+          } else if (dia2 - dia1 === 2) {
+            bonus += 80; // Bonificação alta por um dia de intervalo
+          } else {
+            bonus += 60; // Bonificação moderada por mais intervalo
+          }
+        } else if (diasArray.length === 1) {
+          bonus -= 300; // Penalidade extremamente severa por estar tudo no mesmo dia
+        } else {
+          bonus -= 150; // Penalidade severa por estar em muitos dias
+        }
+      } else if (cargaHoraria === 90) {
+        // 90h: deve ter 6 aulas em exatamente 2 dias diferentes (3+3)
+        if (diasArray.length === 2) {
+          // Verificar se há dias consecutivos (não desejado para 90h)
+          const [dia1, dia2] = diasArray;
+          if (dia2 - dia1 === 1) {
+            bonus -= 120; // Penalidade severa por dias consecutivos
+          } else if (dia2 - dia1 === 2) {
+            bonus += 100; // Bonificação alta por um dia de intervalo
+          } else {
+            bonus += 80; // Bonificação moderada por mais intervalo
+          }
+        } else if (diasArray.length === 1) {
+          bonus -= 400; // Penalidade extremamente severa por estar tudo no mesmo dia
+        } else {
+          bonus -= 200; // Penalidade severa por estar em muitos dias
+        }
+      } else {
+        // Para outras cargas horárias, aplicar lógica geral com penalidades aumentadas
+        for (let i = 0; i < diasArray.length - 1; i++) {
+          const diaAtual = diasArray[i];
+          const proximoDia = diasArray[i + 1];
+          
+          if (proximoDia - diaAtual === 1) {
+            bonus -= 50; // Penalidade aumentada por dias consecutivos
+          } else if (proximoDia - diaAtual === 2) {
+            bonus += 30; // Bonificação por um dia de intervalo
+          } else {
+            bonus += 20; // Bonificação por mais intervalo
+          }
+        }
+      }
+    }
+    
+    return bonus;
+  }
+
+  /**
+   * Bonifica aulas sequenciais sem brechas no mesmo dia
+   */
+  private calculateSequentialClassBonus(cromossomo: Cromossomo): number {
+    let bonus = 0;
+    
+    for (const gene of cromossomo.genes) {
+      // Agrupar horários por dia
+      const horariosPorDia: { [dia: string]: string[] } = {};
+      
+      for (const horario of gene.horarios) {
+        const [dia, codigo] = horario.split('_');
+        if (!horariosPorDia[dia]) {
+          horariosPorDia[dia] = [];
+        }
+        horariosPorDia[dia].push(codigo);
+      }
+      
+      // Verificar sequencialidade em cada dia
+      for (const dia in horariosPorDia) {
+        const codigos = horariosPorDia[dia].sort();
+        
+        if (codigos.length >= 2) {
+          // Verificar se os horários são consecutivos
+          let consecutivos = 0;
+          let sequenciaAtual = 1;
+          
+          for (let i = 1; i < codigos.length; i++) {
+            const numeroAtual = this.getHorarioNumber(codigos[i]);
+            const numeroAnterior = this.getHorarioNumber(codigos[i - 1]);
+            
+            if (numeroAtual === numeroAnterior + 1) {
+              sequenciaAtual++;
+            } else {
+              // Fim da sequência, aplicar bônus se houver
+              if (sequenciaAtual >= 2) {
+                consecutivos += sequenciaAtual;
+              }
+              sequenciaAtual = 1;
+            }
+          }
+          
+          // Verificar a última sequência
+          if (sequenciaAtual >= 2) {
+            consecutivos += sequenciaAtual;
+          }
+          
+          // Bonificar aulas consecutivas
+          if (consecutivos >= 2) {
+            bonus += consecutivos * 15; // 15 pontos por aula consecutiva
+          }
+          
+          // Penalizar brechas (horários não consecutivos no mesmo dia)
+          if (codigos.length >= 2 && consecutivos < codigos.length) {
+            const brechas = codigos.length - consecutivos;
+            bonus -= brechas * 10; // Penalizar cada brecha
+          }
+        }
+      }
+    }
+    
+    return bonus;
+   }
+
+   /**
+    * Extrai o número do horário do código (ex: M1 -> 1, T3 -> 3)
+    */
+   private getHorarioNumber(codigo: string): number {
+     const numero = codigo.substring(1); // Remove a primeira letra (M, T, N)
+     return parseInt(numero, 10);
+   }
+ 
+    private checkConflicts(cromossomo: Cromossomo): { professorConflicts: number; salaConflicts: number } {
     const professorHorarios = new Map<string, Set<string>>();
     const salaHorarios = new Map<string, Set<string>>();
     let professorConflicts = 0;
