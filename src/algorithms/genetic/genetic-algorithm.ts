@@ -322,7 +322,13 @@ export class GeneticAlgorithm {
       }
     }
     
-    // Fallback: seleção aleatória respeitando a quantidade de aulas semanais
+    // Fallback: usar distribuição equilibrada para evitar concentração nos primeiros horários
+    const horariosDistribuidos = this.selectDistributedHorarios(horariosDisponiveis, distribuicao.aulasSemanais);
+    if (horariosDistribuidos.length === distribuicao.aulasSemanais) {
+      return horariosDistribuidos;
+    }
+    
+    // Último fallback: seleção aleatória respeitando a quantidade de aulas semanais
     return this.selectRandomHorarios(distribuicao.aulasSemanais);
   }
 
@@ -363,10 +369,37 @@ export class GeneticAlgorithm {
       const horariosDoDia = horarios.filter(h => h.dia_semana === dia);
       
       if (horariosDoDia.length >= quantidade) {
-        // Selecionar os primeiros horários disponíveis no dia
-        const selecionados = horariosDoDia
-          .sort((a, b) => a.codigo.localeCompare(b.codigo))
-          .slice(0, quantidade);
+        // Ordenar horários por código
+        const horariosOrdenados = horariosDoDia.sort((a, b) => a.codigo.localeCompare(b.codigo));
+        
+        // Tentar encontrar horários consecutivos primeiro
+        for (let i = 0; i <= horariosOrdenados.length - quantidade; i++) {
+          const consecutivos = horariosOrdenados.slice(i, i + quantidade);
+          if (this.areHorariosConsecutive(consecutivos)) {
+            return consecutivos.map(h => `${h.dia_semana}_${h.codigo}`);
+          }
+        }
+        
+        // Se não encontrou consecutivos, distribuir melhor os horários
+        // Evitar sempre pegar os primeiros horários (M1, M2, M3...)
+        const totalHorarios = horariosOrdenados.length;
+        const intervalo = Math.max(1, Math.floor(totalHorarios / quantidade));
+        const selecionados: HorarioInput[] = [];
+        
+        for (let i = 0; i < quantidade && i * intervalo < totalHorarios; i++) {
+          const index = Math.min(i * intervalo, totalHorarios - 1);
+          selecionados.push(horariosOrdenados[index]);
+        }
+        
+        // Se não conseguiu selecionar todos com intervalo, completar com os restantes
+        while (selecionados.length < quantidade && selecionados.length < totalHorarios) {
+          for (const horario of horariosOrdenados) {
+            if (!selecionados.includes(horario)) {
+              selecionados.push(horario);
+              if (selecionados.length >= quantidade) break;
+            }
+          }
+        }
         
         return selecionados.map(h => `${h.dia_semana}_${h.codigo}`);
       }
@@ -493,9 +526,73 @@ export class GeneticAlgorithm {
     const horariosDisponiveis = [...this.horarios];
     const selecionados: string[] = [];
     
-    for (let i = 0; i < quantidade && horariosDisponiveis.length > 0; i++) {
-      const index = Math.floor(Math.random() * horariosDisponiveis.length);
-      const horario = horariosDisponiveis.splice(index, 1)[0];
+    // Aplicar filtro de turno para evitar horários inadequados
+    const horariosFiltrados = this.filterByTurnoPreference(horariosDisponiveis);
+    const horariosParaUsar = horariosFiltrados.length >= quantidade ? horariosFiltrados : horariosDisponiveis;
+    
+    for (let i = 0; i < quantidade && horariosParaUsar.length > 0; i++) {
+      const index = Math.floor(Math.random() * horariosParaUsar.length);
+      const horario = horariosParaUsar.splice(index, 1)[0];
+      selecionados.push(`${horario.dia_semana}_${horario.codigo}`);
+    }
+    
+    return selecionados;
+  }
+  
+  /**
+   * Seleciona horários com distribuição equilibrada para evitar concentração nos primeiros horários
+   */
+  private selectDistributedHorarios(
+    horariosDisponiveis: HorarioInput[], 
+    quantidade: number
+  ): string[] {
+    if (horariosDisponiveis.length === 0 || quantidade === 0) {
+      return [];
+    }
+    
+    // Agrupar horários por dia
+    const horariosPorDia = new Map<string, HorarioInput[]>();
+    for (const horario of horariosDisponiveis) {
+      if (!horariosPorDia.has(horario.dia_semana)) {
+        horariosPorDia.set(horario.dia_semana, []);
+      }
+      horariosPorDia.get(horario.dia_semana)!.push(horario);
+    }
+    
+    const selecionados: string[] = [];
+    const dias = Array.from(horariosPorDia.keys());
+    
+    // Distribuir horários entre diferentes dias quando possível
+    for (let i = 0; i < quantidade && selecionados.length < quantidade; i++) {
+      const diaIndex = i % dias.length;
+      const dia = dias[diaIndex];
+      const horariosNoDia = horariosPorDia.get(dia) || [];
+      
+      if (horariosNoDia.length > 0) {
+        // Selecionar horário do meio do dia para evitar sempre os primeiros
+        const middleIndex = Math.floor(horariosNoDia.length / 2);
+        const horarioEscolhido = horariosNoDia[middleIndex];
+        
+        const horarioKey = `${horarioEscolhido.dia_semana}_${horarioEscolhido.codigo}`;
+        if (!selecionados.includes(horarioKey)) {
+          selecionados.push(horarioKey);
+          // Remover o horário selecionado para não repetir
+          horariosNoDia.splice(middleIndex, 1);
+        }
+      }
+    }
+    
+    // Se ainda precisar de mais horários, completar aleatoriamente
+    while (selecionados.length < quantidade) {
+      const horariosRestantes = horariosDisponiveis.filter(h => {
+        const key = `${h.dia_semana}_${h.codigo}`;
+        return !selecionados.includes(key);
+      });
+      
+      if (horariosRestantes.length === 0) break;
+      
+      const index = Math.floor(Math.random() * horariosRestantes.length);
+      const horario = horariosRestantes[index];
       selecionados.push(`${horario.dia_semana}_${horario.codigo}`);
     }
     
@@ -630,6 +727,28 @@ export class GeneticAlgorithm {
     const selecionados: string[] = [];
     const horariosRestantes = [...horariosParaUsar];
     
+    // Implementar estratégia de distribuição mais inteligente
+    if (quantidade === 1) {
+      // Para uma única aula, selecionar aleatoriamente para evitar concentração
+      const index = Math.floor(Math.random() * horariosRestantes.length);
+      const horario = horariosRestantes[index];
+      return [`${horario.dia_semana}_${horario.codigo}`];
+    }
+    
+    // Para múltiplas aulas, tentar distribuir melhor
+    // Primeiro, tentar encontrar horários consecutivos
+    const consecutivos = this.findConsecutiveHorarios(horariosParaUsar, quantidade);
+    if (consecutivos.length === quantidade) {
+      return consecutivos;
+    }
+    
+    // Se não encontrou consecutivos, usar distribuição inteligente
+    const distribuidos = this.findSameDayHorarios(horariosParaUsar, quantidade);
+    if (distribuidos.length === quantidade) {
+      return distribuidos;
+    }
+    
+    // Fallback: selecionar com distribuição equilibrada
     // Selecionar horários priorizando sequência no mesmo dia
     for (let i = 0; i < quantidade && horariosRestantes.length > 0; i++) {
       let horarioEscolhido;
@@ -805,6 +924,73 @@ export class GeneticAlgorithm {
     
     // NOVA: Bonificar aulas sequenciais sem brechas
     bonus += this.calculateSequentialClassBonus(cromossomo);
+    
+    // NOVA: Penalizar concentração excessiva nos primeiros horários
+    bonus += this.calculateTimeDistributionBonus(cromossomo);
+    
+    return bonus;
+  }
+  
+  /**
+   * Calcula bônus para distribuição equilibrada ao longo do dia
+   * Penaliza concentração excessiva nos primeiros horários (M1, M2)
+   */
+  private calculateTimeDistributionBonus(cromossomo: Cromossomo): number {
+    let bonus = 0;
+    const horariosCount = new Map<string, number>();
+    
+    // Contar quantas aulas há em cada horário
+    cromossomo.genes.forEach(gene => {
+      gene.horarios.forEach(horario => {
+        const horarioCode = horario.split('_')[1]; // Ex: "M1", "M2", etc.
+        horariosCount.set(horarioCode, (horariosCount.get(horarioCode) || 0) + 1);
+      });
+    });
+    
+    // Penalizar concentração excessiva nos primeiros horários
+    const primeirosPeriodos = ['M1', 'M2', 'T1', 'T2', 'N1', 'N2'];
+    const ultimosPeriodos = ['M5', 'M6', 'T5', 'T6', 'N5', 'N6'];
+    
+    let aulasPrimeiros = 0;
+    let aulasUltimos = 0;
+    let totalAulas = 0;
+    
+    primeirosPeriodos.forEach(periodo => {
+      const count = horariosCount.get(periodo) || 0;
+      aulasPrimeiros += count;
+      totalAulas += count;
+    });
+    
+    ultimosPeriodos.forEach(periodo => {
+      const count = horariosCount.get(periodo) || 0;
+      aulasUltimos += count;
+      totalAulas += count;
+    });
+    
+    // Contar aulas nos períodos do meio
+    const periodosMeio = ['M3', 'M4', 'T3', 'T4', 'N3', 'N4'];
+    let aulasMeio = 0;
+    periodosMeio.forEach(periodo => {
+      const count = horariosCount.get(periodo) || 0;
+      aulasMeio += count;
+      totalAulas += count;
+    });
+    
+    if (totalAulas > 0) {
+      // Bonificar distribuição equilibrada
+      const proporcaoPrimeiros = aulasPrimeiros / totalAulas;
+      const proporcaoMeio = aulasMeio / totalAulas;
+      const proporcaoUltimos = aulasUltimos / totalAulas;
+      
+      // Ideal: mais aulas no meio, menos nos extremos
+      if (proporcaoMeio > 0.4) bonus += 30; // Bônus por usar períodos do meio
+      if (proporcaoPrimeiros < 0.3) bonus += 20; // Bônus por não concentrar no início
+      if (proporcaoUltimos < 0.3) bonus += 10; // Bônus por não concentrar no final
+      
+      // Penalizar concentração excessiva nos primeiros horários
+      if (proporcaoPrimeiros > 0.5) bonus -= 40;
+      if (proporcaoPrimeiros > 0.7) bonus -= 60;
+    }
     
     return bonus;
   }

@@ -14,11 +14,10 @@ export async function atualizarCurso(
   const atualizarCursoBodySchema = z.object({
     nome: z.string().optional(),
     turno: z.enum(["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRAL"]).optional(),
-    descricao: z.string().optional(),
   });
 
   const { id } = atualizarCursoParamsSchema.parse(request.params);
-  const { nome, turno, descricao } = atualizarCursoBodySchema.parse(request.body);
+  const { nome, turno } = atualizarCursoBodySchema.parse(request.body);
 
   try {
     const atualizarCursoUseCase = makeAtualizarCursoUseCase();
@@ -27,7 +26,6 @@ export async function atualizarCurso(
       id,
       nome,
       turno,
-      descricao,
     });
 
     return reply.status(200).send({ curso });

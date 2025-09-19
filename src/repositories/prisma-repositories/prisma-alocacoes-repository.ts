@@ -136,6 +136,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       take: 20,
       skip: (page - 1) * 20,
       include: {
+        user: true,
         disciplina: true,
         turma: true,
         sala: {
@@ -160,6 +161,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        turma: true,
         sala: {
           include: {
             predio: true
@@ -180,6 +182,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        turma: true,
         sala: {
           include: {
             predio: true
