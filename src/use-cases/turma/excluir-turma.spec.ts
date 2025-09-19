@@ -15,9 +15,12 @@ describe('Excluir Turma Use Case', () => {
   it('deve ser possível excluir uma turma existente', async () => {
     const turmaCriada = await turmasRepository.create({
       nome: 'Turma A',
-      numAlunos: 30,
+      num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
+      curso: {
+        connect: { id: 'curso-1' }
+      }
     });
 
     await sut.execute({
@@ -40,23 +43,32 @@ describe('Excluir Turma Use Case', () => {
   it('deve excluir apenas a turma especificada quando existem múltiplas turmas', async () => {
     const turma1 = await turmasRepository.create({
       nome: 'Turma A',
-      numAlunos: 30,
+      num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
+      curso: {
+        connect: { id: 'curso-1' }
+      }
     });
 
     const turma2 = await turmasRepository.create({
       nome: 'Turma B',
-      numAlunos: 25,
+      num_alunos: 25,
       periodo: 2,
       turno: 'VESPERTINO',
+      curso: {
+        connect: { id: 'curso-2' }
+      }
     });
 
     const turma3 = await turmasRepository.create({
       nome: 'Turma C',
-      numAlunos: 35,
+      num_alunos: 35,
       periodo: 3,
       turno: 'NOTURNO',
+      curso: {
+        connect: { id: 'curso-3' }
+      }
     });
 
     // Excluir apenas a turma2
@@ -79,16 +91,22 @@ describe('Excluir Turma Use Case', () => {
   it('deve ser possível excluir múltiplas turmas sequencialmente', async () => {
     const turma1 = await turmasRepository.create({
       nome: 'Turma A',
-      numAlunos: 30,
+      num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
+      curso: {
+        connect: { id: 'curso-1' }
+      }
     });
 
     const turma2 = await turmasRepository.create({
       nome: 'Turma B',
-      numAlunos: 25,
+      num_alunos: 25,
       periodo: 2,
       turno: 'VESPERTINO',
+      curso: {
+        connect: { id: 'curso-2' }
+      }
     });
 
     // Excluir primeira turma
@@ -112,9 +130,12 @@ describe('Excluir Turma Use Case', () => {
   it('deve lançar erro ao tentar excluir a mesma turma duas vezes', async () => {
     const turmaCriada = await turmasRepository.create({
       nome: 'Turma A',
-      numAlunos: 30,
+      num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
+      curso: {
+        connect: { id: 'curso-1' }
+      }
     });
 
     // Primeira exclusão deve funcionar

@@ -11,7 +11,7 @@ export class InMemoryTurmasRepository implements TurmasRepository {
       num_alunos: data.num_alunos || 30,
       periodo: data.periodo || 1,
       turno: data.turno || 'MATUTINO',
-      id_curso: typeof data.curso === 'object' && 'connect' in data.curso ? data.curso.connect!.id : '',
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso && data.curso.connect?.id ? data.curso.connect.id : 'curso-default',
       semestre: data.semestre || 1,
       ativa: data.ativa !== undefined ? data.ativa : true,
     };
@@ -45,12 +45,19 @@ export class InMemoryTurmasRepository implements TurmasRepository {
     }
 
     const turmaAtual = this.turmas[turmaIndex];
+    if (!turmaAtual) {
+      throw new Error('Turma não encontrada');
+    }
+    
     const turmaAtualizada: Turma = {
       ...turmaAtual,
       nome: (data.nome as string) ?? turmaAtual.nome,
       num_alunos: (data.num_alunos as number) ?? turmaAtual.num_alunos,
       periodo: (data.periodo as number) ?? turmaAtual.periodo,
       turno: (data.turno as string) ?? turmaAtual.turno,
+      id_curso: typeof data.curso === 'object' && 'connect' in data.curso && data.curso.connect?.id ? data.curso.connect.id : turmaAtual.id_curso,
+      semestre: (data.semestre as number) ?? turmaAtual.semestre,
+      ativa: data.ativa !== undefined ? (data.ativa as boolean) : turmaAtual.ativa,
     };
 
     this.turmas[turmaIndex] = turmaAtualizada;

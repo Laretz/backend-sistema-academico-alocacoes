@@ -10,6 +10,10 @@ export class BuscarHorariosUseCase {
     async execute({ page }: BuscarHorariosUseCaseRequest) {
         const horarios = await this.horariosRepository.findMany(page);
 
+        if (!horarios) {
+            return { horarios: [] };
+        }
+
         return { horarios };
     }
 }

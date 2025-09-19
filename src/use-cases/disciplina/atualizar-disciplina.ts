@@ -1,5 +1,13 @@
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
+import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
+import { GerarHorarioConsolidadoUseCase } from "./gerar-horario-consolidado";
+
+// Função auxiliar para calcular número de aulas baseado na carga horária
+function calcularTotalAulas(cargaHoraria: number): number {
+    // Considerando aulas de 50 minutos
+    return Math.ceil((cargaHoraria * 60) / 50);
+}
 
 interface AtualizarDisciplinaUseCaseRequest {
   id: string;
@@ -12,7 +20,10 @@ interface AtualizarDisciplinaUseCaseRequest {
 }
 
 export class AtualizarDisciplinaUseCase {
-  constructor(private disciplinasRepository: DisciplinasRepository) {}
+  constructor(
+    private disciplinasRepository: DisciplinasRepository,
+    private alocacoesRepository: AlocacoesRepository
+  ) {}
 
   async execute({
     id,
@@ -30,15 +41,36 @@ export class AtualizarDisciplinaUseCase {
     }
 
     // Cria um objeto com apenas os campos que foram fornecidos
-    const updateData: any = {};
+    const updateData: Partial<{
+      nome: string;
+      carga_horaria: number;
+      total_aulas: number;
+      tipo_de_sala: 'Sala' | 'Lab';
+      data_inicio: Date;
+      data_fim_prevista: Date;
+      data_fim_real: Date;
+    }> = {};
     if (nome !== undefined) updateData.nome = nome;
-    if (carga_horaria !== undefined) updateData.carga_horaria = carga_horaria;
+    if (carga_horaria !== undefined) {
+      updateData.carga_horaria = carga_horaria;
+      // Recalcula o total de aulas quando a carga horária é alterada
+      updateData.total_aulas = calcularTotalAulas(carga_horaria);
+    }
     if (tipo_de_sala !== undefined) updateData.tipo_de_sala = tipo_de_sala;
     if (data_inicio !== undefined) updateData.data_inicio = data_inicio;
     if (data_fim_prevista !== undefined) updateData.data_fim_prevista = data_fim_prevista;
     if (data_fim_real !== undefined) updateData.data_fim_real = data_fim_real;
     
     const disciplina = await this.disciplinasRepository.update(id, updateData);
+
+    // Gerar horário consolidado automaticamente após atualização
+    const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
+    const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId: id });
+    
+    // Atualizar disciplina com o horário consolidado
+    if (horarioConsolidado) {
+      await this.disciplinasRepository.update(id, { horario_consolidado: horarioConsolidado });
+    }
 
     return { disciplina };
   }

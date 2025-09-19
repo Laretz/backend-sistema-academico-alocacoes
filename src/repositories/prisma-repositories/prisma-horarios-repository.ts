@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Horario } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { HorariosRepository } from "../horarios-repository";
 
@@ -60,6 +60,10 @@ export class PrismaHorariosRepository implements HorariosRepository {
         }
       ]
     });
+
+    if (!horarios) {
+      return [];
+    }
 
     // Ordenação customizada por dia da semana e código
     return horarios.sort((a, b) => {

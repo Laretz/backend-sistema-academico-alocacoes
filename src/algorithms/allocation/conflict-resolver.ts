@@ -1,5 +1,5 @@
-import { Gene, Cromossomo } from '../genetic/genetic-algorithm';
-import { constraintManager } from '../genetic/constraints';
+import { Gene, Cromossomo } from "../genetic/genetic-algorithm";
+import { constraintManager } from "../genetic/constraints";
 
 interface ConflictReport {
   totalConflicts: number;
@@ -14,26 +14,75 @@ interface ConflictReport {
 }
 
 interface ConflictDetail {
-  type: 'professor_overlap' | 'room_overlap' | 'capacity_violation' | 'room_type_mismatch' | 'professor_overload';
-  severity: 'high' | 'medium' | 'low';
+  type:
+    | "professor_overlap"
+    | "room_overlap"
+    | "capacity_violation"
+    | "room_type_mismatch"
+    | "professor_overload";
+  severity: "high" | "medium" | "low";
   description: string;
   affectedGenes: string[]; // IDs dos genes afetados
   suggestedFix?: string;
 }
 
+interface Professor {
+  id: string;
+  nome: string;
+  email: string;
+  carga_horaria_maxima?: number;
+}
+
+interface Sala {
+  id: string;
+  nome: string;
+  predio: string;
+  capacidade: number;
+  tipo?: string;
+}
+
+interface Horario {
+  id: string;
+  codigo: string;
+  dia_semana: string;
+  horario_inicio: Date;
+  horario_fim: Date;
+}
+
+interface Disciplina {
+  id: string;
+  nome: string;
+  codigo: string;
+  carga_horaria: number;
+  tipo?: string;
+}
+
+interface Turma {
+  id: string;
+  nome: string;
+  semestre: number;
+  ano: number;
+  capacidade?: number;
+  num_alunos?: number;
+}
+
 interface ResolutionStrategy {
   name: string;
   priority: number;
-  canResolve: (conflict: ConflictDetail, context: any) => boolean;
-  resolve: (conflict: ConflictDetail, cromossomo: Cromossomo, context: any) => Promise<boolean>;
+  canResolve: (conflict: ConflictDetail, context: ConflictContext) => boolean;
+  resolve: (
+    conflict: ConflictDetail,
+    cromossomo: Cromossomo,
+    context: ConflictContext
+  ) => Promise<boolean>;
 }
 
 interface ConflictContext {
-  professores: any[];
-  salas: any[];
-  horarios: any[];
-  disciplinas: any[];
-  turma: any;
+  professores: Professor[];
+  salas: Sala[];
+  horarios: Horario[];
+  disciplinas: Disciplina[];
+  turma: Turma;
 }
 
 export class ConflictResolver {
@@ -46,7 +95,10 @@ export class ConflictResolver {
   /**
    * Analisa conflitos em um cromossomo
    */
-  public analyzeConflicts(cromossomo: Cromossomo, context: ConflictContext): ConflictReport {
+  public analyzeConflicts(
+    cromossomo: Cromossomo,
+    context: ConflictContext
+  ): ConflictReport {
     const report: ConflictReport = {
       totalConflicts: 0,
       conflictsByType: {
@@ -54,9 +106,9 @@ export class ConflictResolver {
         roomOverlap: 0,
         capacityViolation: 0,
         roomTypeMismatch: 0,
-        professorOverload: 0
+        professorOverload: 0,
       },
-      conflictDetails: []
+      conflictDetails: [],
     };
 
     // Mapas para rastrear ocupação
@@ -67,16 +119,16 @@ export class ConflictResolver {
     // Analisar cada gene
     for (let i = 0; i < cromossomo.genes.length; i++) {
       const gene = cromossomo.genes[i];
-      
+
       // Verificar conflitos de professor
       this.checkProfessorConflicts(gene, professorSchedule, report, i);
-      
+
       // Verificar conflitos de sala
       this.checkRoomConflicts(gene, roomSchedule, report, context, i);
-      
+
       // Verificar carga horária do professor
       this.checkProfessorWorkload(gene, professorWorkload, report, context, i);
-      
+
       // Verificar tipo de sala
       this.checkRoomTypeMatch(gene, report, context, i);
     }
@@ -89,16 +141,20 @@ export class ConflictResolver {
    * Resolve conflitos automaticamente
    */
   public async resolveConflicts(
-    cromossomo: Cromossomo, 
+    cromossomo: Cromossomo,
     context: ConflictContext,
     maxAttempts: number = 10
-  ): Promise<{ resolved: boolean; attempts: number; remainingConflicts: number }> {
+  ): Promise<{
+    resolved: boolean;
+    attempts: number;
+    remainingConflicts: number;
+  }> {
     let attempts = 0;
     let resolved = false;
 
     while (attempts < maxAttempts && !resolved) {
       const conflicts = this.analyzeConflicts(cromossomo, context);
-      
+
       if (conflicts.totalConflicts === 0) {
         resolved = true;
         break;
@@ -135,7 +191,7 @@ export class ConflictResolver {
     return {
       resolved: finalConflicts.totalConflicts === 0,
       attempts,
-      remainingConflicts: finalConflicts.totalConflicts
+      remainingConflicts: finalConflicts.totalConflicts,
     };
   }
 
@@ -157,14 +213,14 @@ export class ConflictResolver {
     for (const horario of gene.horarios) {
       if (schedule.has(horario)) {
         const conflictingGenes = schedule.get(horario)!;
-        
+
         report.conflictsByType.professorOverlap++;
         report.conflictDetails.push({
-          type: 'professor_overlap',
-          severity: 'high',
+          type: "professor_overlap",
+          severity: "high",
           description: `Professor ${gene.professorId} tem conflito no horário ${horario}`,
           affectedGenes: [geneIndex.toString(), ...conflictingGenes],
-          suggestedFix: 'Alterar professor ou horário de uma das disciplinas'
+          suggestedFix: "Alterar professor ou horário de uma das disciplinas",
         });
       } else {
         schedule.set(horario, [geneIndex.toString()]);
@@ -187,19 +243,19 @@ export class ConflictResolver {
     }
 
     const schedule = roomSchedule.get(gene.salaId)!;
-    const sala = context.salas.find(s => s.id === gene.salaId);
+    const sala = context.salas.find((s) => s.id === gene.salaId);
 
     for (const horario of gene.horarios) {
       if (schedule.has(horario)) {
         const conflictingGenes = schedule.get(horario)!;
-        
+
         report.conflictsByType.roomOverlap++;
         report.conflictDetails.push({
-          type: 'room_overlap',
-          severity: 'high',
+          type: "room_overlap",
+          severity: "high",
           description: `Sala ${sala?.nome || gene.salaId} tem conflito no horário ${horario}`,
           affectedGenes: [geneIndex.toString(), ...conflictingGenes],
-          suggestedFix: 'Alterar sala ou horário de uma das disciplinas'
+          suggestedFix: "Alterar sala ou horário de uma das disciplinas",
         });
       } else {
         schedule.set(horario, [geneIndex.toString()]);
@@ -210,11 +266,11 @@ export class ConflictResolver {
     if (sala && context.turma.num_alunos > sala.capacidade) {
       report.conflictsByType.capacityViolation++;
       report.conflictDetails.push({
-        type: 'capacity_violation',
-        severity: 'medium',
+        type: "capacity_violation",
+        severity: "medium",
         description: `Sala ${sala.nome} (cap: ${sala.capacidade}) insuficiente para ${context.turma.num_alunos} alunos`,
         affectedGenes: [geneIndex.toString()],
-        suggestedFix: 'Alterar para sala com maior capacidade'
+        suggestedFix: "Alterar para sala com maior capacidade",
       });
     }
   }
@@ -233,17 +289,19 @@ export class ConflictResolver {
     const newLoad = currentLoad + gene.horarios.length;
     professorWorkload.set(gene.professorId, newLoad);
 
-    const professor = context.professores.find(p => p.id === gene.professorId);
-    const maxLoad = professor?.carga_horaria_max || 40;
+    const professor = context.professores.find(
+      (p) => p.id === gene.professorId
+    );
+    const maxLoad = professor?.carga_horaria_maxima || 40;
 
     if (newLoad > maxLoad) {
       report.conflictsByType.professorOverload++;
       report.conflictDetails.push({
-        type: 'professor_overload',
-        severity: 'medium',
+        type: "professor_overload",
+        severity: "medium",
         description: `Professor ${professor?.nome || gene.professorId} excede carga horária (${newLoad}/${maxLoad}h)`,
         affectedGenes: [geneIndex.toString()],
-        suggestedFix: 'Redistribuir disciplinas ou alterar professor'
+        suggestedFix: "Redistribuir disciplinas ou alterar professor",
       });
     }
   }
@@ -257,33 +315,35 @@ export class ConflictResolver {
     context: ConflictContext,
     geneIndex: number
   ): void {
-    const disciplina = context.disciplinas.find(d => d.id === gene.disciplinaId);
-    const sala = context.salas.find(s => s.id === gene.salaId);
+    const disciplina = context.disciplinas.find(
+      (d) => d.id === gene.disciplinaId
+    );
+    const sala = context.salas.find((s) => s.id === gene.salaId);
 
     if (disciplina && sala) {
       // Verificar se disciplina de laboratório está em sala adequada
-      if (disciplina.tipoSala === 'Lab' && sala.tipo !== 'Lab') {
+      if (disciplina.tipoSala === "Lab" && sala.tipo !== "Lab") {
         report.conflictsByType.roomTypeMismatch++;
         report.conflictDetails.push({
-          type: 'room_type_mismatch',
-          severity: 'low',
+          type: "room_type_mismatch",
+          severity: "low",
           description: `Disciplina ${disciplina.nome} (Lab) alocada em sala comum ${sala.nome}`,
           affectedGenes: [geneIndex.toString()],
-          suggestedFix: 'Alterar para sala de laboratório'
+          suggestedFix: "Alterar para sala de laboratório",
         });
       }
 
       // Verificar se sala de laboratório tem computadores suficientes
-      if (disciplina.tipoSala === 'Lab' && sala.tipo === 'Lab') {
+      if (disciplina.tipoSala === "Lab" && sala.tipo === "Lab") {
         const computadoresNecessarios = Math.ceil(context.turma.num_alunos / 2); // 2 alunos por computador
         if (sala.computadores < computadoresNecessarios) {
           report.conflictsByType.roomTypeMismatch++;
           report.conflictDetails.push({
-            type: 'room_type_mismatch',
-            severity: 'medium',
+            type: "room_type_mismatch",
+            severity: "medium",
             description: `Lab ${sala.nome} tem ${sala.computadores} computadores, necessário ${computadoresNecessarios}`,
             affectedGenes: [geneIndex.toString()],
-            suggestedFix: 'Alterar para laboratório com mais computadores'
+            suggestedFix: "Alterar para laboratório com mais computadores",
           });
         }
       }
@@ -296,54 +356,61 @@ export class ConflictResolver {
   private initializeStrategies(): ResolutionStrategy[] {
     return [
       {
-        name: 'Professor Overlap Resolution',
+        name: "Professor Overlap Resolution",
         priority: 1,
-        canResolve: (conflict) => conflict.type === 'professor_overlap',
+        canResolve: (conflict) => conflict.type === "professor_overlap",
         resolve: async (conflict, cromossomo, context) => {
           return this.resolveProfessorOverlap(conflict, cromossomo, context);
-        }
+        },
       },
       {
-        name: 'Room Overlap Resolution',
+        name: "Room Overlap Resolution",
         priority: 1,
-        canResolve: (conflict) => conflict.type === 'room_overlap',
+        canResolve: (conflict) => conflict.type === "room_overlap",
         resolve: async (conflict, cromossomo, context) => {
           return this.resolveRoomOverlap(conflict, cromossomo, context);
-        }
+        },
       },
       {
-        name: 'Capacity Violation Resolution',
+        name: "Capacity Violation Resolution",
         priority: 2,
-        canResolve: (conflict) => conflict.type === 'capacity_violation',
+        canResolve: (conflict) => conflict.type === "capacity_violation",
         resolve: async (conflict, cromossomo, context) => {
           return this.resolveCapacityViolation(conflict, cromossomo, context);
-        }
+        },
       },
       {
-        name: 'Room Type Mismatch Resolution',
+        name: "Room Type Mismatch Resolution",
         priority: 3,
-        canResolve: (conflict) => conflict.type === 'room_type_mismatch',
+        canResolve: (conflict) => conflict.type === "room_type_mismatch",
         resolve: async (conflict, cromossomo, context) => {
           return this.resolveRoomTypeMismatch(conflict, cromossomo, context);
-        }
+        },
       },
       {
-        name: 'Professor Overload Resolution',
+        name: "Professor Overload Resolution",
         priority: 2,
-        canResolve: (conflict) => conflict.type === 'professor_overload',
+        canResolve: (conflict) => conflict.type === "professor_overload",
         resolve: async (conflict, cromossomo, context) => {
           return this.resolveProfessorOverload(conflict, cromossomo, context);
-        }
-      }
+        },
+      },
     ];
   }
 
   /**
    * Encontra a melhor estratégia para resolver um conflito
    */
-  private findBestStrategy(conflict: ConflictDetail, context: ConflictContext): ResolutionStrategy | null {
-    const applicableStrategies = this.strategies.filter(s => s.canResolve(conflict, context));
-    return applicableStrategies.sort((a, b) => a.priority - b.priority)[0] || null;
+  private findBestStrategy(
+    conflict: ConflictDetail,
+    context: ConflictContext
+  ): ResolutionStrategy | null {
+    const applicableStrategies = this.strategies.filter((s) =>
+      s.canResolve(conflict, context)
+    );
+    return (
+      applicableStrategies.sort((a, b) => a.priority - b.priority)[0] || null
+    );
   }
 
   /**
@@ -358,8 +425,10 @@ export class ConflictResolver {
     const gene = cromossomo.genes[geneIndex];
 
     // Tentar alterar professor
-    const availableProfessors = context.professores.filter(p => p.id !== gene.professorId);
-    
+    const availableProfessors = context.professores.filter(
+      (p) => p.id !== gene.professorId
+    );
+
     for (const professor of availableProfessors) {
       const testGene = { ...gene, professorId: professor.id };
       const validation = constraintManager.validateHardConstraints(testGene, {
@@ -367,7 +436,7 @@ export class ConflictResolver {
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -392,8 +461,8 @@ export class ConflictResolver {
     const gene = cromossomo.genes[geneIndex];
 
     // Tentar alterar sala
-    const availableRooms = context.salas.filter(s => s.id !== gene.salaId);
-    
+    const availableRooms = context.salas.filter((s) => s.id !== gene.salaId);
+
     for (const room of availableRooms) {
       const testGene = { ...gene, salaId: room.id };
       const validation = constraintManager.validateHardConstraints(testGene, {
@@ -401,7 +470,7 @@ export class ConflictResolver {
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -426,8 +495,8 @@ export class ConflictResolver {
     const gene = cromossomo.genes[geneIndex];
 
     // Encontrar salas com capacidade adequada
-    const suitableRooms = context.salas.filter(s => 
-      s.capacidade >= context.turma.num_alunos && s.id !== gene.salaId
+    const suitableRooms = context.salas.filter(
+      (s) => s.capacidade >= context.turma.num_alunos && s.id !== gene.salaId
     );
 
     for (const room of suitableRooms) {
@@ -437,7 +506,7 @@ export class ConflictResolver {
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -459,16 +528,20 @@ export class ConflictResolver {
   ): Promise<boolean> {
     const geneIndex = parseInt(conflict.affectedGenes[0]);
     const gene = cromossomo.genes[geneIndex];
-    const disciplina = context.disciplinas.find(d => d.id === gene.disciplinaId);
+    const disciplina = context.disciplinas.find(
+      (d) => d.id === gene.disciplinaId
+    );
 
     if (!disciplina) return false;
 
     // Encontrar salas do tipo correto
-    const suitableRooms = context.salas.filter(s => {
-      if (disciplina.tipoSala === 'Lab') {
-        return s.tipo === 'Lab' && 
-               s.capacidade >= context.turma.num_alunos &&
-        s.computadores >= Math.ceil(context.turma.num_alunos / 2);
+    const suitableRooms = context.salas.filter((s) => {
+      if (disciplina.tipoSala === "Lab") {
+        return (
+          s.tipo === "Lab" &&
+          s.capacidade >= context.turma.num_alunos &&
+          s.computadores >= Math.ceil(context.turma.num_alunos / 2)
+        );
       } else {
         return s.capacidade >= context.turma.num_alunos;
       }
@@ -481,7 +554,7 @@ export class ConflictResolver {
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -506,7 +579,7 @@ export class ConflictResolver {
 
     // Encontrar professores com menor carga horária
     const professorLoads = new Map<string, number>();
-    
+
     // Calcular carga atual de cada professor
     for (const g of cromossomo.genes) {
       const currentLoad = professorLoads.get(g.professorId) || 0;
@@ -514,10 +587,13 @@ export class ConflictResolver {
     }
 
     // Encontrar professores disponíveis
-    const availableProfessors = context.professores.filter(p => {
+    const availableProfessors = context.professores.filter((p) => {
       const currentLoad = professorLoads.get(p.id) || 0;
       const maxLoad = p.carga_horaria_max || 40;
-      return currentLoad + gene.horarios.length <= maxLoad && p.id !== gene.professorId;
+      return (
+        currentLoad + gene.horarios.length <= maxLoad &&
+        p.id !== gene.professorId
+      );
     });
 
     for (const professor of availableProfessors) {
@@ -527,7 +603,7 @@ export class ConflictResolver {
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -547,24 +623,30 @@ export class ConflictResolver {
     cromossomo: Cromossomo,
     context: ConflictContext
   ): boolean {
-    const disciplina = context.disciplinas.find(d => d.id === gene.disciplinaId);
+    const disciplina = context.disciplinas.find(
+      (d) => d.id === gene.disciplinaId
+    );
     if (!disciplina) return false;
 
-    const horariosNecessarios = Math.ceil(disciplina.cargaHoraria / 2); // 2h por horário
-    const availableSlots = this.getAvailableTimeSlots(context.horarios, cromossomo, gene);
+    const horariosNecessarios = Math.ceil(disciplina.carga_horaria / 2); // 2h por horário
+    const availableSlots = this.getAvailableTimeSlots(
+      context.horarios,
+      cromossomo,
+      gene
+    );
 
     if (availableSlots.length >= horariosNecessarios) {
-      const newSchedule = availableSlots.slice(0, horariosNecessarios).map(slot => 
-        `${slot.dia_semana}_${slot.codigo}`
-      );
-      
+      const newSchedule = availableSlots
+        .slice(0, horariosNecessarios)
+        .map((slot) => `${slot.dia_semana}_${slot.codigo}`);
+
       const testGene = { ...gene, horarios: newSchedule };
       const validation = constraintManager.validateHardConstraints(testGene, {
         allGenes: cromossomo.genes,
         professores: context.professores,
         salas: context.salas,
         disciplinas: context.disciplinas,
-        turma: context.turma
+        turma: context.turma,
       });
 
       if (validation.isValid) {
@@ -579,9 +661,13 @@ export class ConflictResolver {
   /**
    * Obtém slots de horário disponíveis
    */
-  private getAvailableTimeSlots(horarios: any[], cromossomo: Cromossomo, excludeGene: Gene): any[] {
+  private getAvailableTimeSlots(
+    horarios: Horario[],
+    cromossomo: Cromossomo,
+    excludeGene: Gene
+  ): Horario[] {
     const occupiedSlots = new Set<string>();
-    
+
     // Marcar slots ocupados (excluindo o gene atual)
     for (const gene of cromossomo.genes) {
       if (gene !== excludeGene) {
@@ -592,7 +678,7 @@ export class ConflictResolver {
     }
 
     // Retornar horários disponíveis
-    return horarios.filter(h => {
+    return horarios.filter((h) => {
       const slotKey = `${h.dia_semana}_${h.codigo}`;
       return !occupiedSlots.has(slotKey);
     });
@@ -601,7 +687,10 @@ export class ConflictResolver {
   /**
    * Realiza mutação aleatória quando não consegue resolver conflitos
    */
-  private performRandomMutation(cromossomo: Cromossomo, context: ConflictContext): void {
+  private performRandomMutation(
+    cromossomo: Cromossomo,
+    context: ConflictContext
+  ): void {
     if (cromossomo.genes.length === 0) return;
 
     const randomGeneIndex = Math.floor(Math.random() * cromossomo.genes.length);
@@ -612,19 +701,28 @@ export class ConflictResolver {
 
     switch (mutationType) {
       case 0: // Alterar professor
-        const randomProfessor = context.professores[Math.floor(Math.random() * context.professores.length)];
+        const randomProfessor =
+          context.professores[
+            Math.floor(Math.random() * context.professores.length)
+          ];
         gene.professorId = randomProfessor.id;
         break;
-      
+
       case 1: // Alterar sala
-        const randomRoom = context.salas[Math.floor(Math.random() * context.salas.length)];
+        const randomRoom =
+          context.salas[Math.floor(Math.random() * context.salas.length)];
         gene.salaId = randomRoom.id;
         break;
-      
+
       case 2: // Alterar horário
-        const availableSlots = this.getAvailableTimeSlots(context.horarios, cromossomo, gene);
+        const availableSlots = this.getAvailableTimeSlots(
+          context.horarios,
+          cromossomo,
+          gene
+        );
         if (availableSlots.length > 0) {
-          const randomSlot = availableSlots[Math.floor(Math.random() * availableSlots.length)];
+          const randomSlot =
+            availableSlots[Math.floor(Math.random() * availableSlots.length)];
           gene.horarios = [`${randomSlot.dia_semana}_${randomSlot.codigo}`];
         }
         break;
@@ -634,19 +732,22 @@ export class ConflictResolver {
   /**
    * Gera relatório detalhado de conflitos
    */
-  public generateDetailedReport(cromossomo: Cromossomo, context: ConflictContext): string {
+  public generateDetailedReport(
+    cromossomo: Cromossomo,
+    context: ConflictContext
+  ): string {
     const conflicts = this.analyzeConflicts(cromossomo, context);
-    
+
     let report = `=== RELATÓRIO DE CONFLITOS ===\n`;
     report += `Total de conflitos: ${conflicts.totalConflicts}\n\n`;
-    
+
     report += `Conflitos por tipo:\n`;
     report += `- Sobreposição de professor: ${conflicts.conflictsByType.professorOverlap}\n`;
     report += `- Sobreposição de sala: ${conflicts.conflictsByType.roomOverlap}\n`;
     report += `- Violação de capacidade: ${conflicts.conflictsByType.capacityViolation}\n`;
     report += `- Incompatibilidade de sala: ${conflicts.conflictsByType.roomTypeMismatch}\n`;
     report += `- Sobrecarga de professor: ${conflicts.conflictsByType.professorOverload}\n\n`;
-    
+
     if (conflicts.conflictDetails.length > 0) {
       report += `Detalhes dos conflitos:\n`;
       conflicts.conflictDetails.forEach((conflict, index) => {
@@ -657,7 +758,7 @@ export class ConflictResolver {
         report += `\n`;
       });
     }
-    
+
     return report;
   }
 }

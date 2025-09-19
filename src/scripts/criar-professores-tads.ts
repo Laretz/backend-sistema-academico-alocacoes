@@ -33,8 +33,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Engenharia de Software',
         carga_horaria_max: 40,
-        preferencia: 'Manhã e Tarde',
-        id_curso: cursoTADS.id
+        preferencia: 'Manhã e Tarde'
       },
       {
         nome: 'Taniro',
@@ -43,8 +42,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Desenvolvimento Mobile',
         carga_horaria_max: 40,
-        preferencia: 'Tarde e Noite',
-        id_curso: cursoTADS.id
+        preferencia: 'Tarde e Noite'
       },
       {
         nome: 'Edson',
@@ -53,8 +51,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Banco de Dados',
         carga_horaria_max: 40,
-        preferencia: 'Manhã e Tarde',
-        id_curso: cursoTADS.id
+        preferencia: 'Manhã e Tarde'
       },
       {
         nome: 'Tasia',
@@ -63,8 +60,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Interação Humano-Computador',
         carga_horaria_max: 40,
-        preferencia: 'Manhã e Tarde',
-        id_curso: cursoTADS.id
+        preferencia: 'Manhã e Tarde'
       },
       {
         nome: 'Leonardo',
@@ -73,8 +69,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Sistemas Digitais e Hardware',
         carga_horaria_max: 40,
-        preferencia: 'Tarde e Noite',
-        id_curso: cursoTADS.id
+        preferencia: 'Tarde e Noite'
       },
       {
         nome: 'Antonino',
@@ -83,8 +78,7 @@ async function criarProfessoresTADS() {
         role: 'PROFESSOR' as const,
         especializacao: 'Redes de Computadores',
         carga_horaria_max: 40,
-        preferencia: 'Manhã e Tarde',
-        id_curso: cursoTADS.id
+        preferencia: 'Manhã e Tarde'
       }
     ];
 
@@ -110,8 +104,16 @@ async function criarProfessoresTADS() {
           data: professor
         });
 
+        // Criar relação com o curso TADS
+        await prisma.userCurso.create({
+          data: {
+            id_user: novoProfessor.id,
+            id_curso: cursoTADS.id
+          }
+        });
+
         professoresCriados.push(novoProfessor);
-        console.log(`✅ Professor criado: ${novoProfessor.nome} (${novoProfessor.email})`);
+        console.log(`✅ Professor criado: ${novoProfessor.nome} (${novoProfessor.email}) - Associado ao curso TADS`);
       } catch (error) {
         console.error(`❌ Erro ao criar professor '${professor.nome}':`, error);
       }

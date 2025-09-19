@@ -18,7 +18,9 @@ describe('Buscar Turma Use Case', () => {
       num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
-      id_curso: 'curso-id-teste',
+      curso: {
+        connect: { id: 'curso-id-teste' }
+      }
     });
 
     const { turma } = await sut.execute({
@@ -46,7 +48,9 @@ describe('Buscar Turma Use Case', () => {
       num_alunos: 30,
       periodo: 1,
       turno: 'MATUTINO',
-      id_curso: 'curso-id-teste',
+      curso: {
+        connect: { id: 'curso-id-teste' }
+      }
     });
 
     const turma2 = await turmasRepository.create({
@@ -54,7 +58,9 @@ describe('Buscar Turma Use Case', () => {
       num_alunos: 25,
       periodo: 2,
       turno: 'VESPERTINO',
-      id_curso: 'curso-id-teste',
+      curso: {
+        connect: { id: 'curso-id-teste' }
+      }
     });
 
     const { turma } = await sut.execute({

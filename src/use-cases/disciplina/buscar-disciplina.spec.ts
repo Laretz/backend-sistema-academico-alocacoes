@@ -16,6 +16,11 @@ describe('Buscar Disciplina Use Case', () => {
         const disciplinaCriada = await disciplinasRepository.create({
             nome: 'Matemática',
             carga_horaria: 80,
+            curso: {
+                connect: {
+                    id: 'curso-1'
+                }
+            }
         });
 
         const { disciplina } = await sut.execute({

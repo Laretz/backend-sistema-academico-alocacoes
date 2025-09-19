@@ -1,4 +1,7 @@
-import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
+import {
+  AlocacoesRepository,
+  AlocacaoWithRelations,
+} from "../../repositories/alocacoes-repository";
 
 interface BuscarGradeHorariosTurmaUseCaseRequest {
   turmaId: string;
@@ -28,7 +31,7 @@ interface AlocacaoInfo {
     codigo: string;
     dia_semana: string;
     horario_inicio: Date;
-  horario_fim: Date;
+    horario_fim: Date;
   };
 }
 
@@ -55,7 +58,8 @@ export class BuscarGradeHorariosTurmaUseCase {
     turmaId,
   }: BuscarGradeHorariosTurmaUseCaseRequest): Promise<BuscarGradeHorariosTurmaUseCaseResponse> {
     // Buscar todas as alocações da turma com relacionamentos
-    const alocacoes = await this.alocacoesRepository.findAllByTurmaId(turmaId);
+    const alocacoes: AlocacaoWithRelations[] =
+      await this.alocacoesRepository.findAllByTurmaId(turmaId);
 
     // Inicializar grade vazia
     const diasSemana = [
@@ -91,48 +95,70 @@ export class BuscarGradeHorariosTurmaUseCase {
     diasSemana.forEach((dia) => {
       grade[dia] = {};
       codigosHorarios.forEach((codigo) => {
-        grade[dia][codigo] = null;
+        grade[dia]![codigo] = null;
       });
     });
 
     // Preencher grade com alocações
     alocacoes.forEach((alocacao) => {
-      const dia_semana = alocacao.horario.dia_semana;
-    const codigoHorario = alocacao.horario.codigo;
+      // Verificar se os relacionamentos existem
+      if (
+        !alocacao.horario ||
+        !alocacao.disciplina ||
+        !alocacao.user ||
+        !alocacao.sala
+      ) {
+        return; // Pular alocação com dados incompletos
+      }
 
-    grade[dia_semana][codigoHorario] = {
+      const dia_semana = alocacao.horario?.dia_semana || "";
+      const codigoHorario = alocacao.horario?.codigo || "";
+
+      // Verificar se o dia e código do horário existem na grade
+      if (
+        !grade[dia_semana] ||
+        grade[dia_semana][codigoHorario] === undefined
+      ) {
+        return; // Pular se não existe na grade
+      }
+
+      grade[dia_semana]![codigoHorario] = {
         id: alocacao.id,
         disciplina: {
-          id: alocacao.disciplina.id,
-          nome: alocacao.disciplina.nome,
-          codigo: alocacao.disciplina.codigo,
-          cargaHoraria: alocacao.disciplina.carga_horaria,
+          id: alocacao.disciplina?.id || "",
+          nome: alocacao.disciplina?.nome || "",
+          codigo: alocacao.disciplina?.codigo || "",
+          cargaHoraria: alocacao.disciplina?.carga_horaria || 0,
+          horario_consolidado: alocacao.disciplina?.horario_consolidado || "",
         },
         professor: {
-          id: alocacao.user.id,
-          nome: alocacao.user.nome,
-          email: alocacao.user.email,
+          id: alocacao.user?.id || "",
+          nome: alocacao.user?.nome || "",
+          email: alocacao.user?.email || "",
         },
         sala: {
-          id: alocacao.sala.id,
-          nome: alocacao.sala.nome,
-          predio: alocacao.sala.predio,
-          capacidade: alocacao.sala.capacidade,
+          id: alocacao.sala?.id || "",
+          nome: alocacao.sala?.nome || "",
+          predio: alocacao.sala?.predio?.nome || "",
+          capacidade: alocacao.sala?.capacidade || 0,
         },
         horario: {
-          id: alocacao.horario.id,
-          codigo: alocacao.horario.codigo,
-          dia_semana: alocacao.horario.dia_semana,
-          horario_inicio: alocacao.horario.horario_inicio,
-        horario_fim: alocacao.horario.horario_fim,
+          id: alocacao.horario?.id || "",
+          codigo: alocacao.horario?.codigo || "",
+          dia_semana: alocacao.horario?.dia_semana || "",
+          horario_inicio: alocacao.horario?.horario_inicio || new Date(),
+          horario_fim: alocacao.horario?.horario_fim || new Date(),
         },
       };
     });
 
     // Calcular resumo
-    const disciplinasUnicas = new Set(alocacoes.map((a) => a.disciplina.id))
-      .size;
-    const professoresUnicos = new Set(alocacoes.map((a) => a.user.id)).size;
+    const disciplinasUnicas = new Set(
+      alocacoes.filter((a) => a.disciplina?.id).map((a) => a.disciplina!.id)
+    ).size;
+    const professoresUnicos = new Set(
+      alocacoes.filter((a) => a.user?.id).map((a) => a.user!.id)
+    ).size;
 
     return {
       turmaId,

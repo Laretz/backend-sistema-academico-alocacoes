@@ -4,7 +4,7 @@ import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 interface AtualizarSalaUseCaseRequest {
     id: string;
     nome: string | undefined;
-    predio: string | undefined;
+    predioId: string | undefined;
     capacidade: number | undefined;
     tipo: string | undefined;
 }
@@ -12,7 +12,7 @@ interface AtualizarSalaUseCaseRequest {
 export class AtualizarSalaUseCase {
     constructor(private salasRepository: SalasRepository) {}
 
-    async execute({ id, nome, predio, capacidade, tipo }: AtualizarSalaUseCaseRequest) {
+    async execute({ id, nome, predioId, capacidade, tipo }: AtualizarSalaUseCaseRequest) {
         const salaExiste = await this.salasRepository.findById(id);
 
         if (!salaExiste) {
@@ -20,9 +20,14 @@ export class AtualizarSalaUseCase {
         }
 
         // Cria um objeto com apenas os campos que foram fornecidos
-        const updateData: any = {};
+        const updateData: Partial<{
+            nome: string;
+            predioId: string;
+            capacidade: number;
+            tipo: string;
+        }> = {};
         if (nome !== undefined) updateData.nome = nome;
-        if (predio !== undefined) updateData.predio = predio;
+        if (predioId !== undefined) updateData.predioId = predioId;
         if (capacidade !== undefined) updateData.capacidade = capacidade;
         if (tipo !== undefined) updateData.tipo = tipo;
         

@@ -52,21 +52,30 @@ describe('Buscar Grade Horários Turma Use Case', () => {
       disciplina: {
         id: disciplinaId,
         nome: 'Cálculo I',
+        codigo: 'CALC001',
+        carga_horaria: 80,
         cargaHorariaTotal: 80,
       },
       sala: {
         id: salaId,
         nome: 'Sala 101',
-        predio: 'Bloco A',
+        numero: '101',
         capacidade: 50,
         tipo: 'AULA',
+        computadores: 0,
+        predioId: 'predio-01',
+        ativa: true,
+        predio: {
+          id: 'predio-01',
+          nome: 'Bloco A',
+        },
       },
       horario: {
         id: horarioId,
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     });
 
@@ -102,18 +111,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: 'professor-1',
         nome: 'Prof. João',
         email: 'joao@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: 'disciplina-1',
         nome: 'Matemática',
+        codigo: 'MAT001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       horario: {
         id: 'horario-1',
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     });
 
@@ -128,18 +140,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: 'professor-2',
         nome: 'Prof. Maria',
         email: 'maria@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: 'disciplina-2',
         nome: 'Física',
+        codigo: 'FIS001',
+        carga_horaria: 80,
         cargaHorariaTotal: 80,
       },
       horario: {
         id: 'horario-2',
         codigo: 'T2',
         dia_semana: 'TERCA',
-        horarioInicio: new Date('2024-01-01T14:00:00'),
-        horarioFim: new Date('2024-01-01T15:00:00'),
+        horario_inicio: new Date('2024-01-01T14:00:00'),
+        horario_fim: new Date('2024-01-01T15:00:00'),
       },
     });
 
@@ -175,18 +190,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: professorId,
         nome: 'Prof. João',
         email: 'joao@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: 'disciplina-1',
         nome: 'Matemática',
+        codigo: 'MAT001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       horario: {
         id: 'horario-1',
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     });
 
@@ -198,18 +216,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: professorId,
         nome: 'Prof. João',
         email: 'joao@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: 'disciplina-2',
         nome: 'Física',
+        codigo: 'FIS001',
+        carga_horaria: 80,
         cargaHorariaTotal: 80,
       },
       horario: {
         id: 'horario-2',
         codigo: 'M2',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T09:00:00'),
-        horarioFim: new Date('2024-01-01T10:00:00'),
+        horario_inicio: new Date('2024-01-01T09:00:00'),
+        horario_fim: new Date('2024-01-01T10:00:00'),
       },
     });
 
@@ -233,18 +254,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: 'professor-1',
         nome: 'Prof. João',
         email: 'joao@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: disciplinaId,
         nome: 'Matemática',
+        codigo: 'MAT001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       horario: {
         id: 'horario-1',
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     });
 
@@ -256,18 +280,21 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         id: 'professor-2',
         nome: 'Prof. Maria',
         email: 'maria@teste.com',
+        especializacao: null,
       },
       disciplina: {
         id: disciplinaId,
         nome: 'Matemática',
+        codigo: 'MAT001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       horario: {
         id: 'horario-2',
         codigo: 'M2',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T09:00:00'),
-        horarioFim: new Date('2024-01-01T10:00:00'),
+        horario_inicio: new Date('2024-01-01T09:00:00'),
+        horario_fim: new Date('2024-01-01T10:00:00'),
       },
     });
 
@@ -288,14 +315,16 @@ describe('Buscar Grade Horários Turma Use Case', () => {
       disciplina: {
         id: 'disciplina-1',
         nome: 'Matemática',
+        codigo: 'MAT001',
+        carga_horaria: 60,
         cargaHorariaTotal: 60,
       },
       horario: {
         id: 'horario-1',
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T08:00:00'),
-        horarioFim: new Date('2024-01-01T09:00:00'),
+        horario_inicio: new Date('2024-01-01T08:00:00'),
+        horario_fim: new Date('2024-01-01T09:00:00'),
       },
     });
 
@@ -305,14 +334,16 @@ describe('Buscar Grade Horários Turma Use Case', () => {
       disciplina: {
         id: 'disciplina-2',
         nome: 'Física',
+        codigo: 'FIS001',
+        carga_horaria: 80,
         cargaHorariaTotal: 80,
       },
       horario: {
         id: 'horario-2',
         codigo: 'M2',
         dia_semana: 'SEGUNDA',
-        horarioInicio: new Date('2024-01-01T09:00:00'),
-        horarioFim: new Date('2024-01-01T10:00:00'),
+        horario_inicio: new Date('2024-01-01T09:00:00'),
+        horario_fim: new Date('2024-01-01T10:00:00'),
       },
     });
 

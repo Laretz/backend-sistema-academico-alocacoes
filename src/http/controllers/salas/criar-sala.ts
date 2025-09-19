@@ -5,20 +5,22 @@ import { makeCriarSalaUseCase } from "@/use-cases/@factories/sala/make-criar-sal
 export async function criarSala(request: FastifyRequest, reply: FastifyReply) {
     const criarSalaBodySchema = z.object({
         nome: z.string(),
-        predio: z.string(),
+        numero: z.string().optional(),
+        predioId: z.string(),
         capacidade: z.number(),
         tipo: z.string(),
         computadores: z.number().optional().default(0),
     });
 
-    const { nome, predio, capacidade, tipo, computadores } = criarSalaBodySchema.parse(request.body);
+    const { nome, numero, predioId, capacidade, tipo, computadores } = criarSalaBodySchema.parse(request.body);
 
     try {
         const criarSalaUseCase = makeCriarSalaUseCase();
 
         const { sala } = await criarSalaUseCase.execute({
             nome,
-            predio,
+            numero,
+            predioId,
             capacidade,
             tipo,
             computadores,
