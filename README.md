@@ -1,5 +1,7 @@
 # 🎓 Sistema de Alocação Acadêmica – Escola Agrícola de Jundiaí (UFRN)
 
+> Teste de workflow GitHub Actions
+
 Sistema desenvolvido para otimizar a alocação de turmas, disciplinas, professores, horários e salas de aula, permitindo tanto alocação automática quanto manual, oferecendo maior controle e confiabilidade para a gestão acadêmica.
 
 ## 🏗️ Arquitetura
