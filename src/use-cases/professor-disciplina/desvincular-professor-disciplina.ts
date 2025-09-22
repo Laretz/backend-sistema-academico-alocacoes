@@ -19,14 +19,14 @@ export class DesvincularProfessorDisciplinaUseCase {
     id_user,
     id_disciplina,
   }: DesvincularProfessorDisciplinaUseCaseRequest): Promise<DesvincularProfessorDisciplinaUseCaseResponse> {
-    // Verificar se o vínculo existe
+    // Verificar se o vínculo existe e está ativo
     const vinculo =
       await this.professorDisciplinaRepository.findByUserAndDisciplina(
         id_user,
         id_disciplina
       );
 
-    if (!vinculo) {
+    if (!vinculo || !vinculo.ativo) {
       throw new RecursoNaoEncontradoError();
     }
 

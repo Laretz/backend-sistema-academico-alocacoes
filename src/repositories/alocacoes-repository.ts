@@ -11,7 +11,6 @@ export type AlocacaoWithRelations = Alocacao & {
     especializacao: string | null;
     carga_horaria_max: number | null;
     preferencia: string | null;
-    id_curso: string | null;
   };
   disciplina: {
     id: string;

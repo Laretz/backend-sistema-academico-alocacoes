@@ -90,6 +90,12 @@ import {
   buscarDisciplinasProfessor,
   buscarProfessoresDisciplina,
 } from "./controllers/professor-disciplina";
+import {
+  vincularUserCurso,
+  desvincularUserCurso,
+  buscarCursosUsuario,
+  buscarUsuariosCurso,
+} from "./controllers/user-curso";
 import { verifyJWT } from "./middlewares/verify-jwt";
 import { verifyUseRole } from "./middlewares/verify-user-role";
 
@@ -238,4 +244,18 @@ export async function appRoutes(app: FastifyInstance) {
     "/disciplinas/:id_disciplina/professores",
     buscarProfessoresDisciplina
   );
+
+  // User-Curso
+  app.post(
+    "/user-curso/vincular",
+    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
+    vincularUserCurso
+  );
+  app.post(
+    "/user-curso/desvincular",
+    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
+    desvincularUserCurso
+  );
+  app.get("/user-curso/cursos/:id_user", buscarCursosUsuario);
+  app.get("/user-curso/usuarios/:id_curso", buscarUsuariosCurso);
 }

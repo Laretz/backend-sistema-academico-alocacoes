@@ -6,7 +6,7 @@ export function makeAtualizarAlocacaoUseCase() {
   const alocacoesRepository = new PrismaAlocacoesRepository();
   const disciplinasRepository = new PrismaDisciplinasRepository();
   const atualizarAlocacaoUseCase = new AtualizarAlocacaoUseCase(
-    alocacoesRepository as unknown as AlocacoesRepository,
+    alocacoesRepository,
     disciplinasRepository
   );
 

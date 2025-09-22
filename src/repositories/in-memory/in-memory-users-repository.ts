@@ -3,11 +3,11 @@ import { UsersRepository } from "../users-repository";
 
 export class InMemoryUsersRepository implements UsersRepository {
 
-  private users: User[] = [];
+  public items: User[] = [];
 
   async create(data: Prisma.UserCreateInput): Promise<User> {
     const user: User = {
-      id: `user-${this.users.length + 1}`,
+      id: `user-${this.items.length + 1}`,
       nome: data.nome,
       email: data.email,
       senha: data.senha,
@@ -15,31 +15,30 @@ export class InMemoryUsersRepository implements UsersRepository {
       especializacao: data.especializacao ?? null,
       preferencia: data.preferencia ?? null,
       carga_horaria_max: data.carga_horaria_max ?? null,
-      id_curso: data.curso?.connect?.id ?? null,
     };
 
-    this.users.push(user);
+    this.items.push(user);
 
     return user;
   }
 
 
     async findById(id: string): Promise<User | null> {
-    const user = this.users.find((u) => u.id === id);
+    const user = this.items.find((u) => u.id === id);
     return user ?? null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = this.users.find((u) => u.email === email);
+    const user = this.items.find((u) => u.email === email);
     return user ?? null;
   }
 
   async findMany(page: number, search?: string): Promise<User[]> {
-    let filteredUsers = this.users;
+    let filteredUsers = this.items;
     
     if (search) {
       const searchLower = search.toLowerCase();
-      filteredUsers = this.users.filter((user) => 
+      filteredUsers = this.items.filter((user) => 
         user.nome.toLowerCase().includes(searchLower) ||
         user.email.toLowerCase().includes(searchLower) ||
         (user.especializacao && user.especializacao.toLowerCase().includes(searchLower))
@@ -53,13 +52,13 @@ export class InMemoryUsersRepository implements UsersRepository {
   }
 
   async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-    const userIndex = this.users.findIndex((u) => u.id === id);
+    const userIndex = this.items.findIndex((u) => u.id === id);
     
     if (userIndex === -1) {
       throw new Error('User not found');
     }
     
-    const currentUser = this.users[userIndex];
+    const currentUser = this.items[userIndex];
     if (!currentUser) {
       throw new Error('User not found');
     }
@@ -73,21 +72,20 @@ export class InMemoryUsersRepository implements UsersRepository {
       especializacao: data.especializacao !== undefined ? (data.especializacao as string | null) : currentUser.especializacao,
       preferencia: data.preferencia !== undefined ? (data.preferencia as string | null) : currentUser.preferencia,
       carga_horaria_max: data.carga_horaria_max !== undefined ? (data.carga_horaria_max as number | null) : currentUser.carga_horaria_max,
-      id_curso: data.curso?.connect?.id ?? currentUser.id_curso,
     };
     
-    this.users[userIndex] = updatedUser;
+    this.items[userIndex] = updatedUser;
     
     return updatedUser;
   }
 
   async delete(id: string): Promise<void> {
-    const userIndex = this.users.findIndex((u) => u.id === id);
+    const userIndex = this.items.findIndex((u) => u.id === id);
     
     if (userIndex === -1) {
       throw new Error('User not found');
     }
     
-    this.users.splice(userIndex, 1);
+    this.items.splice(userIndex, 1);
   }
 }

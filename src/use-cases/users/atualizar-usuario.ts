@@ -1,8 +1,8 @@
 import { User, Role } from "@prisma/client";
 import { hash } from "bcryptjs";
-import { UsersRepository } from "../repositories/users-repository";
-import { RecursoNaoEncontradoError } from "./errors/recurso-nao-encontrado";
-import { UserJaExisteError } from "./errors/email-ja-existe";
+import { UsersRepository } from "../../repositories/users-repository";
+import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
+import { UserJaExisteError } from "../errors/email-ja-existe";
 
 interface AtualizarUsuarioUseCaseRequest {
   id: string;

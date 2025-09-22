@@ -1,8 +1,8 @@
 import {expect, describe, it, test, beforeEach} from "vitest";
 import { RegisterUseCase } from "./register";
 import { compare } from "bcryptjs";
-import { InMemoryUsersRepository } from "../repositories/in-memory/in-memory-users-repository";
-import { UserJaExisteError } from "./errors/email-ja-existe";
+import { InMemoryUsersRepository } from "../../repositories/in-memory/in-memory-users-repository";
+import { UserJaExisteError } from "../errors/email-ja-existe";
 import { Role } from "@prisma/client";
 import { before } from "node:test";
 
@@ -25,7 +25,7 @@ describe('Register Use Case', () => {
             senha: '123456',
             role: Role.PROFESSOR,
             especializacao: "medico",
-            cargaHorariaMax: 20,
+            carga_horaria_max: 20,
             preferencia: "sim",
         })
 
@@ -44,7 +44,7 @@ describe('Register Use Case', () => {
             senha: '123456',
             role: Role.PROFESSOR,
             especializacao: "medico",
-            cargaHorariaMax: 20,
+            carga_horaria_max: 20,
             preferencia: "sim",
         })
 
@@ -63,7 +63,7 @@ describe('Register Use Case', () => {
         senha: '123456',
         role: Role.PROFESSOR,
         especializacao: "medico",
-        cargaHorariaMax: 20,
+        carga_horaria_max: 20,
         preferencia: "sim",
     });
 
@@ -74,7 +74,7 @@ describe('Register Use Case', () => {
         senha: '123456',
         role: Role.PROFESSOR,
         especializacao: "medico",
-        cargaHorariaMax: 20,
+        carga_horaria_max: 20,
         preferencia: "sim",
     })).rejects.toBeInstanceOf(UserJaExisteError);
 });

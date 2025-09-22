@@ -1,8 +1,8 @@
 import {expect, describe, it, test, beforeEach} from "vitest";
 import { compare, hash } from "bcryptjs";
-import { InMemoryUsersRepository } from "../repositories/in-memory/in-memory-users-repository";
+import { InMemoryUsersRepository } from "../../repositories/in-memory/in-memory-users-repository";
 import { GetUserProfileUseCase } from "./get-user-profile";
-import { RecursoNaoEncontradoError } from "./errors/recurso-nao-encontrado";
+import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 let userRepository: InMemoryUsersRepository;
 let sut: GetUserProfileUseCase;
