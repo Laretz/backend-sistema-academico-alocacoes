@@ -1,8 +1,8 @@
 import { hash } from "bcryptjs";
-import { prisma } from "../lib/prisma";
-import { PrismaUsersRepository } from "../repositories/prisma-repositories/prisma-users-repository";
-import { UsersRepository } from "../repositories/users-repository";
-import { UserJaExisteError } from "./errors/email-ja-existe";
+import { prisma } from "../../lib/prisma";
+import { PrismaUsersRepository } from "../../repositories/prisma-repositories/prisma-users-repository";
+import { UsersRepository } from "../../repositories/users-repository";
+import { UserJaExisteError } from "../errors/email-ja-existe";
 import { User, Role } from "@prisma/client";
 
 interface RegisterUseCaseRequest {

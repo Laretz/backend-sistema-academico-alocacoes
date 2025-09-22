@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
-import { UsersRepository } from "../repositories/users-repository";
-import { RecursoNaoEncontradoError } from "./errors/recurso-nao-encontrado";
+import { UsersRepository } from "../../repositories/users-repository";
+import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface BuscarUsuarioUseCaseRequest {
     id: string;

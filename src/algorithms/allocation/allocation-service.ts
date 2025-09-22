@@ -385,8 +385,25 @@ export class AllocationService {
         throw new Error(`Turma ${turmaId} não encontrada`);
       }
 
+      // Buscar professores vinculados ao curso da turma através da tabela UserCurso
       const professores = await prisma.user.findMany({
-        where: { role: 'PROFESSOR' }
+        where: { 
+          role: 'PROFESSOR',
+          cursos: {
+            some: {
+              id_curso: turma.id_curso,
+              ativo: true
+            }
+          }
+        },
+        include: {
+          cursos: {
+            where: {
+              id_curso: turma.id_curso,
+              ativo: true
+            }
+          }
+        }
       });
 
       if (!professores || professores.length === 0) {

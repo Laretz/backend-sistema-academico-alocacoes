@@ -22,14 +22,29 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         id: typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id ? data.user.connect.id : randomUUID(),
         nome: 'Professor Teste',
         email: 'professor@teste.com',
+        senha: 'senha123',
+        role: 'PROFESSOR',
         especializacao: 'Especialização Teste',
+        carga_horaria_max: 40,
+        preferencia: null,
       },
       disciplina: {
         id: typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id ? data.disciplina.connect.id : randomUUID(),
         nome: 'Disciplina Teste',
         codigo: 'DISC001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria_atual: 0,
+        total_aulas: 30,
+        aulas_ministradas: 0,
+        tipo_de_sala: 'AULA',
+        data_inicio: null,
+        data_fim_prevista: null,
+        data_fim_real: null,
+        periodo_letivo: '2024.1',
+        horario_consolidado: null,
+        id_curso: randomUUID(),
+        semestre: 1,
+        obrigatoria: true,
       },
       turma: {
         id: typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id ? data.turma.connect.id : randomUUID(),
@@ -37,6 +52,8 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
+        id_curso: randomUUID(),
+        ativa: true,
       },
       sala: {
         id: typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id ? data.sala.connect.id : randomUUID(),
@@ -50,6 +67,10 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         predio: {
           id: randomUUID(),
           nome: 'Prédio A',
+          codigo: 'PRED001',
+          created_at: new Date(),
+          updated_at: new Date(),
+          descricao: null,
         },
       },
       horario: {
@@ -180,14 +201,29 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         id: alocacaoData.id_user || randomUUID(),
         nome: 'Professor Teste',
         email: 'professor@teste.com',
+        senha: 'senha123',
+        role: 'PROFESSOR',
         especializacao: 'Especialização Teste',
+        carga_horaria_max: 40,
+        preferencia: null,
       },
       disciplina: alocacaoData.disciplina || {
         id: alocacaoData.id_disciplina || randomUUID(),
         nome: 'Disciplina Teste',
         codigo: 'DISC001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria_atual: 0,
+        total_aulas: 30,
+        aulas_ministradas: 0,
+        tipo_de_sala: 'AULA',
+        data_inicio: null,
+        data_fim_prevista: null,
+        data_fim_real: null,
+        periodo_letivo: '2024.1',
+        horario_consolidado: null,
+        id_curso: randomUUID(),
+        semestre: 1,
+        obrigatoria: true,
       },
       turma: alocacaoData.turma || {
         id: alocacaoData.id_turma || randomUUID(),
@@ -195,6 +231,8 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
+        id_curso: randomUUID(),
+        ativa: true,
       },
       sala: alocacaoData.sala || {
         id: alocacaoData.id_sala || randomUUID(),
@@ -208,6 +246,10 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         predio: {
           id: randomUUID(),
           nome: 'Prédio A',
+          codigo: 'PRED001',
+          created_at: new Date(),
+          updated_at: new Date(),
+          descricao: null,
         },
       },
       horario: alocacaoData.horario || {
@@ -225,5 +267,50 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
 
   async findByDisciplinaId(id_disciplina: string): Promise<AlocacaoWithRelations[]> {
     return this.items.filter(item => item.id_disciplina === id_disciplina);
+  }
+
+  async findByPeriodoManha(page: number): Promise<AlocacaoWithRelations[]> {
+    // Filtra alocações do período da manhã (horários que começam antes das 12:00)
+    const alocacoesManha = this.items.filter(item => {
+      const horarioInicio = new Date(item.horario.horario_inicio);
+      return horarioInicio.getHours() < 12;
+    });
+    
+    const startIndex = (page - 1) * 20;
+    const endIndex = startIndex + 20;
+    return alocacoesManha.slice(startIndex, endIndex);
+  }
+
+  async findByTurmaIdWithPeriodo(id_turma: string, periodo: string, page: number): Promise<AlocacaoWithRelations[]> {
+    // Filtra alocações por turma e período
+    const alocacoesFiltradas = this.items.filter(item => {
+      if (item.id_turma !== id_turma) return false;
+      
+      const horarioInicio = new Date(item.horario.horario_inicio);
+      const hora = horarioInicio.getHours();
+      
+      switch (periodo.toLowerCase()) {
+        case 'manha':
+        case 'matutino':
+          return hora < 12;
+        case 'tarde':
+        case 'vespertino':
+          return hora >= 12 && hora < 18;
+        case 'noite':
+        case 'noturno':
+          return hora >= 18;
+        default:
+          return true;
+      }
+    });
+    
+    const startIndex = (page - 1) * 20;
+    const endIndex = startIndex + 20;
+    return alocacoesFiltradas.slice(startIndex, endIndex);
+  }
+
+  async deleteAllByTurmaId(id_turma: string): Promise<void> {
+    // Remove todas as alocações da turma especificada
+    this.items = this.items.filter(item => item.id_turma !== id_turma);
   }
 }

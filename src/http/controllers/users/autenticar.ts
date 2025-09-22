@@ -1,7 +1,7 @@
 import {z} from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { PrismaUsersRepository } from "../../../repositories/prisma-repositories/prisma-users-repository";
-import { AuthenticateUseCase } from "../../../use-cases/authenticate";
+import { AuthenticateUseCase } from "../../../use-cases/users/authenticate";
 import { CredenciaisInvalidas } from "../../../use-cases/errors/credenciais-invalidas";
 import { makeAuthenticateUseCase } from "@/use-cases/@factories/usuario/make-authenticate-use-case";
     
