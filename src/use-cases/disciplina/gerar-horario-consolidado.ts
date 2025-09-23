@@ -38,7 +38,10 @@ export class GerarHorarioConsolidadoUseCase {
       if (!alocacoesPorDia.has(dia)) {
         alocacoesPorDia.set(dia, []);
       }
-      alocacoesPorDia.get(dia)!.push(alocacao);
+      const alocacoesDia = alocacoesPorDia.get(dia);
+      if (alocacoesDia) {
+        alocacoesDia.push(alocacao);
+      }
     }
 
     // Processar cada dia e gerar padrões de horário
@@ -51,30 +54,50 @@ export class GerarHorarioConsolidadoUseCase {
       const codigosDia = diasMap[dia];
       if (!codigosDia) continue;
       
-      const turno = alocacoesDoDia[0].horario.codigo.charAt(0); // M, T, N
+      const primeiraAlocacao = alocacoesDoDia[0];
+      if (!primeiraAlocacao?.horario?.codigo) continue;
       
-      // Verificar se os horários são sequenciais
-      const horariosSequenciais = this.verificarSequencialidade(alocacoesDoDia);
+      const turno = primeiraAlocacao.horario.codigo.charAt(0); // M, T, N
       
-      if (horariosSequenciais.length > 0) {
-         let padraoHorario: string;
-         
-         if (horariosSequenciais.length === 1) {
-           // Aula isolada - usar apenas o número do horário
-           const numeroHorario = horariosSequenciais[0].charAt(1);
-           padraoHorario = `${turno}${numeroHorario}`;
-         } else {
-           // Múltiplas aulas - usar formato de intervalo
-           const primeiroHorario = horariosSequenciais[0].charAt(1);
-           const ultimoHorario = horariosSequenciais[horariosSequenciais.length - 1].charAt(1);
-           padraoHorario = `${turno}${primeiroHorario}${ultimoHorario}`;
-         }
-         
-         if (!padroesPorHorario.has(padraoHorario)) {
-           padroesPorHorario.set(padraoHorario, []);
-         }
-         padroesPorHorario.get(padraoHorario)!.push(codigosDia);
-       }
+      // Obter códigos dos horários e verificar sequencialidade
+      const codigosHorarios = alocacoesDoDia.map(alocacao => alocacao.horario.codigo).sort();
+      const numerosHorarios = codigosHorarios.map(codigo => parseInt(codigo.charAt(1)));
+      
+      // Verificar se os números são sequenciais
+      const saoSequenciais = this.verificarSequenciais(numerosHorarios.map(n => n.toString()));
+      
+      let padraoHorario: string;
+      
+      if (codigosHorarios.length === 1) {
+        // Aula isolada - usar apenas o número do horário
+        const numeroHorario = numerosHorarios[0];
+        padraoHorario = `${turno}${numeroHorario}`;
+      } else if (saoSequenciais) {
+        // Múltiplas aulas sequenciais - usar todos os números
+        const sequenciaNumerica = numerosHorarios.join('');
+        padraoHorario = `${turno}${sequenciaNumerica}`;
+      } else {
+        // Múltiplas aulas não sequenciais - tratar cada uma separadamente
+        numerosHorarios.forEach(numero => {
+          const padraoIndividual = `${turno}${numero}`;
+          if (!padroesPorHorario.has(padraoIndividual)) {
+            padroesPorHorario.set(padraoIndividual, []);
+          }
+          const padraoArray = padroesPorHorario.get(padraoIndividual);
+          if (padraoArray) {
+            padraoArray.push(codigosDia);
+          }
+        });
+        continue; // Pular o resto do loop para este dia
+      }
+      
+      if (!padroesPorHorario.has(padraoHorario)) {
+        padroesPorHorario.set(padraoHorario, []);
+      }
+      const padraoArray = padroesPorHorario.get(padraoHorario);
+      if (padraoArray) {
+        padraoArray.push(codigosDia);
+      }
     }
 
     // Gerar horários consolidados agrupando dias consecutivos com mesmo padrão
@@ -104,14 +127,19 @@ export class GerarHorarioConsolidadoUseCase {
     return { horarioConsolidado: horariosConsolidados.join(', ') };
   }
 
+  private verificarSequencialidade(alocacoes: any[]): string[] {
+    return alocacoes.map(alocacao => alocacao.horario.codigo);
+  }
+
   private verificarSequenciais(numeros: string[]): boolean {
-    if (numeros.length <= 1) return false;
+    if (numeros.length <= 1) return true;
     
-    for (let i = 1; i < numeros.length; i++) {
-      const atual = parseInt(numeros[i]);
-      const anterior = parseInt(numeros[i - 1]);
-      
-      if (atual !== anterior + 1) {
+    const numerosOrdenados = numeros.map(n => parseInt(n)).sort((a, b) => a - b);
+    
+    for (let i = 1; i < numerosOrdenados.length; i++) {
+      const numeroAtual = numerosOrdenados[i];
+      const numeroAnterior = numerosOrdenados[i - 1];
+      if (numeroAtual !== undefined && numeroAnterior !== undefined && numeroAtual !== numeroAnterior + 1) {
         return false;
       }
     }
@@ -119,15 +147,13 @@ export class GerarHorarioConsolidadoUseCase {
     return true;
   }
 
-  private verificarSequencialidade(alocacoes: any[]): string[] {
-    return alocacoes.map(alocacao => alocacao.horario.codigo);
-  }
-
   private verificarDiasConsecutivos(dias: number[]): boolean {
     if (dias.length <= 1) return true;
     
     for (let i = 1; i < dias.length; i++) {
-      if (dias[i] !== dias[i - 1] + 1) {
+      const diaAtual = dias[i];
+      const diaAnterior = dias[i - 1];
+      if (diaAtual !== undefined && diaAnterior !== undefined && diaAtual !== diaAnterior + 1) {
         return false;
       }
     }

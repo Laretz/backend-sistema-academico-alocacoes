@@ -26,6 +26,14 @@ export class PrismaCursosRepository implements CursosRepository {
         return curso;
     }
 
+    async findByCodigo(codigo: string) {
+        const curso = await prisma.curso.findFirst({
+            where: { codigo },
+        });
+
+        return curso;
+    }
+
     async findMany(page: number) {
         const cursos = await prisma.curso.findMany({
             take: 20,

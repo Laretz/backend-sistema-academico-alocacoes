@@ -75,6 +75,7 @@ export interface AlocacoesRepository {
     findMany(page: number): Promise<AlocacaoWithRelations[]>
     findByUserId(id_user: string, page: number): Promise<AlocacaoWithRelations[]>
     findByTurmaId(id_turma: string, page: number): Promise<AlocacaoWithRelations[]>
+    findByTurma(turmaId: string): Promise<AlocacaoWithRelations[]>
     findAllByTurmaId(id_turma: string): Promise<AlocacaoWithRelations[]>
     findBySalaId(id_sala: string, page: number): Promise<AlocacaoWithRelations[]>
     findByDisciplinaId(id_disciplina: string): Promise<AlocacaoWithRelations[]>
