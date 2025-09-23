@@ -17,6 +17,8 @@ import {
   atualizarDisciplina,
   excluirDisciplina,
 } from "./controllers/disciplinas";
+import { buscarDisciplinasComProgresso } from './controllers/disciplinas/buscar-disciplinas-com-progresso'
+import { atualizarProgressoDisciplinas } from './controllers/disciplinas/atualizar-progresso-disciplinas'
 import { atualizarHorarioConsolidado } from "./controllers/disciplinas/atualizar-horario-consolidado";
 import {
   criarTurma,
@@ -34,6 +36,7 @@ import {
   excluirSala,
   buscarGradeHorariosSala,
 } from "./controllers/salas";
+import { buscarSalasPorPredio } from "./controllers/salas/buscar-salas-por-predio";
 import {
   criarHorario,
   buscarHorarios,
@@ -151,6 +154,7 @@ export async function appRoutes(app: FastifyInstance) {
   );
   app.get("/predios", buscarPredios);
   app.get("/predios/:id", buscarPredio);
+  app.get("/predios/:predioId/salas", buscarSalasPorPredio);
   app.put(
     "/predios/:id",
     { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
@@ -169,8 +173,10 @@ export async function appRoutes(app: FastifyInstance) {
     criarDisciplina
   );
   app.get("/disciplinas", buscarDisciplinas);
+  app.get("/disciplinas/com-progresso", buscarDisciplinasComProgresso);
   app.get("/disciplinas/:id", buscarDisciplina);
   app.put("/disciplinas/:id", atualizarDisciplina);
+  app.put("/disciplinas/atualizar-progresso", { onRequest: [verifyJWT] }, atualizarProgressoDisciplinas);
   app.put("/disciplinas/:id/horario-consolidado", atualizarHorarioConsolidado);
   app.delete("/disciplinas/:id", excluirDisciplina);
 

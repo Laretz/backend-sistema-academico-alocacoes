@@ -174,6 +174,29 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
+  async findByTurma(turmaId: string) {
+    const alocacoes = await prisma.alocacao.findMany({
+      where: {
+        id_turma: turmaId,
+      },
+      include: {
+        user: true,
+        disciplina: true,
+        turma: true,
+        sala: {
+          include: {
+            predio: true
+          }
+        },
+        horario: true,
+      },
+    });
+
+    return alocacoes;
+  }
+
+
+
   async findAllByTurmaId(id_turma: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {

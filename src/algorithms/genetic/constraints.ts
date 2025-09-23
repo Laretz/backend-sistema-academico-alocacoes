@@ -108,6 +108,25 @@ export class ConstraintManager {
           return totalHoras * 15 <= professor.carga_horaria_max * 60; // 15min por slot
         },
       },
+      {
+        name: "turma_availability",
+        weight: 1000,
+        validate: (gene, context) => {
+          // Turma não pode ter duas aulas ao mesmo tempo
+          const { horarios } = gene;
+          const { allGenes, turma } = context;
+
+          for (const otherGene of allGenes) {
+            if (otherGene !== gene) {
+              const overlap = horarios.some((h) =>
+                otherGene.horarios.includes(h)
+              );
+              if (overlap) return false;
+            }
+          }
+          return true;
+        },
+      },
     ];
   }
 

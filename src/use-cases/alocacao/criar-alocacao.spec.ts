@@ -162,4 +162,27 @@ describe("Criar Alocação Use Case", () => {
     expect(alocacoes).toHaveLength(1);
     expect(alocacoes[0]!.id_user).toEqual("user-1");
   });
+
+  it("não deve ser possível criar alocação quando turma já tem horário ocupado", async () => {
+    // Criar uma alocação existente
+    await alocacoesRepository.createWithCustomData({
+      id: "alocacao-1",
+      id_user: "user-1",
+      id_disciplina: "disciplina-1",
+      id_turma: "turma-1",
+      id_sala: "sala-1",
+      id_horario: "horario-1",
+    });
+
+    // Tentar criar nova alocação com a mesma turma e horário
+    await expect(() =>
+      sut.execute({
+        id_user: "user-2", // Professor diferente
+        id_disciplina: "disciplina-2",
+        id_turma: "turma-1", // Mesma turma
+        id_sala: "sala-2", // Sala diferente
+        id_horarios: ["horario-1"], // Mesmo horário
+      })
+    ).rejects.toThrow("Turma já possui alocação no horário horario-1");
+  });
 });

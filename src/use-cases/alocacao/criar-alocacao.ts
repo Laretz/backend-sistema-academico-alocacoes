@@ -32,6 +32,12 @@ export class CriarAlocacaoUseCase {
             if (conflitoSala) {
                 throw new Error(`Sala já está ocupada no horário ${id_horario}`);
             }
+
+            // Verificar se turma já tem alocação neste horário
+            const conflitoTurma = await this.alocacoesRepository.findByTurmaIdAndHorarioId(id_turma, id_horario);
+            if (conflitoTurma) {
+                throw new Error(`Turma já possui alocação no horário ${id_horario}`);
+            }
         }
 
         // Se não há conflitos, criar todas as alocações

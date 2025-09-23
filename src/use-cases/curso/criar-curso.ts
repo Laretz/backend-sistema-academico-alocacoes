@@ -1,4 +1,5 @@
 import { CursosRepository } from "../../repositories/cursos-repository";
+import { CodigoJaExisteError } from "../errors/codigo-ja-existe";
 
 interface CriarCursoUseCaseRequest {
     codigo: string;
@@ -11,6 +12,12 @@ export class CriarCursoUseCase {
     constructor(private cursosRepository: CursosRepository) {}
 
     async execute({ codigo, nome, turno, duracao_semestres }: CriarCursoUseCaseRequest) {
+        const cursoExistente = await this.cursosRepository.findByCodigo(codigo);
+
+        if (cursoExistente) {
+            throw new CodigoJaExisteError('curso');
+        }
+
         const curso = await this.cursosRepository.create({
             codigo,
             nome,

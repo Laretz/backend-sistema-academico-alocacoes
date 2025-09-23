@@ -13,6 +13,9 @@ export class PrismaSalasRepository implements SalasRepository {
     async findById(id: string) {
         const sala = await prisma.sala.findUnique({
             where: { id },
+            include: {
+                predio: true
+            }
         });
 
         return sala;
@@ -30,11 +33,25 @@ export class PrismaSalasRepository implements SalasRepository {
         const salas = await prisma.sala.findMany({
             take: 20,
             skip: (page - 1) * 20,
+            include: {
+                predio: true
+            }
         });
 
         if (!salas) {
             return [];
         }
+
+        return salas;
+    }
+
+    async findByPredioId(predioId: string) {
+        const salas = await prisma.sala.findMany({
+            where: { predioId },
+            include: {
+                predio: true
+            }
+        });
 
         return salas;
     }
