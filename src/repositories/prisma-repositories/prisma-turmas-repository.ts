@@ -26,17 +26,77 @@ export class PrismaTurmasRepository implements TurmasRepository {
         return turma;
     }
 
-    async findMany(page: number) {
-        const turmas = await prisma.turma.findMany({
-            take: 20,
-            skip: (page - 1) * 20,
-        });
+    async findMany({
+        page,
+        limit,
+        search,
+        sortBy = 'nome',
+        sortOrder = 'asc',
+        turno,
+        periodo,
+        semestre,
+        ativa,
+        id_curso
+    }: {
+        page: number;
+        limit: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+        turno?: string;
+        periodo?: number;
+        semestre?: number;
+        ativa?: boolean;
+        id_curso?: string;
+    }) {
+        const where: any = {};
 
-        if (!turmas) {
-            return [];
+        if (search) {
+            where.OR = [
+                { nome: { contains: search, mode: "insensitive" } }
+            ];
         }
 
-        return turmas;
+        if (turno) {
+            where.turno = turno;
+        }
+
+        if (periodo !== undefined) {
+            where.periodo = periodo;
+        }
+
+        if (semestre !== undefined) {
+            where.semestre = semestre;
+        }
+
+        if (ativa !== undefined) {
+            where.ativa = ativa;
+        }
+
+        if (id_curso) {
+            where.id_curso = id_curso;
+        }
+
+        const [turmas, total] = await Promise.all([
+            prisma.turma.findMany({
+                where,
+                take: limit,
+                skip: (page - 1) * limit,
+                orderBy: { [sortBy]: sortOrder },
+                include: {
+                    curso: {
+                        select: {
+                            id: true,
+                            nome: true,
+                            codigo: true,
+                        },
+                    },
+                },
+            }),
+            prisma.turma.count({ where })
+        ]);
+
+        return { turmas, total };
     }
 
     async update(id: string, data: Prisma.TurmaUpdateInput) {

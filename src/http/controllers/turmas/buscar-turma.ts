@@ -1,14 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
+import { turmaParamsSchema } from "@/schemas";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
 import { makeBuscarTurmaUseCase } from "@/use-cases/@factories/turma/make-buscar-turma-use-case";
 
 export async function buscarTurma(request: FastifyRequest, reply: FastifyReply) {
-    const buscarTurmaParamsSchema = z.object({
-        id: z.string().uuid(),
-    });
-
-    const { id } = buscarTurmaParamsSchema.parse(request.params);
+    const { id } = turmaParamsSchema.parse(request.params);
 
     try {
         const buscarTurmaUseCase = makeBuscarTurmaUseCase();

@@ -10,6 +10,7 @@ import {
   excluirUsuario,
 } from "./controllers/users";
 import { verifyToken } from "./controllers/users/verify-token";
+
 import {
   criarDisciplina,
   buscarDisciplinas,
@@ -17,15 +18,7 @@ import {
   atualizarDisciplina,
   excluirDisciplina,
 } from "./controllers/disciplinas";
-import { buscarDisciplinasComProgresso } from './controllers/disciplinas/buscar-disciplinas-com-progresso'
-import { atualizarProgressoDisciplinas } from './controllers/disciplinas/atualizar-progresso-disciplinas'
-import { atualizarHorarioConsolidado } from "./controllers/disciplinas/atualizar-horario-consolidado";
-import {
-  criarTurma,
-  buscarTurmas,
-  buscarTurma,
-  atualizarTurma,
-  excluirTurma,
+
   buscarGradeHorariosTurma,
 } from "./controllers/turmas";
 import {
@@ -73,20 +66,10 @@ import {
   excluirModulo,
   buscarModulosPorDisciplina,
 } from "./controllers/modulos";
-import {
-  criarCurso,
-  buscarCursos,
-  buscarCurso,
-  atualizarCurso,
-  excluirCurso,
-} from "./controllers/cursos";
-import {
-  criarPredio,
-  buscarPredios,
-  buscarPredio,
-  atualizarPredio,
-  excluirPredio,
-} from "./controllers/predios";
+import { routesCursos } from "./controllers/cursos/routes";
+import { routesDisciplinas } from "./controllers/disciplinas/routes";
+import { prediosRoutes } from "./controllers/predios/routes";
+import { routesTurmas } from "./controllers/turmas/routes";
 import {
   vincularProfessorDisciplina,
   desvincularProfessorDisciplina,
@@ -127,66 +110,22 @@ export async function appRoutes(app: FastifyInstance) {
     excluirUsuario
   );
 
-  // Cursos
-  app.post(
-    "/cursos",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    criarCurso
-  );
-  app.get("/cursos", buscarCursos);
-  app.get("/cursos/:id", buscarCurso);
-  app.put(
-    "/cursos/:id",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    atualizarCurso
-  );
-  app.delete(
-    "/cursos/:id",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    excluirCurso
-  );
+  // Cursos - Rotas organizadas com schemas Zod
+  await app.register(routesCursos);
 
-  // Prédios
-  app.post(
-    "/predios",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    criarPredio
-  );
-  app.get("/predios", buscarPredios);
-  app.get("/predios/:id", buscarPredio);
-  app.get("/predios/:predioId/salas", buscarSalasPorPredio);
-  app.put(
-    "/predios/:id",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    atualizarPredio
-  );
-  app.delete(
-    "/predios/:id",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    excluirPredio
-  );
 
-  // Disciplinas
-  app.post(
-    "/disciplinas",
-    { onRequest: [verifyJWT, verifyUseRole("ADMIN")] },
-    criarDisciplina
-  );
-  app.get("/disciplinas", buscarDisciplinas);
-  app.get("/disciplinas/com-progresso", buscarDisciplinasComProgresso);
-  app.get("/disciplinas/:id", buscarDisciplina);
-  app.put("/disciplinas/:id", atualizarDisciplina);
-  app.put("/disciplinas/atualizar-progresso", { onRequest: [verifyJWT] }, atualizarProgressoDisciplinas);
-  app.put("/disciplinas/:id/horario-consolidado", atualizarHorarioConsolidado);
-  app.delete("/disciplinas/:id", excluirDisciplina);
+  // Disciplinas - Rotas organizadas com schemas Zod
+  await app.register(routesDisciplinas);
 
-  // Turmas
-  app.post("/turmas", criarTurma);
-  app.get("/turmas", buscarTurmas);
-  app.get("/turmas/:id", buscarTurma);
+  // Prédios - Rotas organizadas com schemas Zod
+  await app.register(prediosRoutes);
+
+  // Turmas - Rotas organizadas com schemas Zod
+  await app.register(routesTurmas);
+
+
+  // Rota específica de grade de horários para turmas (mantida separada)
   app.get("/turmas/:id/grade-horarios", buscarGradeHorariosTurma);
-  app.put("/turmas/:id", atualizarTurma);
-  app.delete("/turmas/:id", excluirTurma);
 
   // Salas
   app.post("/salas", criarSala);

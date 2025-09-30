@@ -54,7 +54,7 @@ describe('Buscar Turmas Use Case', () => {
     // Criar 25 turmas para testar paginação
     for (let i = 1; i <= 25; i++) {
       await turmasRepository.create({
-        nome: `Turma ${i}`,
+        nome: `Turma ${i.toString().padStart(2, '0')}`,
         num_alunos: 30,
         periodo: 1,
         turno: 'MATUTINO',
@@ -69,7 +69,7 @@ describe('Buscar Turmas Use Case', () => {
 
     expect(primeiraPagina.turmas).toHaveLength(20);
     expect(segundaPagina.turmas).toHaveLength(5);
-    expect(primeiraPagina.turmas[0]?.nome).toEqual('Turma 1');
+    expect(primeiraPagina.turmas[0]?.nome).toEqual('Turma 01');
     expect(segundaPagina.turmas[0]?.nome).toEqual('Turma 21');
   });
 

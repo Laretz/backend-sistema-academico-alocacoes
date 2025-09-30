@@ -3,10 +3,13 @@ import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface AtualizarTurmaUseCaseRequest {
   id: string;
-  nome: string | undefined;
-  num_alunos: number | undefined;
-  periodo: number | undefined;
-  turno: string | undefined;
+  nome?: string;
+  num_alunos?: number;
+  periodo?: number;
+  turno?: string;
+  id_curso?: string;
+  semestre?: number;
+  ativa?: boolean;
 }
 
 export class AtualizarTurmaUseCase {
@@ -18,6 +21,9 @@ export class AtualizarTurmaUseCase {
     num_alunos,
     periodo,
     turno,
+    id_curso,
+    semestre,
+    ativa,
   }: AtualizarTurmaUseCaseRequest) {
     const turmaExiste = await this.turmasRepository.findById(id);
 
@@ -31,11 +37,17 @@ export class AtualizarTurmaUseCase {
       num_alunos: number;
       periodo: number;
       turno: string;
+      id_curso: string;
+      semestre: number;
+      ativa: boolean;
     }> = {};
     if (nome !== undefined) updateData.nome = nome;
     if (num_alunos !== undefined) updateData.num_alunos = num_alunos;
     if (periodo !== undefined) updateData.periodo = periodo;
     if (turno !== undefined) updateData.turno = turno;
+    if (id_curso !== undefined) updateData.id_curso = id_curso;
+    if (semestre !== undefined) updateData.semestre = semestre;
+    if (ativa !== undefined) updateData.ativa = ativa;
 
     const turma = await this.turmasRepository.update(id, updateData);
 

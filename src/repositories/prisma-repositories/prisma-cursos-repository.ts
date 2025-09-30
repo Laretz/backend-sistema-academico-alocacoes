@@ -34,10 +34,10 @@ export class PrismaCursosRepository implements CursosRepository {
         return curso;
     }
 
-    async findMany(page: number) {
+    async findMany() {
+
         const cursos = await prisma.curso.findMany({
-            take: 20,
-            skip: (page - 1) * 20,
+            orderBy: { nome: 'asc' },
         });
 
         return cursos;
