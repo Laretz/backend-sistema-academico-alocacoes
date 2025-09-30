@@ -11,13 +11,37 @@ Este é o backend do Sistema de Alocação Acadêmica, desenvolvido para automat
 O projeto segue rigorosamente os princípios da Clean Architecture, com separação clara de responsabilidades:
 
 ```
+├── prisma/             # Schema do banco de dados e migrações
 src/
-├── domain/              # Entidades e regras de negócio
-├── use-cases/           # Casos de uso da aplicação
-├── repositories/        # Interfaces e implementações de dados
-├── http/               # Controllers e rotas (interface externa)
+├── @types/             # Definições de tipos TypeScript
 ├── algorithms/         # Algoritmos de alocação e otimização
-└── lib/                # Configurações e utilitários
+│   ├── allocation/     # Algoritmos de alocação de horários
+│   └── genetic/        # Algoritmo genético para otimização
+├── env/                # Configurações de ambiente
+├── http/               # Camada de interface externa (Controllers e rotas)
+│   ├── controllers/    # Controllers HTTP
+│   ├── middlewares/    # Middlewares de autenticação e validação
+│   └── routes.ts       # Definição das rotas da API
+├── lib/                # Configurações e bibliotecas externas
+├── repositories/       # Interfaces e implementações de acesso a dados
+│   ├── in-memory/      # Implementações em memória para testes
+│   ├── prisma-repositories/ # Implementações com Prisma ORM
+│   ├── xinterface.ts
+│   └── yinterface.ts
+├── scripts/            # Scripts de inicialização e população do banco
+├── use-cases/          # Casos de uso da aplicação (Regras de negócio)
+│   ├── @factories/     # Factories para injeção de dependência
+│   ├── alocacao/       # Casos de uso de alocação
+│   ├── curso/          # Casos de uso de cursos
+│   ├── disciplina/     # Casos de uso de disciplinas
+│   ├── errors/         # Definições de erros customizados
+│   ├── horario/        # Casos de uso de horários
+│   ├── sala/           # Casos de uso de salas
+│   ├── turma/          # Casos de uso de turmas
+│   └── users/          # Casos de uso de usuários
+├── utils/              # Utilitários e helpers
+├── app.ts              # Configuração da aplicação Fastify
+└── server.ts           # Ponto de entrada do servidor
 ```
 
 ### 🔧 Princípios SOLID Implementados

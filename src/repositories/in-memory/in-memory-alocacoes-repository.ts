@@ -136,6 +136,10 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return this.items.filter((item) => item.id_turma === id_turma);
   }
 
+  async findByTurma(turmaId: string): Promise<AlocacaoWithRelations[]> {
+    return this.items.filter((item) => item.id_turma === turmaId);
+  }
+
   async findBySalaId(id_sala: string, page: number): Promise<AlocacaoWithRelations[]> {
     const salaAlocacoes = this.items.filter((item) => item.id_sala === id_sala);
     const startIndex = (page - 1) * 20;

@@ -35,27 +35,51 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
         return disciplina;
     }
 
-    async findMany(page: number) {
+
+
+    async findByIds(ids: string[]) {
         const disciplinas = await prisma.disciplina.findMany({
-            take: 20,
-            skip: (page - 1) * 20,
-            select: {
-                id: true,
-                nome: true,
-                codigo: true,
-                carga_horaria: true,
-                carga_horaria_atual: true,
-                total_aulas: true,
-                aulas_ministradas: true,
-                data_inicio: true,
-                data_fim_prevista: true,
-                data_fim_real: true,
-                periodo_letivo: true,
-                tipo_de_sala: true,
-                horario_consolidado: true,
-                obrigatoria: true,
-                semestre: true,
-                id_curso: true,
+            where: {
+                id: {
+                    in: ids
+                }
+            },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
+
+        return disciplinas;
+    }
+
+    async findByCurso(cursoId: string) {
+        const disciplinas = await prisma.disciplina.findMany({
+            where: {
+                id_curso: cursoId
+            },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
+
+        return disciplinas;
+    }
+
+    async findAll() {
+        const disciplinas = await prisma.disciplina.findMany({
+            include: {
                 curso: {
                     select: {
                         id: true,
@@ -74,8 +98,15 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
             where: { id },
             data,
             include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
                 alocacoes: true
-            }
+            },
         });
 
         return disciplina;

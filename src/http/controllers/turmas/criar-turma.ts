@@ -1,17 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
+import { createTurmaSchema } from "@/schemas";
 import { makeCriarTurmaUseCase } from "@/use-cases/@factories/turma/make-criar-turma-use-case";
 
 export async function criarTurma(request: FastifyRequest, reply: FastifyReply) {
-    const criarTurmaBodySchema = z.object({
-        nome: z.string(),
-        num_alunos: z.number(),
-        periodo: z.number(),
-        turno: z.string(),
-        id_curso: z.string(),
-    });
-
-    const { nome, num_alunos, periodo, turno, id_curso } = criarTurmaBodySchema.parse(request.body);
+    const { nome, num_alunos, periodo, turno, id_curso, semestre, ativa } = createTurmaSchema.parse(request.body);
 
     try {
         const criarTurmaUseCase = makeCriarTurmaUseCase();
@@ -22,6 +14,8 @@ export async function criarTurma(request: FastifyRequest, reply: FastifyReply) {
             periodo,
             turno,
             id_curso,
+            semestre: semestre || 1,
+            ativa: ativa !== undefined ? ativa : true,
         });
 
         return reply.status(201).send({ turma });

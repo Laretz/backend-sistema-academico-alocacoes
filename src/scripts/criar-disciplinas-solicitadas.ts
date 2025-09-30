@@ -6,6 +6,32 @@ async function criarDisciplinasSolicitadas() {
   console.log("🎓 Criando disciplinas solicitadas...");
 
   try {
+    // Primeiro, buscar ou criar o curso TADS
+    let cursoTADS = await prisma.curso.findFirst({
+      where: {
+        OR: [
+          { codigo: 'TADS' },
+          { codigo: 'ADS' }
+        ]
+      }
+    });
+
+    if (!cursoTADS) {
+      console.log('📝 Criando curso TADS...');
+      cursoTADS = await prisma.curso.create({
+        data: {
+          codigo: 'TADS',
+          nome: 'Tecnologia em Análise e Desenvolvimento de Sistemas',
+          turno: 'NOTURNO',
+          duracao_semestres: 5,
+          ativo: true
+        }
+      });
+      console.log(`✅ Curso criado: ${cursoTADS.nome}`);
+    } else {
+      console.log(`✅ Curso encontrado: ${cursoTADS.nome}`);
+    }
+
     // Disciplinas para criar
     const disciplinas = [
       {
@@ -15,7 +41,7 @@ async function criarDisciplinasSolicitadas() {
         total_aulas: Math.ceil((60 * 60) / 50), // Calculando total de aulas (60h * 60min / 50min por aula)
         tipo_de_sala: "Sala" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -30,9 +56,9 @@ async function criarDisciplinasSolicitadas() {
         nome: "Programação Orientada a Objetos",
         carga_horaria: 60,
         total_aulas: Math.ceil((60 * 60) / 50),
-        tipo_de_sala: "Sala" as const,
+        tipo_de_sala: "Lab" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -47,9 +73,9 @@ async function criarDisciplinasSolicitadas() {
         nome: "Programação Visual e Autoria Web",
         carga_horaria: 60,
         total_aulas: Math.ceil((60 * 60) / 50),
-        tipo_de_sala: "Sala" as const,
+        tipo_de_sala: "Lab" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -66,7 +92,7 @@ async function criarDisciplinasSolicitadas() {
         total_aulas: Math.ceil((45 * 60) / 50),
         tipo_de_sala: "Sala" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -83,7 +109,7 @@ async function criarDisciplinasSolicitadas() {
         total_aulas: Math.ceil((60 * 60) / 50),
         tipo_de_sala: "Sala" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -98,9 +124,9 @@ async function criarDisciplinasSolicitadas() {
         nome: "Redes de Computadores",
         carga_horaria: 60,
         total_aulas: Math.ceil((60 * 60) / 50),
-        tipo_de_sala: "Sala" as const,
+        tipo_de_sala: "Lab" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,
@@ -117,7 +143,7 @@ async function criarDisciplinasSolicitadas() {
         total_aulas: Math.ceil((45 * 60) / 50),
         tipo_de_sala: "Sala" as const,
         semestre: 2,
-        id_curso: "d8ed9a8a-eca4-43be-aa58-eb7254c1bd30",
+        id_curso: cursoTADS.id,
         periodo_letivo: "2024.2",
         obrigatoria: true,
         carga_horaria_atual: 0,

@@ -5,9 +5,71 @@ import { env } from './env';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import fastifyCors from '@fastify/cors';
+import { fastifySwagger } from '@fastify/swagger';
+import { fastifySwaggerUi } from '@fastify/swagger-ui';
+import { 
+  serializerCompiler, 
+  validatorCompiler, 
+  ZodTypeProvider,
+  jsonSchemaTransform 
+} from 'fastify-type-provider-zod';
 
+export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
-export const app = fastify();
+// Configurar compiladores Zod
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+
+// Configurar Swagger para documentação da API
+app.register(fastifySwagger, {
+    openapi: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Sistema de Gestão Acadêmica - API',
+            description: 'API para gerenciamento de cursos, disciplinas, professores e horários acadêmicos',
+            version: '1.0.0',
+            contact: {
+                name: 'Equipe de Desenvolvimento',
+                email: 'dev@sistema-academico.com'
+            }
+        },
+        servers: [
+            {
+                url: 'http://localhost:3333',
+                description: 'Servidor de Desenvolvimento'
+            }
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT'
+                }
+            }
+        },
+        security: [
+            {
+                bearerAuth: []
+            }
+        ]
+    },
+    transform: jsonSchemaTransform
+});
+
+app.register(fastifySwaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+        docExpansion: 'list',
+        deepLinking: false
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+    transformSpecification: (swaggerObject) => {
+        return swaggerObject;
+    },
+    transformSpecificationClone: true
+});
 
 app.register(fastifyCors, {
     origin: ['http://localhost:3000', 'http://localhost:3001'],
@@ -29,15 +91,88 @@ app.register(fastifyJwt, {
 app.register(fastifyCookie)
 app.register(appRoutes);
 
-app.setErrorHandler( (error, request, reply) =>{
-    if (error instanceof ZodError){
-        return reply.status(400).send({ message: 'Validation error', issues: error.format() });
+// Error Handler Global Melhorado
+app.setErrorHandler((error, request, reply) => {
+    // Erros de validação Zod
+    if (error instanceof ZodError) {
+        const formattedErrors = error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code
+        }));
+
+        return reply.status(400).send({
+            error: 'Erro de Validação',
+            message: 'Os dados fornecidos são inválidos',
+            issues: formattedErrors,
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
     }
 
-    if(env.NODE_ENV !== 'prod'){
-            console.error(error);
-        } else{
-            //todo usar algum datalogger
-        }
-    return reply.status(500).send({ message: 'Internal server error' });
-})
+    // Erros de autenticação JWT
+    if (error.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' || 
+        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
+        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
+        return reply.status(401).send({
+            error: 'Não Autorizado',
+            message: 'Token de acesso inválido ou expirado',
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
+    }
+
+    // Erros de autorização (role)
+    if (error.message?.includes('Insufficient permissions') || 
+        error.message?.includes('Access denied')) {
+        return reply.status(403).send({
+            error: 'Acesso Negado',
+            message: 'Você não tem permissão para acessar este recurso',
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
+    }
+
+    // Erros de recurso não encontrado
+    if (error.statusCode === 404 || error.message?.includes('not found')) {
+        return reply.status(404).send({
+            error: 'Recurso Não Encontrado',
+            message: 'O recurso solicitado não foi encontrado',
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
+    }
+
+    // Erros de conflito (duplicação, etc.)
+    if (error.statusCode === 409 || error.message?.includes('already exists')) {
+        return reply.status(409).send({
+            error: 'Conflito',
+            message: 'O recurso já existe ou há um conflito com os dados fornecidos',
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
+    }
+
+    // Log detalhado para desenvolvimento
+    if (env.NODE_ENV !== 'prod') {
+        console.error('🚨 Erro capturado pelo Error Handler:');
+        console.error('📍 URL:', request.method, request.url);
+        console.error('🔍 Erro:', error);
+        console.error('📊 Stack:', error.stack);
+    } else {
+        // TODO: Implementar logger profissional (Winston, Pino, etc.)
+        console.error(`[${new Date().toISOString()}] Error: ${error.message} - URL: ${request.method} ${request.url}`);
+    }
+
+    // Erro interno do servidor (fallback)
+    return reply.status(500).send({
+        error: 'Erro Interno do Servidor',
+        message: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+        timestamp: new Date().toISOString(),
+        path: request.url,
+        ...(env.NODE_ENV !== 'prod' && { 
+            details: error.message,
+            stack: error.stack 
+        })
+    });
+});

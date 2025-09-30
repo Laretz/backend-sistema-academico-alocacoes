@@ -85,7 +85,7 @@ model Disciplina {
   id                  String        @id @default(uuid())
   nome                String
   carga_horaria       Int           @default(60)
-  carga_horaria_atual Int           @default(0)
+  carga_horaria_atual Float         @default(0)
   total_aulas         Int           @default(0) 
   aulas_ministradas   Int           @default(0)
   tipo_de_sala        TipoDeSala    @default(Sala)

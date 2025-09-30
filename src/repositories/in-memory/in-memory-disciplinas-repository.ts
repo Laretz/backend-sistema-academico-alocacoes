@@ -39,6 +39,18 @@ export class InMemoryDisciplinasRepository implements DisciplinasRepository {
     return disciplina ?? null;
   }
 
+  async findByIds(ids: string[]): Promise<Disciplina[]> {
+    return this.disciplinas.filter((d) => ids.includes(d.id));
+  }
+
+  async findAll(): Promise<Disciplina[]> {
+    return this.disciplinas;
+  }
+
+  async findByCurso(cursoId: string): Promise<Disciplina[]> {
+    return this.disciplinas.filter((d) => d.id_curso === cursoId);
+  }
+
   async findMany(page: number): Promise<Disciplina[]> {
     const itemsPerPage = 20;
     const startIndex = (page - 1) * itemsPerPage;

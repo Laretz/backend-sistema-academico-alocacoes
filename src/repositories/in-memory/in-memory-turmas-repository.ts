@@ -31,10 +31,78 @@ export class InMemoryTurmasRepository implements TurmasRepository {
     return turma ?? null;
   }
 
-  async findMany(page: number): Promise<Turma[]> {
-    const startIndex = (page - 1) * 20;
-    const endIndex = startIndex + 20;
-    return this.turmas.slice(startIndex, endIndex);
+  async findMany({
+    page,
+    limit,
+    search,
+    sortBy = 'nome',
+    sortOrder = 'asc',
+    turno,
+    periodo,
+    semestre,
+    ativa,
+    id_curso
+  }: {
+    page: number;
+    limit: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    turno?: string;
+    periodo?: number;
+    semestre?: number;
+    ativa?: boolean;
+    id_curso?: string;
+  }): Promise<{ turmas: Turma[]; total: number }> {
+    let filteredTurmas = [...this.turmas];
+
+    // Aplicar filtros
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTurmas = filteredTurmas.filter(turma =>
+        turma.nome.toLowerCase().includes(searchLower) ||
+        (turma.semestre && turma.semestre.toString().includes(search))
+      );
+    }
+
+    if (turno) {
+      filteredTurmas = filteredTurmas.filter(turma => turma.turno === turno);
+    }
+
+    if (periodo !== undefined) {
+      filteredTurmas = filteredTurmas.filter(turma => turma.periodo === periodo);
+    }
+
+    if (semestre !== undefined) {
+      filteredTurmas = filteredTurmas.filter(turma => turma.semestre === semestre);
+    }
+
+    if (ativa !== undefined) {
+      filteredTurmas = filteredTurmas.filter(turma => turma.ativa === ativa);
+    }
+
+    if (id_curso) {
+      filteredTurmas = filteredTurmas.filter(turma => turma.id_curso === id_curso);
+    }
+
+    // Aplicar ordenação
+    filteredTurmas.sort((a, b) => {
+      const aValue = (a as any)[sortBy];
+      const bValue = (b as any)[sortBy];
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    const total = filteredTurmas.length;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const turmas = filteredTurmas.slice(startIndex, endIndex);
+
+    return { turmas, total };
   }
 
   async update(id: string, data: Prisma.TurmaUpdateInput): Promise<Turma> {

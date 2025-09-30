@@ -1,21 +1,44 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
+import { turmaQuerySchema } from "@/schemas";
 import { makeBuscarTurmasUseCase } from "@/use-cases/@factories/turma/make-buscar-turmas-use-case";
 
-export async function buscarTurmas(request: FastifyRequest, reply: FastifyReply) {
-    const buscarTurmasQuerySchema = z.object({
-        page: z.coerce.number().min(1).default(1),
-    });
+export async function buscarTurmas(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const {
+    page,
+    limit,
+    search,
+    sortBy = "nome",
+    sortOrder,
+    turno,
+    periodo,
+    semestre,
+    ativa,
+    id_curso,
+  } = turmaQuerySchema.parse(request.query);
 
-    const { page } = buscarTurmasQuerySchema.parse(request.query);
+  try {
+    const buscarTurmasUseCase = makeBuscarTurmasUseCase();
 
-    try {
-        const buscarTurmasUseCase = makeBuscarTurmasUseCase();
+    const params = {
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      periodo: periodo ?? 1,
+      semestre: semestre ?? 1,
+      ativa: ativa ?? true,
+      ...(search !== undefined && { search }),
+      ...(turno !== undefined && { turno }),
+      ...(id_curso !== undefined && { id_curso }),
+    };
 
-        const { turmas } = await buscarTurmasUseCase.execute({ page });
+    const { turmas, pagination } = await buscarTurmasUseCase.execute(params);
 
-        return reply.status(200).send({ turmas });
-    } catch (error) {
-        throw error;
-    }
+    return reply.status(200).send({ turmas, pagination });
+  } catch (error) {
+    throw error;
+  }
 }

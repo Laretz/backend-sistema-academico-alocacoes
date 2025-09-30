@@ -54,7 +54,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Cálculo I',
         codigo: 'CALC001',
         carga_horaria: 80,
-        cargaHorariaTotal: 80,
+        carga_horaria: 80,
       },
       sala: {
         id: salaId,
@@ -118,7 +118,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Matemática',
         codigo: 'MAT001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria: 60,
       },
       horario: {
         id: 'horario-1',
@@ -147,7 +147,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Física',
         codigo: 'FIS001',
         carga_horaria: 80,
-        cargaHorariaTotal: 80,
+        carga_horaria: 80,
       },
       horario: {
         id: 'horario-2',
@@ -197,7 +197,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Matemática',
         codigo: 'MAT001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria: 60,
       },
       horario: {
         id: 'horario-1',
@@ -223,7 +223,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Física',
         codigo: 'FIS001',
         carga_horaria: 80,
-        cargaHorariaTotal: 80,
+        carga_horaria: 80,
       },
       horario: {
         id: 'horario-2',
@@ -261,7 +261,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Matemática',
         codigo: 'MAT001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria: 60,
       },
       horario: {
         id: 'horario-1',
@@ -287,7 +287,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Matemática',
         codigo: 'MAT001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria: 60,
       },
       horario: {
         id: 'horario-2',
@@ -317,7 +317,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Matemática',
         codigo: 'MAT001',
         carga_horaria: 60,
-        cargaHorariaTotal: 60,
+        carga_horaria: 60,
       },
       horario: {
         id: 'horario-1',
@@ -336,7 +336,7 @@ describe('Buscar Grade Horários Turma Use Case', () => {
         nome: 'Física',
         codigo: 'FIS001',
         carga_horaria: 80,
-        cargaHorariaTotal: 80,
+        carga_horaria: 80,
       },
       horario: {
         id: 'horario-2',

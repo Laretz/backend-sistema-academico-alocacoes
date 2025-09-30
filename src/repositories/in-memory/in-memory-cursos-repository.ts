@@ -47,8 +47,8 @@ export class InMemoryCursosRepository implements CursosRepository {
     return curso || null;
   }
 
-  async findMany(page: number): Promise<Curso[]> {
-    return this.items;
+  async findMany(): Promise<Curso[]> {
+    return this.items.sort((a, b) => a.nome.localeCompare(b.nome));
   }
 
   async update(id: string, data: Prisma.CursoUpdateInput): Promise<Curso> {
