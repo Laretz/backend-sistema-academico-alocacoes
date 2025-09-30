@@ -1,22 +1,12 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { predioParamsSchema, updatePredioSchema } from "@/schemas/predio";
 
 const prisma = new PrismaClient();
 
 export async function atualizarPredio(request: FastifyRequest, reply: FastifyReply) {
-    const atualizarPredioParamsSchema = z.object({
-        id: z.string().uuid(),
-    });
-
-    const atualizarPredioBodySchema = z.object({
-        codigo: z.string().optional(),
-        nome: z.string().optional(),
-        descricao: z.string().optional(),
-    });
-
-    const { id } = atualizarPredioParamsSchema.parse(request.params);
-    const { codigo, nome, descricao } = atualizarPredioBodySchema.parse(request.body);
+    const { id } = predioParamsSchema.parse(request.params);
+    const { codigo, nome, descricao } = updatePredioSchema.parse(request.body);
 
     try {
         // Verificar se o prédio existe
@@ -46,7 +36,7 @@ export async function atualizarPredio(request: FastifyRequest, reply: FastifyRep
             data: {
                 ...(codigo && { codigo }),
                 ...(nome && { nome }),
-                ...(descricao !== undefined && { descricao }),
+                ...(descricao !== undefined && { descricao: descricao ?? null }),
             },
             include: {
                 salas: {

@@ -1,15 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { predioParamsSchema } from "@/schemas/predio";
 
 const prisma = new PrismaClient();
 
 export async function buscarPredio(request: FastifyRequest, reply: FastifyReply) {
-    const buscarPredioParamsSchema = z.object({
-        id: z.string().uuid(),
-    });
-
-    const { id } = buscarPredioParamsSchema.parse(request.params);
+    const { id } = predioParamsSchema.parse(request.params);
 
     try {
         const predio = await prisma.predio.findUnique({

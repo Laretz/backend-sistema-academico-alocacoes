@@ -1,14 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
+import { turmaParamsSchema } from "@/schemas";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
 import { makeExcluirTurmaUseCase } from "@/use-cases/@factories/turma/make-excluir-turma-use-case";
 
 export async function excluirTurma(request: FastifyRequest, reply: FastifyReply) {
-    const excluirTurmaParamsSchema = z.object({
-        id: z.string().uuid(),
-    });
-
-    const { id } = excluirTurmaParamsSchema.parse(request.params);
+    const { id } = turmaParamsSchema.parse(request.params);
 
     try {
         const excluirTurmaUseCase = makeExcluirTurmaUseCase();

@@ -1,17 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { createPredioSchema } from "@/schemas/predio";
 
 const prisma = new PrismaClient();
 
 export async function criarPredio(request: FastifyRequest, reply: FastifyReply) {
-    const criarPredioBodySchema = z.object({
-        codigo: z.string(),
-        nome: z.string(),
-        descricao: z.string().optional(),
-    });
-
-    const { codigo, nome, descricao } = criarPredioBodySchema.parse(request.body);
+    const { codigo, nome, descricao } = createPredioSchema.parse(request.body);
 
     try {
         // Verificar se já existe um prédio com o mesmo código
@@ -29,7 +23,7 @@ export async function criarPredio(request: FastifyRequest, reply: FastifyReply) 
             data: {
                 codigo,
                 nome,
-                descricao,
+                descricao: descricao ?? null,
             },
         });
 

@@ -1,15 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { predioParamsSchema } from "@/schemas/predio";
 
 const prisma = new PrismaClient();
 
 export async function excluirPredio(request: FastifyRequest, reply: FastifyReply) {
-    const excluirPredioParamsSchema = z.object({
-        id: z.string().uuid(),
-    });
-
-    const { id } = excluirPredioParamsSchema.parse(request.params);
+    const { id } = predioParamsSchema.parse(request.params);
 
     try {
         // Verificar se o prédio existe
