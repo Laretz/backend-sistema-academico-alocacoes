@@ -1,0 +1,81 @@
+@baseURL = http://localhost:3333
+
+### Testes de API - Turmas
+
+# @name GetAllTurmas
+GET {{baseURL}}/turmas
+Content-Type: application/json
+
+###
+
+# @name GetTurmaById
+GET {{baseURL}}/turmas/e4368e04-acc2-4d2c-836a-c96a2dbb51b1
+Content-Type: application/json
+
+###
+
+# @name GetGradeHorariosTurma
+GET {{baseURL}}/turmas/e4368e04-acc2-4d2c-836a-c96a2dbb51b1/grade-horarios
+Content-Type: application/json
+
+###
+
+# @name CreateTurma
+POST {{baseURL}}/turmas
+Content-Type: application/json
+
+{
+  "nome": "Turma A - Engenharia Software",
+  "semestre": 1,
+  "ano": 2024,
+  "periodo": "MATUTINO",
+  "id_curso": "dc443b09-3d6c-4da3-8d0e-8987287c9186"
+}
+
+###
+
+# @name CreateTurmaVespertino
+POST {{baseURL}}/turmas
+Content-Type: application/json
+
+{
+  "nome": "Turma B - Ciência Computação",
+  "semestre": 3,
+  "ano": 2024,
+  "periodo": "VESPERTINO",
+  "id_curso": "dc443b09-3d6c-4da3-8d0e-8987287c9186",
+  "descricao": "Turma do terceiro semestre com foco em algoritmos avançados"
+}
+
+###
+
+# @name CreateTurmaNoturno
+POST {{baseURL}}/turmas
+Content-Type: application/json
+
+{
+  "nome": "Turma C - Sistemas Informação",
+  "semestre": 5,
+  "ano": 2024,
+  "periodo": "NOTURNO",
+  "id_curso": "dc443b09-3d6c-4da3-8d0e-8987287c9186"
+}
+
+###
+
+# @name UpdateTurma
+PUT {{baseURL}}/turmas/e4368e04-acc2-4d2c-836a-c96a2dbb51b1
+Content-Type: application/json
+
+{
+  "nome": "Turma A - Engenharia Software Atualizada",
+  "semestre": 2,
+  "ano": 2024,
+  "periodo": "VESPERTINO"
+}
+
+###
+
+# @name DeleteTurma
+DELETE {{baseURL}}/turmas/e4368e04-acc2-4d2c-836a-c96a2dbb51b1
+Content-Type: application/json

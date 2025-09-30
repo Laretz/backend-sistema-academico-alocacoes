@@ -11,6 +11,17 @@ jobs:
     name: Run Unit Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pgpassword
+          POSTGRES_DB: postgresbd_test
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,3 +39,4 @@ jobs:
         run: npm run test
         env:
           JWT_SECRET: testing
+          DATABASE_URL: "postgresql://postgres:pgpassword@localhost:5432/postgresbd_test"

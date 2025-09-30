@@ -35,6 +35,7 @@ export class PrismaCursosRepository implements CursosRepository {
     }
 
     async findMany() {
+
         const cursos = await prisma.curso.findMany({
             orderBy: { nome: 'asc' },
         });

@@ -12,6 +12,13 @@ import {
 import { verifyToken } from "./controllers/users/verify-token";
 
 import {
+  criarDisciplina,
+  buscarDisciplinas,
+  buscarDisciplina,
+  atualizarDisciplina,
+  excluirDisciplina,
+} from "./controllers/disciplinas";
+
   buscarGradeHorariosTurma,
 } from "./controllers/turmas";
 import {
@@ -106,6 +113,7 @@ export async function appRoutes(app: FastifyInstance) {
   // Cursos - Rotas organizadas com schemas Zod
   await app.register(routesCursos);
 
+
   // Disciplinas - Rotas organizadas com schemas Zod
   await app.register(routesDisciplinas);
 
@@ -114,6 +122,7 @@ export async function appRoutes(app: FastifyInstance) {
 
   // Turmas - Rotas organizadas com schemas Zod
   await app.register(routesTurmas);
+
 
   // Rota específica de grade de horários para turmas (mantida separada)
   app.get("/turmas/:id/grade-horarios", buscarGradeHorariosTurma);

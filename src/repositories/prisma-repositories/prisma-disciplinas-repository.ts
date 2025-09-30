@@ -37,13 +37,76 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
 
 
 
+    async findByIds(ids: string[]) {
+        const disciplinas = await prisma.disciplina.findMany({
+            where: {
+                id: {
+                    in: ids
+                }
+            },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
+
+        return disciplinas;
+    }
+
+    async findByCurso(cursoId: string) {
+        const disciplinas = await prisma.disciplina.findMany({
+            where: {
+                id_curso: cursoId
+            },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
+
+        return disciplinas;
+    }
+
+    async findAll() {
+        const disciplinas = await prisma.disciplina.findMany({
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
+
+        return disciplinas;
+    }
+
     async update(id: string, data: Prisma.DisciplinaUpdateInput) {
         const disciplina = await prisma.disciplina.update({
             where: { id },
             data,
             include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
                 alocacoes: true
-            }
+            },
         });
 
         return disciplina;
