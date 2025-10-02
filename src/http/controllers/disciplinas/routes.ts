@@ -22,6 +22,7 @@ import { buscarDisciplina } from "./buscar-disciplina";
 import { buscarDisciplinas } from "./buscar-disciplinas";
 import { buscarDisciplinasComProgresso } from "./buscar-disciplinas-com-progresso";
 import { atualizarDisciplina } from "./atualizar-disciplina";
+import { atualizarProgressoDisciplinas } from "./atualizar-progresso-disciplinas";
 import { excluirDisciplina } from "./excluir-disciplina";
 
 export const routesDisciplinas = async (app: FastifyTypedInstance) => {
@@ -119,6 +120,31 @@ export const routesDisciplinas = async (app: FastifyTypedInstance) => {
       },
     },
     atualizarDisciplina
+  );
+
+  // PUT /disciplinas/atualizar-progresso - Atualizar progresso das disciplinas
+  app.put(
+    "/disciplinas/atualizar-progresso",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        description: "Essa rota serve para atualizar o progresso das disciplinas",
+        tags: ["Disciplinas 📚"],
+        querystring: z.object({
+          disciplinaId: z.string().uuid().optional(),
+          turmaId: z.string().uuid().optional(),
+        }),
+        response: {
+          200: z.object({
+            message: z.string(),
+            disciplinasAtualizadas: z.number(),
+          }),
+          400: validationErrorResponseSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    atualizarProgressoDisciplinas
   );
 
   // DELETE /disciplinas/:id - Excluir disciplina

@@ -32,7 +32,7 @@ export function parseHorarioConsolidado(horarioConsolidado: string): HorarioPars
   const padroes = horarioConsolidado.split(',').map(p => p.trim());
 
   for (const padrao of padroes) {
-    // Regex para capturar dias e horários: ex: "2M123" ou "35M12"
+    // Regex para capturar dias, período e horários: ex: "23M12" = segunda e terça, manhã, horários 1 e 2
     const match = padrao.match(/^(\d+)([MTN])(\d+)$/);
     
     if (match) {
@@ -42,7 +42,7 @@ export function parseHorarioConsolidado(horarioConsolidado: string): HorarioPars
       for (const diaChar of diasStr) {
         const diaSemana = diasSemanaMap[diaChar];
         if (diaSemana) {
-          // Processar cada horário
+          // Cada dia tem todos os horários especificados
           const horarios: string[] = [];
           for (const horarioChar of horariosStr) {
             horarios.push(`${periodo}${horarioChar}`);
@@ -104,4 +104,81 @@ export function calcularAulasPorSemana(horarioConsolidado: string): number {
 export function extrairDiasSemana(horarioConsolidado: string): string[] {
   const horarios = parseHorarioConsolidado(horarioConsolidado);
   return [...new Set(horarios.map(h => h.diaSemana))];
+}
+
+/**
+ * Calcula a data do último dia de aula baseado no horário consolidado
+ * @param horarioConsolidado - String como "2M123" ou "56M12"
+ * @param dataInicio - Data de início da disciplina
+ * @param totalAulas - Total de aulas da disciplina
+ * @returns Data do último dia de aula
+ */
+export function calcularUltimoDiaAula(
+  horarioConsolidado: string,
+  dataInicio: Date,
+  totalAulas: number
+): Date | null {
+  if (!horarioConsolidado || !dataInicio || totalAulas <= 0) {
+    return null;
+  }
+
+  // Mapear dias da semana para números do JavaScript (0=domingo, 1=segunda, etc.)
+  const diasSemanaMap: Record<string, number> = {
+    'DOMINGO': 0,
+    'SEGUNDA': 1,
+    'TERCA': 2,
+    'QUARTA': 3,
+    'QUINTA': 4,
+    'SEXTA': 5,
+    'SABADO': 6
+  };
+
+  const horariosParseados = parseHorarioConsolidado(horarioConsolidado);
+  
+  if (horariosParseados.length === 0) {
+    return null;
+  }
+
+  // Criar mapa de quantas aulas há em cada dia da semana
+  const aulasPorDia = new Map<number, number>();
+  horariosParseados.forEach(horario => {
+    const diaNumero = diasSemanaMap[horario.diaSemana];
+    if (diaNumero !== undefined) {
+      const aulasNoDia = horario.horarios.length;
+      aulasPorDia.set(diaNumero, (aulasPorDia.get(diaNumero) || 0) + aulasNoDia);
+    }
+  });
+
+  if (aulasPorDia.size === 0) {
+    return null;
+  }
+
+  let dataAtual = new Date(dataInicio);
+  let aulasContadas = 0;
+
+  // Proteção contra loop infinito
+  let iteracoes = 0;
+  const maxIteracoes = totalAulas * 10; // Limite seguro
+
+  while (aulasContadas < totalAulas && iteracoes < maxIteracoes) {
+    const diaSemanaAtual = dataAtual.getDay();
+
+    // Verificar se há aula neste dia e quantas
+    const aulasNesteDia = aulasPorDia.get(diaSemanaAtual) || 0;
+    if (aulasNesteDia > 0) {
+      aulasContadas += aulasNesteDia;
+      
+      // Se chegamos ou ultrapassamos o total de aulas, esta é a data de conclusão
+      if (aulasContadas >= totalAulas) {
+        return new Date(dataAtual);
+      }
+    }
+
+    // Avançar para o próximo dia
+    dataAtual.setDate(dataAtual.getDate() + 1);
+    iteracoes++;
+  }
+
+  // Se chegou aqui, algo deu errado
+  return null;
 }

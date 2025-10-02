@@ -7,18 +7,17 @@ import {
   buscarCursosQuerySchema,
 } from "@/schemas/curso";
 
-// Controllers simplificados que assumem validação já feita
-import { criarCursoComMiddleware } from "@/http/controllers/cursos/criar-curso-com-middleware";
-import { atualizarCursoComMiddleware } from "@/http/controllers/cursos/atualizar-curso-com-middleware";
+// Controllers que existem (para fins de exemplo)
+import { criarCurso } from "@/http/controllers/cursos/criar-curso";
+import { atualizarCurso } from "@/http/controllers/cursos/atualizar-curso";
 
 /**
  * Exemplo de rotas usando middleware de validação automática
- * 
+ *
  * Esta abordagem usa preHandler para validação automática,
  * deixando os controllers mais limpos
  */
 export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
-  
   // POST /cursos - Criar curso com validação automática
   app.post(
     "/cursos/com-middleware",
@@ -31,7 +30,7 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
           return reply.status(400).send({
             error: "Dados inválidos",
             message: "Verifique os dados enviados",
-            issues: error.errors?.map(e => e.message) || []
+            issues: error.errors?.map((e) => e.message) || [],
           });
         }
       },
@@ -65,7 +64,7 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarCursoComMiddleware
+    criarCurso
   );
 
   // PUT /cursos/:id - Atualizar curso com validação automática
@@ -81,7 +80,7 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
           return reply.status(400).send({
             error: "Dados inválidos",
             message: "Verifique os dados enviados",
-            issues: error.errors?.map(e => e.message) || []
+            issues: error.errors?.map((e) => e.message) || [],
           });
         }
       },
@@ -120,7 +119,7 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    atualizarCursoComMiddleware
+    atualizarCurso
   );
 
   // GET /cursos - Buscar cursos com validação de query
@@ -135,7 +134,7 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
           return reply.status(400).send({
             error: "Parâmetros de busca inválidos",
             message: "Verifique os filtros aplicados",
-            issues: error.errors?.map(e => e.message) || []
+            issues: error.errors?.map((e) => e.message) || [],
           });
         }
       },
@@ -145,16 +144,23 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
         querystring: buscarCursosQuerySchema,
         response: {
           200: z.object({
-            cursos: z.array(z.object({
-              id: z.string().uuid(),
-              codigo: z.string(),
-              nome: z.string(),
-              turno: z.enum(["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRAL"]),
-              duracao_semestres: z.number().int().positive(),
-              ativo: z.boolean(),
-              created_at: z.date(),
-              updated_at: z.date(),
-            })),
+            cursos: z.array(
+              z.object({
+                id: z.string().uuid(),
+                codigo: z.string(),
+                nome: z.string(),
+                turno: z.enum([
+                  "MATUTINO",
+                  "VESPERTINO",
+                  "NOTURNO",
+                  "INTEGRAL",
+                ]),
+                duracao_semestres: z.number().int().positive(),
+                ativo: z.boolean(),
+                created_at: z.date(),
+                updated_at: z.date(),
+              })
+            ),
             total: z.number().int().nonnegative(),
             page: z.number().int().positive(),
             limit: z.number().int().positive(),
@@ -176,14 +182,14 @@ export const routesCursosComMiddleware = async (app: FastifyTypedInstance) => {
       // Controller inline simplificado
       // Os dados já estão validados pelo preHandler
       const query = request.query as any; // Tipado automaticamente
-      
+
       return reply.send({
         cursos: [],
         total: 0,
         page: query.page || 1,
         limit: query.limit || 10,
         totalPages: 0,
-        message: "Busca realizada com sucesso"
+        message: "Busca realizada com sucesso",
       });
     }
   );

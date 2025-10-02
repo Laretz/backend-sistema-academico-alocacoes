@@ -34,7 +34,7 @@ export class PrismaHorariosRepository implements HorariosRepository {
     return horario;
   }
 
-  async findMany(page: number) {
+  async findMany(page?: number) {
     // Definir ordem dos dias da semana
     const ordemDias = {
       'SEGUNDA': 1,

@@ -1,6 +1,6 @@
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
-import { parseHorarioConsolidado } from "../../utils/parse-horario-consolidado";
+import { parseHorarioConsolidado, calcularUltimoDiaAula } from "../../utils/parse-horario-consolidado";
 
 interface AtualizarProgressoDisciplinasUseCaseRequest {
   disciplinaId?: string;
@@ -113,23 +113,14 @@ export class AtualizarProgressoDisciplinasUseCase {
         disciplina.carga_horaria
       );
 
-      // Calcular data_fim_real baseado no progresso
+      // Calcular data_fim_real usando a função correta baseada no horário consolidado
       let dataFimReal = null;
-      if (aulasMinistradas > 0 && totalAulas > 0) {
-        const progressoPercentual = aulasMinistradas / totalAulas;
-
-        if (progressoPercentual >= 1) {
-          dataFimReal = dataAtual;
-        } else {
-          const diasTotaisEstimados =
-            (totalAulas / aulasMinistradas) *
-            ((dataAtual.getTime() - inicioSemestre.getTime()) /
-              (1000 * 60 * 60 * 24));
-          dataFimReal = new Date(
-            inicioSemestre.getTime() +
-              diasTotaisEstimados * (1000 * 60 * 60 * 24)
-          );
-        }
+      if (disciplina.horario_consolidado && disciplina.data_inicio && totalAulas > 0) {
+        dataFimReal = calcularUltimoDiaAula(
+          disciplina.horario_consolidado,
+          disciplina.data_inicio,
+          totalAulas
+        );
       }
 
       await this.disciplinasRepository.update(disciplina.id, {

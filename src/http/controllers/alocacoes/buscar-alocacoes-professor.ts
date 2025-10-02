@@ -1,23 +1,15 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeBuscarAlocacoesProfessorUseCase } from "@/use-cases/@factories/alocacao/make-buscar-alocacoes-professor-use-case";
+import { alocacoesProfessorParamsSchema, alocacoesQuerySchema } from "@/schemas";
 
 export async function buscarAlocacoesProfessor(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarAlocacoesProfessorParamsSchema = z.object({
-    id_professor: z.string().uuid(),
-  });
-
-  const buscarAlocacoesProfessorQuerySchema = z.object({
-    page: z.coerce.number().min(1).default(1),
-  });
-
-  const { id_professor } = buscarAlocacoesProfessorParamsSchema.parse(
+  const { id_professor } = alocacoesProfessorParamsSchema.parse(
     request.params
   );
-  const { page } = buscarAlocacoesProfessorQuerySchema.parse(request.query);
+  const { page } = alocacoesQuerySchema.parse(request.query);
 
   try {
     const buscarAlocacoesProfessorUseCase =

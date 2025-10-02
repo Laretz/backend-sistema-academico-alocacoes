@@ -1,24 +1,15 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeBuscarAlocacoesTurmaPeriodoUseCase } from "@/use-cases/factories/make-buscar-alocacoes-turma-periodo-use-case";
+import { alocacoesTurmaPeriodoParamsSchema, alocacoesTurmaPeriodoQuerySchema } from "@/schemas";
 
 export async function buscarAlocacoesTurmaPeriodo(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarAlocacoesTurmaPeriodoParamsSchema = z.object({
-    id_turma: z.string().uuid(),
-  });
-
-  const buscarAlocacoesTurmaPeriodoQuerySchema = z.object({
-    periodo: z.string(),
-    page: z.coerce.number().min(1).default(1),
-  });
-
-  const { id_turma } = buscarAlocacoesTurmaPeriodoParamsSchema.parse(
+  const { id_turma } = alocacoesTurmaPeriodoParamsSchema.parse(
     request.params
   );
-  const { periodo, page } = buscarAlocacoesTurmaPeriodoQuerySchema.parse(
+  const { periodo, page } = alocacoesTurmaPeriodoQuerySchema.parse(
     request.query
   );
 

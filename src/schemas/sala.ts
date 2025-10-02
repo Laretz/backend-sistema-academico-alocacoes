@@ -54,8 +54,6 @@ export const salaSchema = z.object({
   computadores: z.number(),
   predioId: z.string().nullable(),
   ativa: z.boolean(),
-  created_at: z.date(),
-  updated_at: z.date(),
 });
 
 // Schema da sala com prédio incluído

@@ -1,6 +1,6 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { z } from 'zod';
-import { makeBuscarDisciplinasComProgressoUseCase } from '@/use-cases/factories/make-buscar-disciplinas-com-progresso-use-case';
+import { FastifyRequest, FastifyReply } from "fastify";
+import { z } from "zod";
+import { makeBuscarDisciplinasComProgressoUseCase } from "@/use-cases/factories/make-buscar-disciplinas-com-progresso-use-case";
 
 const buscarDisciplinasComProgressoQuerySchema = z.object({
   turmaId: z.string().optional(),
@@ -16,7 +16,8 @@ export async function buscarDisciplinasComProgresso(
       request.query
     );
 
-    const buscarDisciplinasComProgressoUseCase = makeBuscarDisciplinasComProgressoUseCase();
+    const buscarDisciplinasComProgressoUseCase =
+      makeBuscarDisciplinasComProgressoUseCase();
 
     const { disciplinas } = await buscarDisciplinasComProgressoUseCase.execute({
       turmaId,
@@ -27,9 +28,9 @@ export async function buscarDisciplinasComProgresso(
       disciplinas,
     });
   } catch (error) {
-    console.error('Erro ao buscar disciplinas com progresso:', error);
+    console.error("Erro ao buscar disciplinas com progresso:", error);
     return reply.status(500).send({
-      message: 'Erro interno do servidor',
+      message: "Erro interno do servidor",
     });
   }
 }

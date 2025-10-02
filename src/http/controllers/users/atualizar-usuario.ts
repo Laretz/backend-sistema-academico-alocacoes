@@ -17,7 +17,7 @@ export async function atualizarUsuario(
     nome: z.string().optional(),
     email: z.string().email().optional(),
     senha: z.string().min(6).optional(),
-    role: z.nativeEnum(Role).optional(),
+    role: z.enum(Role).optional(),
     especializacao: z.string().optional(),
     carga_horaria_max: z.number().optional(),
     preferencia: z.string().optional(),

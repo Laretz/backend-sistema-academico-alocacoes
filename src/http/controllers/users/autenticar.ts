@@ -30,7 +30,7 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
 
         const refreshToken = await reply.jwtSign(
             {
-                roler: user.role,
+                role: user.role,
             },
             {
                 sign: { sub: user.id, 
@@ -43,6 +43,7 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
         .status(200)
         .send({ 
             token,
+            refreshToken,
             user: {
                 id: user.id,
                 nome: user.nome,
@@ -55,7 +56,10 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
         });
     } catch (error) {
         if (error instanceof CredenciaisInvalidas){
-            return reply.status(400).send({ message: error.message });
+            return reply.status(400).send({ 
+                error: "Credenciais inválidas",
+                message: error.message 
+            });
         }
         
         throw error;

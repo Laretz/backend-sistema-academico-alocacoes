@@ -1,16 +1,12 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeBuscarAlocacoesPeriodoManhaUseCase } from "@/use-cases/factories/make-buscar-alocacoes-periodo-manha-use-case";
+import { alocacoesQuerySchema } from "@/schemas";
 
 export async function buscarAlocacoesPeriodoManha(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarAlocacoesPeriodoManhaQuerySchema = z.object({
-    page: z.coerce.number().min(1).default(1),
-  });
-
-  const { page } = buscarAlocacoesPeriodoManhaQuerySchema.parse(request.query);
+  const { page } = alocacoesQuerySchema.parse(request.query);
 
   try {
     const buscarAlocacoesPeriodoManhaUseCase =

@@ -125,20 +125,53 @@ export class BuscarDisciplinasComProgressoUseCase {
     // Calcular aulas previstas até hoje
     const aulas_previstas_ate_hoje = this.calcularAulasPrevistasAteHoje(
       disciplina.horario_consolidado,
+      disciplina.data_inicio,
       hoje
     );
     
     // Calcular progresso temporal (baseado em aulas previstas vs aulas ministradas)
-    const progresso_temporal = aulas_previstas_ate_hoje > 0 
-      ? Math.min((aulas_ministradas / aulas_previstas_ate_hoje) * 100, 100)
-      : 0;
+    let progresso_temporal = 0;
+    
+    if (aulas_previstas_ate_hoje > 0) {
+      progresso_temporal = Math.min((aulas_ministradas / aulas_previstas_ate_hoje) * 100, 100);
+    } else if (disciplina.data_inicio && disciplina.data_fim_prevista) {
+      // Fallback: calcular progresso temporal baseado em datas
+      const dataInicio = new Date(disciplina.data_inicio);
+      const dataFim = new Date(disciplina.data_fim_prevista);
+      
+      if (dataInicio <= hoje && dataFim > dataInicio) {
+        const totalDias = Math.ceil((dataFim.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24));
+        const diasDecorridos = Math.ceil((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24));
+        progresso_temporal = Math.min(Math.max((diasDecorridos / totalDias) * 100, 0), 100);
+      }
+    }
     
     // Calcular progresso de aulas (baseado no total do semestre)
     const progresso_aulas = total_aulas > 0 
       ? (aulas_ministradas / total_aulas) * 100 
       : 0;
 
+    // Calcular percentual concluído (baseado no progresso de aulas)
+    const percentual_concluido = Math.round(progresso_aulas);
+    
+    // Calcular aulas restantes
+    const aulas_restantes = Math.max(0, total_aulas - aulas_ministradas);
+    
+    // Determinar status baseado no progresso
+    let status: "NAO_INICIADA" | "EM_ANDAMENTO" | "CONCLUIDA";
+    if (aulas_ministradas === 0) {
+      status = "NAO_INICIADA";
+    } else if (percentual_concluido >= 100) {
+      status = "CONCLUIDA";
+    } else {
+      status = "EM_ANDAMENTO";
+    }
+
     return {
+      percentual_concluido,
+      aulas_restantes,
+      status,
+      // Manter campos adicionais para possível uso futuro
       progresso_temporal: Math.round(progresso_temporal),
       progresso_aulas: Math.round(progresso_aulas),
       aulas_previstas_ate_hoje,
@@ -172,10 +205,16 @@ export class BuscarDisciplinasComProgressoUseCase {
 
   private calcularAulasPrevistasAteHoje(
     horarioConsolidado: string,
+    dataInicio: string | null,
     hoje: Date
   ): number {
     try {
-      if (!horarioConsolidado) return 0;
+      if (!horarioConsolidado || !dataInicio) return 0;
+
+      const inicioSemestre = new Date(dataInicio);
+      
+      // Se a disciplina ainda não começou, não há aulas previstas
+      if (inicioSemestre > hoje) return 0;
 
       // Parse do horário consolidado (ex: "SEG 07:30-09:10, TER 09:20-11:00")
       const horarios = horarioConsolidado.split(',').map(h => h.trim());
@@ -183,8 +222,6 @@ export class BuscarDisciplinasComProgressoUseCase {
         'DOM': 0, 'SEG': 1, 'TER': 2, 'QUA': 3, 'QUI': 4, 'SEX': 5, 'SAB': 6
       };
 
-      // Assumir início do semestre (pode ser configurável)
-      const inicioSemestre = new Date('2024-02-01'); // Ajustar conforme necessário
       let totalAulas = 0;
       const dataAtual = new Date(inicioSemestre);
 

@@ -1,16 +1,12 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeExcluirTodasAlocacoesTurmaUseCase } from "@/use-cases/factories/make-excluir-todas-alocacoes-turma-use-case";
+import { excluirAlocacoesTurmaParamsSchema } from "@/schemas";
 
 export async function excluirTodasAlocacoesTurma(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const excluirTodasAlocacoesTurmaParamsSchema = z.object({
-    id_turma: z.string().uuid(),
-  });
-
-  const { id_turma } = excluirTodasAlocacoesTurmaParamsSchema.parse(
+  const { id_turma } = excluirAlocacoesTurmaParamsSchema.parse(
     request.params
   );
 
