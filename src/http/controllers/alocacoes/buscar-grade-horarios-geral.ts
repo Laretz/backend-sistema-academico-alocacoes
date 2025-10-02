@@ -1,19 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeBuscarGradeHorariosUseCase } from "@/use-cases/@factories/horario/make-buscar-grade-horarios-use-case";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
+import { gradeHorariosQuerySchema } from "@/schemas";
 
 export async function buscarGradeHorarios(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarGradeHorariosQuerySchema = z.object({
-    id_turma: z.string().uuid().optional(),
-    id_user: z.string().uuid().optional(),
-    id_sala: z.string().uuid().optional(),
-  });
-
-  const { id_turma, id_user, id_sala } = buscarGradeHorariosQuerySchema.parse(
+  const { id_turma, id_user, id_sala } = gradeHorariosQuerySchema.parse(
     request.query
   );
 

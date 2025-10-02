@@ -1,18 +1,9 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { desvincularUserCursoSchema } from "@/schemas/user-curso";
 import { makeDesvincularUserCursoUseCase } from "@/use-cases/@factories/user-curso/make-desvincular-user-curso-use-case";
-import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
-export async function desvincularUserCurso(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  const desvincularUserCursoBodySchema = z.object({
-    id_user: z.string(),
-    id_curso: z.string(),
-  });
-
-  const { id_user, id_curso } = desvincularUserCursoBodySchema.parse(request.body);
+export async function desvincularUserCurso(request: FastifyRequest, reply: FastifyReply) {
+  const { id_user, id_curso } = desvincularUserCursoSchema.parse(request.body);
 
   try {
     const desvincularUserCursoUseCase = makeDesvincularUserCursoUseCase();
@@ -25,11 +16,7 @@ export async function desvincularUserCurso(
     return reply.status(200).send({
       message: "Usuário desvinculado do curso com sucesso",
     });
-  } catch (err) {
-    if (err instanceof RecursoNaoEncontradoError) {
-      return reply.status(404).send({ message: err.message });
-    }
-
-    throw err;
+  } catch (error) {
+    throw error;
   }
 }

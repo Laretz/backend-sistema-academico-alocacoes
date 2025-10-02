@@ -308,6 +308,8 @@ export async function excluirModulo(request: FastifyRequest, reply: FastifyReply
 // Função auxiliar para recalcular a data de fim da disciplina
 async function recalcularDataFimDisciplina(id_disciplina: string) {
   try {
+    const { calcularUltimoDiaAula, calcularAulasPorSemana } = await import('../../utils/parse-horario-consolidado');
+    
     const disciplina = await prisma.disciplina.findUnique({
       where: { id: id_disciplina },
       include: {
@@ -329,28 +331,45 @@ async function recalcularDataFimDisciplina(id_disciplina: string) {
       return;
     }
 
-    // Calcular horas semanais (alocações principais + módulos)
-    const horasSemanais = disciplina.alocacoes.length + disciplina.modulos.length;
-    
-    if (horasSemanais === 0) {
-      return;
+    let dataFimReal: Date | null = null;
+
+    // Se temos horário consolidado, usar a nova lógica
+    if (disciplina.horario_consolidado) {
+      // Calcular total de aulas baseado na carga horária (50 minutos por aula)
+      const totalAulas = Math.ceil((disciplina.carga_horaria * 60) / 50);
+      
+      dataFimReal = calcularUltimoDiaAula(
+        disciplina.horario_consolidado,
+        disciplina.data_inicio,
+        totalAulas
+      );
     }
 
-    // Calcular quantas semanas são necessárias
-    const semanasNecessarias = Math.ceil(disciplina.carga_horaria / horasSemanais);
-    
-    // Calcular nova data de fim
-    const dataFimReal = new Date(disciplina.data_inicio);
-    dataFimReal.setDate(dataFimReal.getDate() + (semanasNecessarias * 7));
-
-    // Atualizar a disciplina
-    await prisma.disciplina.update({
-      where: { id: id_disciplina },
-      data: {
-        data_fim_real: dataFimReal,
-        carga_horaria_atual: Math.min(disciplina.carga_horaria, horasSemanais * semanasNecessarias)
+    // Fallback para lógica antiga se não tiver horário consolidado
+    if (!dataFimReal) {
+      // Calcular horas semanais (alocações principais + módulos)
+      const horasSemanais = disciplina.alocacoes.length + disciplina.modulos.length;
+      
+      if (horasSemanais > 0) {
+        // Calcular quantas semanas são necessárias
+        const semanasNecessarias = Math.ceil(disciplina.carga_horaria / horasSemanais);
+        
+        // Calcular nova data de fim
+        dataFimReal = new Date(disciplina.data_inicio);
+        dataFimReal.setDate(dataFimReal.getDate() + (semanasNecessarias * 7));
       }
-    });
+    }
+
+    if (dataFimReal) {
+      // Atualizar a disciplina
+      await prisma.disciplina.update({
+        where: { id: id_disciplina },
+        data: {
+          data_fim_real: dataFimReal,
+          carga_horaria_atual: disciplina.carga_horaria
+        }
+      });
+    }
   } catch (error) {
     console.error('Erro ao recalcular data de fim da disciplina:', error);
   }

@@ -1,36 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { makeCriarAlocacaoUseCase } from "@/use-cases/@factories/alocacao/make-criar-alocacao-use-case";
+import { createAlocacaoSchema } from "@/schemas";
 
 export async function criarAlocacao(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const criarAlocacaoBodySchema = z
-    .object({
-      id_user: z.string().uuid(),
-      id_disciplina: z.string().uuid(),
-      id_turma: z.string().uuid(),
-      id_sala: z.string().uuid(),
-      id_horario: z.string().uuid().optional(),
-      id_horarios: z.array(z.string().uuid()).optional(),
-    })
-    .refine(
-      (data) => {
-        // Deve ter exatamente um dos dois: id_horario OU id_horarios
-        return (
-          (data.id_horario && !data.id_horarios) ||
-          (!data.id_horario && data.id_horarios)
-        );
-      },
-      {
-        message:
-          "Deve fornecer exatamente um dos campos: 'id_horario' ou 'id_horarios'",
-      }
-    );
-
   const { id_user, id_disciplina, id_turma, id_sala, id_horario, id_horarios } =
-    criarAlocacaoBodySchema.parse(request.body);
+    createAlocacaoSchema.parse(request.body);
 
   try {
     const criarAlocacaoUseCase = makeCriarAlocacaoUseCase();

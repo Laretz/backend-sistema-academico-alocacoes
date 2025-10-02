@@ -1,10 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,9 +7,160 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ---------------------------------
-// Modelagem do Sistema de Alocação
-// ---------------------------------
+model Predio {
+  id         String   @id @default(uuid())
+  codigo     String   @unique
+  nome       String
+  descricao  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  salas      Sala[]
+}
+
+model Curso {
+  id                String       @id @default(uuid())
+  codigo            String       @unique
+  nome              String
+  turno             TurnoCurso
+  duracao_semestres Int
+  ativo             Boolean      @default(true)
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  disciplinas       Disciplina[]
+  turmas            Turma[]
+  users             UserCurso[]
+}
+
+model User {
+  id                String                @id @default(uuid())
+  nome              String
+  email             String                @unique
+  senha             String
+  role              Role                  @default(PROFESSOR)
+  especializacao    String?
+  carga_horaria_max Int?
+  preferencia       String?
+  alocacoes         Alocacao[]
+  disciplinas       ProfessorDisciplina[]
+  cursos            UserCurso[]
+}
+
+model Disciplina {
+  id                  String                @id @default(uuid())
+  nome                String
+  carga_horaria       Int                   @default(60)
+  carga_horaria_atual Float                 @default(0)
+  total_aulas         Int                   @default(0)
+  aulas_ministradas   Int                   @default(0)
+  tipo_de_sala        TipoDeSala            @default(Sala)
+  data_inicio         DateTime?
+  data_fim_prevista   DateTime?
+  data_fim_real       DateTime?
+  periodo_letivo      String?
+  horario_consolidado String?
+  codigo              String?
+  id_curso            String
+  semestre            Int                   @default(1)
+  obrigatoria         Boolean               @default(true)
+  alocacoes           Alocacao[]
+  curso               Curso                 @relation(fields: [id_curso], references: [id])
+  modulos             ModuloDisciplina[]
+  professores         ProfessorDisciplina[]
+}
+
+model Turma {
+  id         String     @id @default(uuid())
+  nome       String
+  num_alunos Int
+  periodo    Int
+  turno      String
+  id_curso   String
+  semestre   Int        @default(1)
+  ativa      Boolean    @default(true)
+  alocacoes  Alocacao[]
+  curso      Curso      @relation(fields: [id_curso], references: [id])
+}
+
+model Sala {
+  id           String             @id @default(uuid())
+  nome         String
+  numero       String?
+  capacidade   Int
+  tipo         String
+  computadores Int                @default(0)
+  predioId     String?
+  ativa        Boolean            @default(true)
+  alocacoes    Alocacao[]
+  modulos      ModuloDisciplina[]
+  predio       Predio?            @relation(fields: [predioId], references: [id])
+}
+
+model Horario {
+  id             String             @id @default(uuid())
+  codigo         String
+  dia_semana     String
+  horario_inicio DateTime           @map("horarioInicio") @db.Time(6)
+  horario_fim    DateTime           @map("horarioFim") @db.Time(6)
+  alocacoes      Alocacao[]
+  modulos        ModuloDisciplina[]
+}
+
+model Alocacao {
+  id                  String     @id @default(uuid())
+  id_user             String
+  id_disciplina       String
+  id_turma            String
+  id_sala             String
+  id_horario          String
+  is_modulo_principal Boolean    @default(true)
+  created_at          DateTime   @default(now())
+  disciplina          Disciplina @relation(fields: [id_disciplina], references: [id])
+  horario             Horario    @relation(fields: [id_horario], references: [id])
+  sala                Sala       @relation(fields: [id_sala], references: [id])
+  turma               Turma      @relation(fields: [id_turma], references: [id])
+  user                User       @relation(fields: [id_user], references: [id])
+}
+
+model ModuloDisciplina {
+  id                    String     @id @default(uuid())
+  id_disciplina         String
+  id_alocacao_principal String
+  id_sala               String
+  id_horario            String
+  data_inicio           DateTime
+  data_fim              DateTime
+  ativo                 Boolean    @default(true)
+  created_at            DateTime   @default(now())
+  disciplina            Disciplina @relation(fields: [id_disciplina], references: [id])
+  horario               Horario    @relation(fields: [id_horario], references: [id])
+  sala                  Sala       @relation(fields: [id_sala], references: [id])
+}
+
+model ProfessorDisciplina {
+  id            String     @id @default(uuid())
+  id_user       String
+  id_disciplina String
+  ativo         Boolean    @default(true)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  disciplina    Disciplina @relation(fields: [id_disciplina], references: [id])
+  user          User       @relation(fields: [id_user], references: [id])
+
+  @@unique([id_user, id_disciplina])
+}
+
+model UserCurso {
+  id         String   @id @default(uuid())
+  id_user    String
+  id_curso   String
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  curso      Curso    @relation(fields: [id_curso], references: [id])
+  user       User     @relation(fields: [id_user], references: [id])
+
+  @@unique([id_user, id_curso])
+}
 
 enum Role {
   PROFESSOR
@@ -35,178 +179,3 @@ enum TurnoCurso {
   NOTURNO
   INTEGRAL
 }
-
-// Removido enum CargaHoraria - agora será um campo Int
-
-// Tabela de Prédios
-model Predio {
-  id          String @id @default(uuid())
-  codigo      String @unique
-  nome        String
-  descricao   String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  salas       Sala[]
-}
-
-// Tabela de Cursos
-model Curso {
-  id                String      @id @default(uuid())
-  codigo            String      @unique
-  nome              String
-  turno             TurnoCurso
-  duracao_semestres Int
-  ativo             Boolean     @default(true)
-  created_at        DateTime    @default(now())
-  updated_at        DateTime    @updatedAt
-
-  disciplinas       Disciplina[]
-  turmas            Turma[]
-  users             UserCurso[]
-}
-
-model User {
-  id                 String     @id @default(uuid())
-  nome               String
-  email              String     @unique
-  senha              String
-  role               Role       @default(PROFESSOR)
-  especializacao     String?
-  carga_horaria_max  Int?
-  preferencia        String?
-  disciplinas        ProfessorDisciplina[]
-  cursos             UserCurso[]
-
-  alocacoes          Alocacao[]
-}
-
-model Disciplina {
-  id                  String        @id @default(uuid())
-  nome                String
-  carga_horaria       Int           @default(60)
-  carga_horaria_atual Float         @default(0)
-  total_aulas         Int           @default(0) 
-  aulas_ministradas   Int           @default(0)
-  tipo_de_sala        TipoDeSala    @default(Sala)
-  data_inicio         DateTime?   
-  data_fim_prevista   DateTime?    
-  data_fim_real       DateTime?     
-  periodo_letivo      String?      
-  horario_consolidado String?
-  codigo              String?
-  id_curso            String
-  semestre            Int           @default(1)
-  obrigatoria         Boolean       @default(true)
-
-  curso               Curso         @relation(fields: [id_curso], references: [id])
-  professores         ProfessorDisciplina[]
-  alocacoes           Alocacao[]
-  modulos             ModuloDisciplina[]
-}
-
-model Turma {
-  id           String     @id @default(uuid())
-  nome         String
-  num_alunos   Int
-  periodo      Int
-  turno        String
-  id_curso      String
-  semestre     Int        @default(1)
-  ativa        Boolean    @default(true)
-
-  curso        Curso      @relation(fields: [id_curso], references: [id])
-  alocacoes    Alocacao[]
-}
-
-model Sala {
-  id           String     @id @default(uuid())
-  nome         String
-  numero       String?
-  capacidade   Int
-  tipo         String
-  computadores Int        @default(0)
-  predioId     String?
-  ativa        Boolean    @default(true)
-
-  predio       Predio?    @relation(fields: [predioId], references: [id])
-  alocacoes    Alocacao[]
-  modulos      ModuloDisciplina[]
-}
-
-model Horario {
-  id           String     @id @default(uuid())
-  codigo       String
-  dia_semana    String
-  horario_inicio DateTime   @db.Time @map("horarioInicio")
-  horario_fim    DateTime   @db.Time @map("horarioFim")
- 
-  alocacoes   Alocacao[]
-  modulos     ModuloDisciplina[]
-}
-
-model Alocacao {
-  id           String     @id @default(uuid())
-  id_user  String
-  id_disciplina String
-  id_turma      String
-  id_sala       String
-  id_horario    String
-  is_modulo_principal Boolean @default(true) // Se é a alocação principal ou um módulo extra
-  created_at  DateTime   @default(now())
-
-  user          User  @relation(fields: [id_user], references: [id])
-  disciplina   Disciplina @relation(fields: [id_disciplina], references: [id])
-  turma        Turma      @relation(fields: [id_turma], references: [id])
-  sala         Sala       @relation(fields: [id_sala], references: [id])
-  horario      Horario    @relation(fields: [id_horario], references: [id])
-}
-
-// Nova tabela para controlar módulos extras de disciplinas
-model ModuloDisciplina {
-  id           String     @id @default(uuid())
-  id_disciplina String
-  id_alocacao_principal String 
-  id_sala       String
-  id_horario    String
-  data_inicio   DateTime
-  data_fim      DateTime
-  ativo         Boolean    @default(true)
-  created_at    DateTime   @default(now())
-
-  disciplina    Disciplina @relation(fields: [id_disciplina], references: [id])
-  sala          Sala       @relation(fields: [id_sala], references: [id])
-  horario       Horario    @relation(fields: [id_horario], references: [id])
-}
-
-// Nova tabela para relacionamento Professor-Disciplina
-model ProfessorDisciplina {
-  id            String     @id @default(uuid())
-  id_user       String
-  id_disciplina String
-  ativo         Boolean    @default(true)
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
-
-  user          User       @relation(fields: [id_user], references: [id])
-  disciplina    Disciplina @relation(fields: [id_disciplina], references: [id])
-
-  @@unique([id_user, id_disciplina])
-}
-
-// Nova tabela para relacionamento User-Curso (N:N)
-model UserCurso {
-  id         String   @id @default(uuid())
-  id_user    String
-  id_curso   String
-  ativo      Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user       User     @relation(fields: [id_user], references: [id])
-  curso      Curso    @relation(fields: [id_curso], references: [id])
-
-  @@unique([id_user, id_curso])
-}
-
-

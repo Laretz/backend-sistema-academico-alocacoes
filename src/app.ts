@@ -74,7 +74,7 @@ app.register(fastifySwaggerUi, {
 app.register(fastifyCors, {
     origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 });
 
 app.register(fastifyJwt, {
@@ -93,7 +93,26 @@ app.register(appRoutes);
 
 // Error Handler Global Melhorado
 app.setErrorHandler((error, request, reply) => {
-    // Erros de validação Zod
+    // Erros de validação do Fastify com Zod (schema validation)
+    if (error.validation) {
+        const errorMessages: string[] = error.validation.map((value) => {
+            return value.message || 'Erro de validação'
+        })
+
+        console.log(error)
+
+        return reply
+            .status(400)
+            .send({ 
+                error: 'Validation Schema Error',
+                message: 'Erro de validação de schema',
+                issues: errorMessages,
+                timestamp: new Date().toISOString(),
+                path: request.url
+            })
+    }
+
+    // Erros de validação Zod diretos
     if (error instanceof ZodError) {
         const formattedErrors = error.issues.map(issue => ({
             field: issue.path.join('.'),
@@ -102,9 +121,9 @@ app.setErrorHandler((error, request, reply) => {
         }));
 
         return reply.status(400).send({
-            error: 'Erro de Validação',
+            error: 'Validation Schema Error',
             message: 'Os dados fornecidos são inválidos',
-            issues: formattedErrors,
+            issues: error.flatten().fieldErrors,
             timestamp: new Date().toISOString(),
             path: request.url
         });

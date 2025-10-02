@@ -1,17 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
 import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
 import { makeBuscarAlocacaoUseCase } from "@/use-cases/@factories/alocacao/make-buscar-alocacao-use-case";
+import { alocacaoParamsSchema } from "@/schemas";
 
 export async function buscarAlocacao(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarAlocacaoParamsSchema = z.object({
-    id: z.string().uuid(),
-  });
-
-  const { id } = buscarAlocacaoParamsSchema.parse(request.params);
+  const { id } = alocacaoParamsSchema.parse(request.params);
 
   try {
     const buscarAlocacaoUseCase = makeBuscarAlocacaoUseCase();

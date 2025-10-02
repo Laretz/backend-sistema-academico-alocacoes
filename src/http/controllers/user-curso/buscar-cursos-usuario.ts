@@ -1,17 +1,9 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { userCursoUserParamsSchema } from "@/schemas/user-curso";
 import { makeBuscarCursosUsuarioUseCase } from "@/use-cases/@factories/user-curso/make-buscar-cursos-usuario-use-case";
-import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
-export async function buscarCursosUsuario(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  const buscarCursosUsuarioParamsSchema = z.object({
-    id_user: z.string(),
-  });
-
-  const { id_user } = buscarCursosUsuarioParamsSchema.parse(request.params);
+export async function buscarCursosUsuario(request: FastifyRequest, reply: FastifyReply) {
+  const { id_user } = userCursoUserParamsSchema.parse(request.params);
 
   try {
     const buscarCursosUsuarioUseCase = makeBuscarCursosUsuarioUseCase();
@@ -20,14 +12,8 @@ export async function buscarCursosUsuario(
       id_user,
     });
 
-    return reply.status(200).send({
-      cursos,
-    });
-  } catch (err) {
-    if (err instanceof RecursoNaoEncontradoError) {
-      return reply.status(404).send({ message: err.message });
-    }
-
-    throw err;
+    return reply.status(200).send({ cursos });
+  } catch (error) {
+    throw error;
   }
 }

@@ -2,6 +2,7 @@ import { DisciplinasRepository } from "../../repositories/disciplinas-repository
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 import { GerarHorarioConsolidadoUseCase } from "./gerar-horario-consolidado";
+import { calcularUltimoDiaAula } from "../../utils/parse-horario-consolidado";
 
 interface AtualizarHorarioConsolidadoUseCaseRequest {
   disciplinaId: string;
@@ -32,9 +33,21 @@ export class AtualizarHorarioConsolidadoUseCase {
     const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
     const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
     
-    // Atualizar disciplina com o horário consolidado
+    // Calcular nova data de fim baseada no horário consolidado
+    let dataFimReal: Date | null = null;
+    if (horarioConsolidado && disciplinaExiste.data_inicio && disciplinaExiste.carga_horaria) {
+      const totalAulas = Math.ceil((disciplinaExiste.carga_horaria * 60) / 50);
+      dataFimReal = calcularUltimoDiaAula(
+        horarioConsolidado,
+        disciplinaExiste.data_inicio,
+        totalAulas
+      );
+    }
+    
+    // Atualizar disciplina com o horário consolidado e nova data de fim
     const disciplina = await this.disciplinasRepository.update(disciplinaId, { 
-      horario_consolidado: horarioConsolidado || null 
+      horario_consolidado: horarioConsolidado || null,
+      data_fim_real: dataFimReal
     });
 
     return {
