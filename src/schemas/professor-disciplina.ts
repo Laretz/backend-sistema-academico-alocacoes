@@ -43,11 +43,23 @@ export const desvincularProfessorDisciplinaSchema = z.object({
 export const disciplinaResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
-  codigo: z.string(),
-  descricao: z.string().nullable(),
   carga_horaria: z.number(),
-  created_at: z.date(),
-  updated_at: z.date()
+  total_aulas: z.number(),
+  carga_horaria_atual: z.number(),
+  tipo_de_sala: z.enum(['Sala', 'Lab']),
+  codigo: z.string().nullable(),
+  semestre: z.number(),
+  obrigatoria: z.boolean(),
+  curso: z.object({
+    id: uuidSchema,
+    nome: z.string(),
+    codigo: z.string(),
+  }),
+  vinculo: z.object({
+    id: uuidSchema,
+    ativo: z.boolean(),
+    created_at: z.date(),
+  }),
 });
 
 // Schema para resposta de professor (usado em buscar professores da disciplina)
@@ -55,9 +67,14 @@ export const professorResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
   email: z.string().email(),
-  role: z.enum(['ADMIN', 'PROFESSOR', 'COORDENADOR']),
-  created_at: z.date(),
-  updated_at: z.date()
+  especializacao: z.string().nullable(),
+  carga_horaria_max: z.number().nullable(),
+  preferencia: z.string().nullable(),
+  vinculo: z.object({
+    id: uuidSchema,
+    ativo: z.boolean(),
+    created_at: z.date(),
+  }),
 });
 
 // Schema para resposta de vinculação professor-disciplina
@@ -68,6 +85,11 @@ export const professorDisciplinaResponseSchema = z.object({
   ativo: z.boolean(),
   created_at: z.date(),
   updated_at: z.date()
+});
+
+// Schema simples de sucesso (usado em desvincular)
+export const successResponseSchema = z.object({
+  success: z.boolean()
 });
 
 // Schema para lista de disciplinas do professor (sem paginação)
@@ -89,5 +111,6 @@ export type DesvincularProfessorDisciplinaData = z.infer<typeof desvincularProfe
 export type DisciplinaResponse = z.infer<typeof disciplinaResponseSchema>;
 export type ProfessorResponse = z.infer<typeof professorResponseSchema>;
 export type ProfessorDisciplinaResponse = z.infer<typeof professorDisciplinaResponseSchema>;
+export type SuccessResponse = z.infer<typeof successResponseSchema>;
 export type DisciplinasProfessorResponse = z.infer<typeof disciplinasProfessorResponseSchema>;
 export type ProfessoresDisciplinaResponse = z.infer<typeof professoresDisciplinaResponseSchema>;

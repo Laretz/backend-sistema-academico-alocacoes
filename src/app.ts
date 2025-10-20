@@ -75,7 +75,12 @@ app.register(fastifyCors, {
     origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    // Permitir envio do header Authorization pelo front-end
+    allowedHeaders: ["Authorization", "Content-Type"],
 });
+
+// Registrar cookie ANTES do JWT para melhor compatibilidade com verificação via cookie
+app.register(fastifyCookie);
 
 app.register(fastifyJwt, {
     secret: env.JWT_SECRET,
@@ -88,7 +93,6 @@ app.register(fastifyJwt, {
     }
 });
 
-app.register(fastifyCookie)
 app.register(appRoutes);
 
 // Error Handler Global Melhorado
@@ -129,13 +133,27 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de autenticação JWT
-    if (error.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' || 
-        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
-        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
+    // Erros de autenticação JWT (token ausente)
+    if (
+        error.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
+        error.code === 'FST_JWT_NO_AUTHORIZATION_IN_COOKIE'
+    ) {
         return reply.status(401).send({
             error: 'Não Autorizado',
-            message: 'Token de acesso inválido ou expirado',
+            message: 'Nenhum token de acesso foi encontrado. Envie o header Authorization: Bearer <token> ou faça login novamente para obter um novo token.',
+            timestamp: new Date().toISOString(),
+            path: request.url
+        });
+    }
+
+    // Erros de autenticação JWT (token inválido ou expirado)
+    if (
+        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
+        error.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID'
+    ) {
+        return reply.status(401).send({
+            error: 'Não Autorizado',
+            message: 'Token de acesso inválido ou expirado. Faça login novamente ou use /users/refresh para renovar seu token.',
             timestamp: new Date().toISOString(),
             path: request.url
         });
@@ -169,6 +187,17 @@ app.setErrorHandler((error, request, reply) => {
             message: 'O recurso já existe ou há um conflito com os dados fornecidos',
             timestamp: new Date().toISOString(),
             path: request.url
+        });
+    }
+
+    // Erros de serialização de resposta
+    if (error.code === 'FST_ERR_RESPONSE_SERIALIZATION') {
+        return reply.status(500).send({
+            error: 'Erro de Resposta',
+            message: 'Ocorreu um erro ao formatar a resposta do servidor.',
+            timestamp: new Date().toISOString(),
+            path: request.url,
+            ...(env.NODE_ENV !== 'prod' && { details: error.message })
         });
     }
 

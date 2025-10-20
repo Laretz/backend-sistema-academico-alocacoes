@@ -14,13 +14,13 @@ export async function desvincularProfessorDisciplina(
     const desvincularProfessorDisciplinaUseCase =
       makeDesvincularProfessorDisciplinaUseCase();
 
-    await desvincularProfessorDisciplinaUseCase.execute({
+    const { success } = await desvincularProfessorDisciplinaUseCase.execute({
       id_user,
       id_disciplina,
     });
+
+    return reply.status(200).send({ success });
   } catch (err) {
     throw err;
   }
-
-  return reply.status(200).send();
 }

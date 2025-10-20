@@ -10,6 +10,7 @@ import {
   professorDisciplinaResponseSchema,
   disciplinasProfessorResponseSchema,
   professoresDisciplinaResponseSchema,
+  successResponseSchema,
 } from "@/schemas/professor-disciplina";
 import {
   notFoundResponseSchema,
@@ -54,7 +55,7 @@ export const routesProfessorDisciplina = async (app: FastifyTypedInstance) => {
         tags: ["Professor-Disciplina 🔗"],
         body: desvincularProfessorDisciplinaSchema,
         response: {
-          200: professorDisciplinaResponseSchema,
+          200: successResponseSchema,
           400: validationErrorResponseSchema,
           404: notFoundResponseSchema,
           500: internalServerErrorResponseSchema,

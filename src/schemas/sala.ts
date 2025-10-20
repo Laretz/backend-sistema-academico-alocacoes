@@ -22,7 +22,7 @@ export const createSalaSchema = z.object({
   predioId: uuidSchema,
   capacidade: positiveIntegerSchema,
   tipo: z.string(),
-  computadores: positiveIntegerSchema.optional().default(0),
+  computadores: z.number().int("Deve ser um número inteiro").min(0, "Deve ser um número inteiro não negativo").optional().default(0),
 });
 
 // Schema para atualização de sala (campos opcionais)
@@ -32,7 +32,7 @@ export const updateSalaSchema = z.object({
   predioId: uuidSchema.optional(),
   capacidade: positiveIntegerSchema.optional(),
   tipo: z.string().optional(),
-  computadores: positiveIntegerSchema.optional(),
+  computadores: z.number().int("Deve ser um número inteiro").min(0, "Deve ser um número inteiro não negativo").optional(),
 });
 
 // Schema para query de busca de salas
