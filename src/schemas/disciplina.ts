@@ -125,11 +125,11 @@ export const disciplinaResponseSchema = z.object({
 // Schema para disciplina com progresso
 export const disciplinaComProgressoResponseSchema =
   disciplinaResponseSchema.extend({
-    percentual_concluido: z.number().min(0).max(100),
+    percentual_concluido: z.number().min(0).max(200),
     aulas_restantes: z.number().int().nonnegative(),
     status: z.enum(["NAO_INICIADA", "EM_ANDAMENTO", "CONCLUIDA"]),
-    progresso_temporal: z.number().min(0).max(100),
-    progresso_aulas: z.number().min(0).max(100),
+    progresso_temporal: z.number().min(0).max(200),
+    progresso_aulas: z.number().min(0).max(200),
     aulas_previstas_ate_hoje: z.number().int().nonnegative(),
   });
 

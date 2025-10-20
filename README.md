@@ -135,7 +135,7 @@ npm run test:coverage
 ## 📊 Regras de Negócio (RNs)
 
 - [x] O usuário não pode se cadastrar com um email repetido
-- [] Apenas usuários com perfil de coordenador podem cadastrar ou modificar salas, turmas, disciplinas e alocações
+- [x] Apenas usuários com perfil de admin podem cadastrar ou modificar salas, turmas, disciplinas e alocações
 - [] A capacidade da sala deve ser maior ou igual ao número de alunos da turma na hora da alocação
 - [x] Um professor não pode ser alocado em mais de uma sala no mesmo dia e horário
 - [] Cada disciplina deve respeitar a carga horária

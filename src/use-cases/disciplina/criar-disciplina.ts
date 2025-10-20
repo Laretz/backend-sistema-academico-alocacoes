@@ -41,6 +41,8 @@ export class CriarDisciplinaUseCase {
             nome,
             carga_horaria,
             total_aulas,
+            aulas_ministradas: 0,
+            carga_horaria_atual: 0,
             curso: {
                 connect: { id: id_curso }
             },

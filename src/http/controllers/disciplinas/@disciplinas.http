@@ -2,6 +2,17 @@
 
 ### Testes de API - Disciplinas
 
+# @name Login
+POST {{baseURL}}/session
+Content-Type: application/json
+
+{
+  "email": "test@admin.com",
+  "senha": "123456"
+}
+
+###
+
 # Listar todas as disciplinas
 # @name GetDisciplinas
 GET {{baseURL}}/disciplinas
@@ -12,6 +23,7 @@ Content-Type: application/json
 # @name GetDisciplinasComProgresso
 GET {{baseURL}}/disciplinas/com-progresso
 Content-Type: application/json
+Authorization: Bearer {{Login.response.body.token}}
 
 ###
 

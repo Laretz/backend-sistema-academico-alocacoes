@@ -129,7 +129,7 @@ export const routesSalas = async (app: FastifyTypedInstance) => {
   app.get(
     "/salas/:id/grade-horarios",
     {
-      onRequest: [verifyJWT],
+      //onRequest: [verifyJWT],
       schema: {
         description: "Essa rota serve para buscar a grade de horários de uma sala",
         tags: ["Salas 🏢"],
@@ -137,7 +137,7 @@ export const routesSalas = async (app: FastifyTypedInstance) => {
         response: {
           200: z.object({
             salaId: z.string().uuid(),
-            grade: z.array(z.any()),
+            grade: z.record(z.string(), z.any()), //TODO AJUSTAR E REMOVER ANY
             resumo: z.any(),
           }).describe("Grade de horários da sala"),
           400: validationErrorResponseSchema,

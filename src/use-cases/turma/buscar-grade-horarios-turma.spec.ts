@@ -1,20 +1,24 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { BuscarGradeHorariosTurmaUseCase } from './buscar-grade-horarios-turma';
-import { InMemoryAlocacoesRepository } from '../../repositories/in-memory/in-memory-alocacoes-repository';
+import { describe, it, expect, beforeEach } from "vitest";
+import { BuscarGradeHorariosTurmaUseCase } from "./buscar-grade-horarios-turma";
+import { InMemoryAlocacoesRepository } from "../../repositories/in-memory/in-memory-alocacoes-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
 let sut: BuscarGradeHorariosTurmaUseCase;
 
-describe('Buscar Grade Horários Turma Use Case', () => {
+describe("Buscar Grade Horários Turma Use Case", () => {
   beforeEach(() => {
     alocacoesRepository = new InMemoryAlocacoesRepository();
     sut = new BuscarGradeHorariosTurmaUseCase(alocacoesRepository);
   });
 
-  it('deve retornar grade vazia quando turma não possui alocações', async () => {
-    const turmaId = 'turma-sem-alocacoes';
+  it("deve retornar grade vazia quando turma não possui alocações", async () => {
+    const turmaId = "turma-sem-alocacoes";
 
-    const { turmaId: resultTurmaId, grade, resumo } = await sut.execute({
+    const {
+      turmaId: resultTurmaId,
+      grade,
+      resumo,
+    } = await sut.execute({
       turmaId,
     });
 
@@ -29,12 +33,12 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     expect(grade.QUARTA.N1).toBeNull();
   });
 
-  it('deve retornar grade com alocações quando turma possui alocações', async () => {
-    const turmaId = 'turma-com-alocacoes';
-    const professorId = 'professor-1';
-    const disciplinaId = 'disciplina-1';
-    const salaId = 'sala-1';
-    const horarioId = 'horario-1';
+  it("deve retornar grade com alocações quando turma possui alocações", async () => {
+    const turmaId = "turma-com-alocacoes";
+    const professorId = "professor-1";
+    const disciplinaId = "disciplina-1";
+    const salaId = "sala-1";
+    const horarioId = "horario-1";
 
     // Criar uma alocação
     await alocacoesRepository.createWithCustomData({
@@ -45,41 +49,45 @@ describe('Buscar Grade Horários Turma Use Case', () => {
       id_horario: horarioId,
       user: {
         id: professorId,
-        nome: 'Prof. João Silva',
-        email: 'joao@teste.com',
-        especializacao: 'Matemática',
+        nome: "Prof. João Silva",
+        email: "joao@teste.com",
+        especializacao: "Matemática",
       },
       disciplina: {
         id: disciplinaId,
-        nome: 'Cálculo I',
-        codigo: 'CALC001',
+        nome: "Cálculo I",
+        codigo: "CALC001",
         carga_horaria: 80,
         carga_horaria: 80,
       },
       sala: {
         id: salaId,
-        nome: 'Sala 101',
-        numero: '101',
+        nome: "Sala 101",
+        numero: "101",
         capacidade: 50,
-        tipo: 'AULA',
+        tipo: "AULA",
         computadores: 0,
-        predioId: 'predio-01',
+        predioId: "predio-01",
         ativa: true,
         predio: {
-          id: 'predio-01',
-          nome: 'Bloco A',
+          id: "predio-01",
+          nome: "Bloco A",
         },
       },
       horario: {
         id: horarioId,
-        codigo: 'M1',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T08:00:00'),
-        horario_fim: new Date('2024-01-01T09:00:00'),
+        codigo: "M1",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T08:00:00"),
+        horario_fim: new Date("2024-01-01T09:00:00"),
       },
     });
 
-    const { turmaId: resultTurmaId, grade, resumo } = await sut.execute({
+    const {
+      turmaId: resultTurmaId,
+      grade,
+      resumo,
+    } = await sut.execute({
       turmaId,
     });
 
@@ -91,70 +99,70 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     // Verificar se a alocação está na posição correta da grade
     const alocacao = grade.SEGUNDA.M1;
     expect(alocacao).not.toBeNull();
-    expect(alocacao?.disciplina.nome).toEqual('Cálculo I');
-    expect(alocacao?.professor.nome).toEqual('Prof. João Silva');
-    expect(alocacao?.sala.nome).toEqual('Sala 101');
-    expect(alocacao?.horario.codigo).toEqual('M1');
+    expect(alocacao?.disciplina.nome).toEqual("Cálculo I");
+    expect(alocacao?.professor.nome).toEqual("Prof. João Silva");
+    expect(alocacao?.sala.nome).toEqual("Sala 101");
+    expect(alocacao?.horario.codigo).toEqual("M1");
   });
 
-  it('deve retornar grade com múltiplas alocações em diferentes horários', async () => {
-    const turmaId = 'turma-multiplas-alocacoes';
+  it("deve retornar grade com múltiplas alocações em diferentes horários", async () => {
+    const turmaId = "turma-multiplas-alocacoes";
 
     // Criar primeira alocação - Segunda M1
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
-      id_user: 'professor-1',
-      id_disciplina: 'disciplina-1',
-      id_sala: 'sala-1',
-      id_horario: 'horario-1',
+      id_user: "professor-1",
+      id_disciplina: "disciplina-1",
+      id_sala: "sala-1",
+      id_horario: "horario-1",
       user: {
-        id: 'professor-1',
-        nome: 'Prof. João',
-        email: 'joao@teste.com',
+        id: "professor-1",
+        nome: "Prof. João",
+        email: "joao@teste.com",
         especializacao: null,
       },
       disciplina: {
-        id: 'disciplina-1',
-        nome: 'Matemática',
-        codigo: 'MAT001',
+        id: "disciplina-1",
+        nome: "Matemática",
+        codigo: "MAT001",
         carga_horaria: 60,
         carga_horaria: 60,
       },
       horario: {
-        id: 'horario-1',
-        codigo: 'M1',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T08:00:00'),
-        horario_fim: new Date('2024-01-01T09:00:00'),
+        id: "horario-1",
+        codigo: "M1",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T08:00:00"),
+        horario_fim: new Date("2024-01-01T09:00:00"),
       },
     });
 
     // Criar segunda alocação - Terça T2
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
-      id_user: 'professor-2',
-      id_disciplina: 'disciplina-2',
-      id_sala: 'sala-2',
-      id_horario: 'horario-2',
+      id_user: "professor-2",
+      id_disciplina: "disciplina-2",
+      id_sala: "sala-2",
+      id_horario: "horario-2",
       user: {
-        id: 'professor-2',
-        nome: 'Prof. Maria',
-        email: 'maria@teste.com',
+        id: "professor-2",
+        nome: "Prof. Maria",
+        email: "maria@teste.com",
         especializacao: null,
       },
       disciplina: {
-        id: 'disciplina-2',
-        nome: 'Física',
-        codigo: 'FIS001',
+        id: "disciplina-2",
+        nome: "Física",
+        codigo: "FIS001",
         carga_horaria: 80,
         carga_horaria: 80,
       },
       horario: {
-        id: 'horario-2',
-        codigo: 'T2',
-        dia_semana: 'TERCA',
-        horario_inicio: new Date('2024-01-01T14:00:00'),
-        horario_fim: new Date('2024-01-01T15:00:00'),
+        id: "horario-2",
+        codigo: "T2",
+        dia_semana: "TERCA",
+        horario_inicio: new Date("2024-01-01T14:00:00"),
+        horario_fim: new Date("2024-01-01T15:00:00"),
       },
     });
 
@@ -165,72 +173,71 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     expect(resumo.professoresUnicos).toEqual(2);
 
     // Verificar primeira alocação
-    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual('Matemática');
-    expect(grade.SEGUNDA.M1?.professor.nome).toEqual('Prof. João');
+    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual("Matemática");
+    expect(grade.SEGUNDA.M1?.professor.nome).toEqual("Prof. João");
 
     // Verificar segunda alocação
-    expect(grade.TERCA.T2?.disciplina.nome).toEqual('Física');
-    expect(grade.TERCA.T2?.professor.nome).toEqual('Prof. Maria');
+    expect(grade.TERCA.T2?.disciplina.nome).toEqual("Física");
+    expect(grade.TERCA.T2?.professor.nome).toEqual("Prof. Maria");
 
     // Verificar que outros horários estão vazios
     expect(grade.SEGUNDA.M2).toBeNull();
     expect(grade.TERCA.T1).toBeNull();
   });
 
-  it('deve calcular corretamente o resumo com múltiplas alocações do mesmo professor', async () => {
-    const turmaId = 'turma-mesmo-professor';
-    const professorId = 'professor-1';
+  it("deve calcular corretamente o resumo com múltiplas alocações do mesmo professor", async () => {
+    const turmaId = "turma-mesmo-professor";
+    const professorId = "professor-1";
 
     // Criar duas alocações com o mesmo professor
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
       id_user: professorId,
-      id_disciplina: 'disciplina-1',
+      id_disciplina: "disciplina-1",
       user: {
         id: professorId,
-        nome: 'Prof. João',
-        email: 'joao@teste.com',
+        nome: "Prof. João",
+        email: "joao@teste.com",
         especializacao: null,
       },
       disciplina: {
-        id: 'disciplina-1',
-        nome: 'Matemática',
-        codigo: 'MAT001',
+        id: "disciplina-1",
+        nome: "Matemática",
+        codigo: "MAT001",
         carga_horaria: 60,
         carga_horaria: 60,
       },
       horario: {
-        id: 'horario-1',
-        codigo: 'M1',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T08:00:00'),
-        horario_fim: new Date('2024-01-01T09:00:00'),
+        id: "horario-1",
+        codigo: "M1",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T08:00:00"),
+        horario_fim: new Date("2024-01-01T09:00:00"),
       },
     });
 
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
       id_user: professorId,
-      id_disciplina: 'disciplina-2',
+      id_disciplina: "disciplina-2",
       user: {
         id: professorId,
-        nome: 'Prof. João',
-        email: 'joao@teste.com',
+        nome: "Prof. João",
+        email: "joao@teste.com",
         especializacao: null,
       },
       disciplina: {
-        id: 'disciplina-2',
-        nome: 'Física',
-        codigo: 'FIS001',
-        carga_horaria: 80,
+        id: "disciplina-2",
+        nome: "Física",
+        codigo: "FIS001",
         carga_horaria: 80,
       },
       horario: {
-        id: 'horario-2',
-        codigo: 'M2',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T09:00:00'),
-        horario_fim: new Date('2024-01-01T10:00:00'),
+        id: "horario-2",
+        codigo: "M2",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T09:00:00"),
+        horario_fim: new Date("2024-01-01T10:00:00"),
       },
     });
 
@@ -241,60 +248,58 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     expect(resumo.professoresUnicos).toEqual(1); // Mesmo professor
   });
 
-  it('deve calcular corretamente o resumo com múltiplas alocações da mesma disciplina', async () => {
-    const turmaId = 'turma-mesma-disciplina';
-    const disciplinaId = 'disciplina-1';
+  it("deve calcular corretamente o resumo com múltiplas alocações da mesma disciplina", async () => {
+    const turmaId = "turma-mesma-disciplina";
+    const disciplinaId = "disciplina-1";
 
     // Criar duas alocações com a mesma disciplina
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
-      id_user: 'professor-1',
+      id_user: "professor-1",
       id_disciplina: disciplinaId,
       user: {
-        id: 'professor-1',
-        nome: 'Prof. João',
-        email: 'joao@teste.com',
+        id: "professor-1",
+        nome: "Prof. João",
+        email: "joao@teste.com",
         especializacao: null,
       },
       disciplina: {
         id: disciplinaId,
-        nome: 'Matemática',
-        codigo: 'MAT001',
-        carga_horaria: 60,
+        nome: "Matemática",
+        codigo: "MAT001",
         carga_horaria: 60,
       },
       horario: {
-        id: 'horario-1',
-        codigo: 'M1',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T08:00:00'),
-        horario_fim: new Date('2024-01-01T09:00:00'),
+        id: "horario-1",
+        codigo: "M1",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T08:00:00"),
+        horario_fim: new Date("2024-01-01T09:00:00"),
       },
     });
 
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
-      id_user: 'professor-2',
+      id_user: "professor-2",
       id_disciplina: disciplinaId,
       user: {
-        id: 'professor-2',
-        nome: 'Prof. Maria',
-        email: 'maria@teste.com',
+        id: "professor-2",
+        nome: "Prof. Maria",
+        email: "maria@teste.com",
         especializacao: null,
       },
       disciplina: {
         id: disciplinaId,
-        nome: 'Matemática',
-        codigo: 'MAT001',
-        carga_horaria: 60,
+        nome: "Matemática",
+        codigo: "MAT001",
         carga_horaria: 60,
       },
       horario: {
-        id: 'horario-2',
-        codigo: 'M2',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T09:00:00'),
-        horario_fim: new Date('2024-01-01T10:00:00'),
+        id: "horario-2",
+        codigo: "M2",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T09:00:00"),
+        horario_fim: new Date("2024-01-01T10:00:00"),
       },
     });
 
@@ -305,26 +310,26 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     expect(resumo.professoresUnicos).toEqual(2); // Dois professores diferentes
   });
 
-  it('deve ignorar alocações de outras turmas', async () => {
-    const turmaId = 'turma-alvo';
-    const outraTurmaId = 'outra-turma';
+  it("deve ignorar alocações de outras turmas", async () => {
+    const turmaId = "turma-alvo";
+    const outraTurmaId = "outra-turma";
 
     // Criar alocação para a turma alvo
     await alocacoesRepository.createWithCustomData({
       id_turma: turmaId,
       disciplina: {
-        id: 'disciplina-1',
-        nome: 'Matemática',
-        codigo: 'MAT001',
+        id: "disciplina-1",
+        nome: "Matemática",
+        codigo: "MAT001",
         carga_horaria: 60,
         carga_horaria: 60,
       },
       horario: {
-        id: 'horario-1',
-        codigo: 'M1',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T08:00:00'),
-        horario_fim: new Date('2024-01-01T09:00:00'),
+        id: "horario-1",
+        codigo: "M1",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T08:00:00"),
+        horario_fim: new Date("2024-01-01T09:00:00"),
       },
     });
 
@@ -332,25 +337,25 @@ describe('Buscar Grade Horários Turma Use Case', () => {
     await alocacoesRepository.createWithCustomData({
       id_turma: outraTurmaId,
       disciplina: {
-        id: 'disciplina-2',
-        nome: 'Física',
-        codigo: 'FIS001',
+        id: "disciplina-2",
+        nome: "Física",
+        codigo: "FIS001",
         carga_horaria: 80,
         carga_horaria: 80,
       },
       horario: {
-        id: 'horario-2',
-        codigo: 'M2',
-        dia_semana: 'SEGUNDA',
-        horario_inicio: new Date('2024-01-01T09:00:00'),
-        horario_fim: new Date('2024-01-01T10:00:00'),
+        id: "horario-2",
+        codigo: "M2",
+        dia_semana: "SEGUNDA",
+        horario_inicio: new Date("2024-01-01T09:00:00"),
+        horario_fim: new Date("2024-01-01T10:00:00"),
       },
     });
 
     const { grade, resumo } = await sut.execute({ turmaId });
 
     expect(resumo.totalAlocacoes).toEqual(1);
-    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual('Matemática');
+    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual("Matemática");
     expect(grade.SEGUNDA.M2).toBeNull(); // Não deve incluir alocação de outra turma
   });
 });

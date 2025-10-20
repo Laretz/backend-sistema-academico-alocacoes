@@ -18,9 +18,9 @@ export async function vincularProfessorDisciplina(
       id_disciplina,
     })
 
-    return reply.status(201).send({
+    return reply.status(201).send(
       professorDisciplina,
-    })
+    )
   } catch (err) {
     throw err
   }

@@ -1,17 +1,12 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { makeBuscarCursoUseCase } from "@/use-cases/@factories/curso/make-buscar-curso-use-case";
-import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
+import { cursoParamsSchema } from "@/schemas/curso";
 
 export async function buscarCurso(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const buscarCursoParamsSchema = z.object({
-    id: z.string().uuid(),
-  });
-
-  const { id } = buscarCursoParamsSchema.parse(request.params);
+  const { id } = cursoParamsSchema.parse(request.params);
 
   try {
     const buscarCursoUseCase = makeBuscarCursoUseCase();
@@ -20,8 +15,11 @@ export async function buscarCurso(
 
     return reply.status(200).send({ curso });
   } catch (error) {
-    if (error instanceof RecursoNaoEncontradoError) {
-      return reply.status(404).send({ message: error.message });
+    if (error instanceof Error && error.name === "RecursoNaoEncontradoError") {
+      return reply.status(404).send({
+        error: "Recurso não encontrado",
+        message: error.message,
+      });
     }
 
     throw error;

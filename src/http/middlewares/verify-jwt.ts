@@ -2,10 +2,6 @@ import { FastifyReply, FastifyRequest } from "fastify";
 
 
 export async function verifyJWT(request: FastifyRequest, reply: FastifyReply,){
-    try{
-        await request.jwtVerify()
-    }catch(error){
-         console.error("Erro no JWT:", error); 
-        return reply.status(401).send({ message: 'Unauthorized.' });
-    }
+    // Deixe o Error Handler global padronizar as respostas de erro JWT
+    await request.jwtVerify()
 }

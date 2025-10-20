@@ -71,7 +71,7 @@ export const userSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
   email: z.string().email(),
-  role: z.nativeEnum(Role),
+  role: z.enum(Role),
   especializacao: z.string().nullable(),
   carga_horaria_max: z.number().nullable(),
   preferencia: z.string().nullable(),
@@ -89,10 +89,12 @@ export const refreshResponseSchema = z.object({
   token: z.string(),
 });
 
-// Schema de resposta para criação/atualização de usuário
-export const userResponseSchema = z.object({
-  user: userSchema
-});
+// Schema de resposta para criação/atualização/consulta de usuário
+// Aceita tanto { usuario: User } quanto { user: User } para compatibilidade
+export const userResponseSchema = z.union([
+  z.object({ usuario: userSchema }),
+  z.object({ user: userSchema }),
+]);
 
 // Schema de resposta para listagem de usuários
 export const usersListResponseSchema = z.object({

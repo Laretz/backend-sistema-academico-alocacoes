@@ -44,8 +44,8 @@ POST {{baseURL}}/session
 Content-Type: application/json
 
 {
-  "email": "maria.admin@email.com",
-  "senha": "123456"
+  "email": "renatodebone1@email.com",
+  "senha": "123123"
 }
 
 ### 5. Renovar token
@@ -73,7 +73,7 @@ GET {{baseURL}}/users?search=João
 Authorization: Bearer {{authToken}}
 
 ### 11. Buscar usuário por ID (Admin apenas)
-GET {{baseURL}}/users/{{userId}}
+GET {{baseURL}}/users/05fa5ac1-28a0-4994-bda5-3d45ac372d0a
 Authorization: Bearer {{authToken}}
 
 ### 12. Atualizar usuário (Admin apenas)
