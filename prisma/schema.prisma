@@ -43,6 +43,7 @@ model User {
   alocacoes         Alocacao[]
   disciplinas       ProfessorDisciplina[]
   cursos            UserCurso[]
+  feedbacks         Feedback[]
 }
 
 model Disciplina {
@@ -178,4 +179,16 @@ enum TurnoCurso {
   VESPERTINO
   NOTURNO
   INTEGRAL
+}
+
+model Feedback {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  npsScore   Int
+  comment    String
+  page       String?
+  feature    String?
+  metadata   Json?
+  created_at DateTime @default(now())
 }
