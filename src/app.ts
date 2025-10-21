@@ -35,7 +35,7 @@ app.register(fastifySwagger, {
         },
         servers: [
             {
-                url: 'http://localhost:3333',
+                url: `http://localhost:${env.PORT}`,
                 description: 'Servidor de Desenvolvimento'
             }
         ],
@@ -72,7 +72,7 @@ app.register(fastifySwaggerUi, {
 });
 
 app.register(fastifyCors, {
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     // Permitir envio do header Authorization pelo front-end

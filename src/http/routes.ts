@@ -24,6 +24,7 @@ import { routesHorarios } from "./controllers/horarios/routes";
 import { routesSalas } from "./controllers/salas/routes";
 import { routesUsers } from "./controllers/users/routes";
 import { routesAlocacoes } from "./controllers/alocacoes/routes";
+import { routesFeedback } from "./controllers/feedback/routes";
 
 import { verifyJWT } from "./middlewares/verify-jwt";
 import { verifyUseRole } from "./middlewares/verify-user-role";
@@ -58,6 +59,9 @@ export async function appRoutes(app: FastifyInstance) {
 
   // Alocações - Rotas organizadas com schemas Zod
   await app.register(routesAlocacoes);
+
+  // Feedback - Rotas para avaliação de usuários
+  await app.register(routesFeedback);
 
   // Alocações Genéticas (sem autenticação para testes)
   app.post("/alocacoes/genetica", executeGeneticAllocation);
