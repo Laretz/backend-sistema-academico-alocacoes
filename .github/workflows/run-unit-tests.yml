@@ -42,9 +42,13 @@ jobs:
 
       - name: Validate Prisma schema
         run: npx prisma validate
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "postgresql://postgres:pgpassword@postgres:5432/postgresbd_test"
 
       - name: Prepare database (migrate)
         run: npx prisma migrate deploy
+        working-directory: ./backend
         env:
           DATABASE_URL: "postgresql://postgres:pgpassword@postgres:5432/postgresbd_test"
 
