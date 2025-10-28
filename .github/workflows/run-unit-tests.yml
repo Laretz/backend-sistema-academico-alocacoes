@@ -21,7 +21,11 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pgpassword
           POSTGRES_DB: postgresbd_test
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -32,11 +36,17 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: ./backend/package-lock.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
         working-directory: ./backend
+
+      - name: Prepare database (migrate)
+        run: npx prisma migrate deploy
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "postgresql://postgres:pgpassword@localhost:5432/postgresbd_test"
 
       - name: Run unit tests
         run: npm run test
