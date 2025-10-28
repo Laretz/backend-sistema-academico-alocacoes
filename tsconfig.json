@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // Entrada e saída
+    /* Entrada e saída */
     "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": "./",
@@ -8,34 +8,36 @@
       "@/*": ["src/*"]
     },
 
-    // Ambiente
-    "target": "es2020",
+    /* Ambiente e módulo */
+    "target": "ES2020",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["es2020"],
-    "types": ["node"],
+    "lib": ["ES2020"],
+    "types": ["node", "vitest/globals"],
 
-    // Mapas e tipagem
+    /* Mapas e tipagem */
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
 
-    // Regras mais seguras
+    /* Regras mais seguras */
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
-    // Recomendações úteis
+    /* Recomendações úteis */
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    /* Garante compatibilidade ESM/Node */
+    "allowSyntheticDefaultImports": true,
+    "moduleDetection": "force"
   },
-  "include": ["src"],
-  "exclude": [
-    "node_modules", 
-    "dist",
-    "**/*.http",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ]
+
+  /* Inclui todos os arquivos relevantes */
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "vitest.config.ts"],
+
+  /* Exclui arquivos que não precisam de build */
+  "exclude": ["node_modules", "dist", "build", "**/*.http"]
 }
