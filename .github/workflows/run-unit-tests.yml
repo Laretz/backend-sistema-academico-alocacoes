@@ -35,25 +35,23 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: "package-lock.json"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Validate Prisma schema
         run: npx prisma validate
-        working-directory: ./backend
         env:
-          DATABASE_URL: "postgresql://postgres:pgpassword@postgres:5432/postgresbd_test"
+          DATABASE_URL: ${{ secrets.POSTGRES_URL }}
 
       - name: Prepare database (migrate)
         run: npx prisma migrate deploy
-        working-directory: ./backend
         env:
-          DATABASE_URL: "postgresql://postgres:pgpassword@postgres:5432/postgresbd_test"
+          DATABASE_URL: ${{ secrets.POSTGRES_URL }}
 
       - name: Run unit tests
         run: npm run test
         env:
-          JWT_SECRET: testing
-          DATABASE_URL: "postgresql://postgres:pgpassword@postgres:5432/postgresbd_test"
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.POSTGRES_URL }}
