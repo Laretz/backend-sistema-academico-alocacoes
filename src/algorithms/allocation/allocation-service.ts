@@ -405,7 +405,7 @@ export class AllocationService {
           }
         }
       });
-
+      console.log(`Professores vinculados ao curso ${turma.id_curso}:`, professores.map(p => p.nome));
       if (!professores || professores.length === 0) {
         return {
           success: false,

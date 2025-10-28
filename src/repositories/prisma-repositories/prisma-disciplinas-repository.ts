@@ -35,8 +35,6 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
         return disciplina;
     }
 
-
-
     async findByIds(ids: string[]) {
         const disciplinas = await prisma.disciplina.findMany({
             where: {
@@ -90,6 +88,25 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
             },
         });
 
+        return disciplinas;
+    }
+
+    async findMany(page: number) {
+        const itemsPerPage = 20;
+        const skip = (page - 1) * itemsPerPage;
+        const disciplinas = await prisma.disciplina.findMany({
+            skip,
+            take: itemsPerPage,
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
+        });
         return disciplinas;
     }
 
