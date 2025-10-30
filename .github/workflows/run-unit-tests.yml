@@ -61,6 +61,9 @@ jobs:
         env:
           DATABASE_URL: "postgresql://postgres:pgpassword@localhost:5432/postgresbd_test"
 
+      - name: Set timezone to America/Sao_Paulo
+        run: sudo timedatectl set-timezone America/Sao_Paulo
+
       - name: Run unit tests
         run: npm run test
         env:
