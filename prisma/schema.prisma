@@ -29,6 +29,7 @@ model Curso {
   disciplinas       Disciplina[]
   turmas            Turma[]
   users             UserCurso[]
+  cursos_disciplinas CursoDisciplina[]
 }
 
 model User {
@@ -67,6 +68,7 @@ model Disciplina {
   curso               Curso                 @relation(fields: [id_curso], references: [id])
   modulos             ModuloDisciplina[]
   professores         ProfessorDisciplina[]
+  cursos_vinculos     CursoDisciplina[]
 }
 
 model Turma {
@@ -191,4 +193,17 @@ model Feedback {
   feature    String?
   metadata   Json?
   created_at DateTime @default(now())
+}
+
+model CursoDisciplina {
+  id            String     @id @default(uuid())
+  id_curso      String
+  id_disciplina String
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  curso       Curso      @relation(fields: [id_curso], references: [id])
+  disciplina  Disciplina @relation(fields: [id_disciplina], references: [id])
+
+  @@unique([id_curso, id_disciplina])
 }

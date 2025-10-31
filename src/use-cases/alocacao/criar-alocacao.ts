@@ -1,6 +1,7 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
+import { prisma } from "../../lib/prisma";
 
 interface CriarAlocacaoUseCaseRequest {
     id_user: string;
@@ -38,6 +39,21 @@ export class CriarAlocacaoUseCase {
             if (conflitoTurma) {
                 throw new Error(`Turma já possui alocação no horário ${id_horario}`);
             }
+        }
+
+        // Validação: Disciplina deve pertencer ao Curso da Turma via CursoDisciplina
+        const turma = await prisma.turma.findUnique({
+            where: { id: id_turma },
+            select: { id_curso: true },
+        });
+        if (!turma) {
+            throw new Error("Turma não encontrada");
+        }
+        const vinculo = await prisma.cursoDisciplina.findFirst({
+            where: { id_curso: turma.id_curso, id_disciplina },
+        });
+        if (!vinculo) {
+            throw new Error("Disciplina não vinculada ao curso da turma");
         }
 
         // Se não há conflitos, criar todas as alocações

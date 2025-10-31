@@ -57,22 +57,24 @@ export class PrismaDisciplinasRepository implements DisciplinasRepository {
     }
 
     async findByCurso(cursoId: string) {
-        const disciplinas = await prisma.disciplina.findMany({
-            where: {
-                id_curso: cursoId
-            },
+        const links = await prisma.cursoDisciplina.findMany({
+            where: { id_curso: cursoId },
             include: {
-                curso: {
-                    select: {
-                        id: true,
-                        nome: true,
-                        codigo: true,
+                disciplina: {
+                    include: {
+                        curso: {
+                            select: {
+                                id: true,
+                                nome: true,
+                                codigo: true,
+                            },
+                        },
                     },
                 },
             },
         });
 
-        return disciplinas;
+        return links.map((l) => l.disciplina);
     }
 
     async findAll() {
