@@ -52,7 +52,7 @@ CREATE TABLE "public"."Disciplina" (
     "id" TEXT NOT NULL,
     "nome" TEXT NOT NULL,
     "carga_horaria" INTEGER NOT NULL DEFAULT 60,
-    "carga_horaria_atual" INTEGER NOT NULL DEFAULT 0,
+    "carga_horaria_atual" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "total_aulas" INTEGER NOT NULL DEFAULT 0,
     "aulas_ministradas" INTEGER NOT NULL DEFAULT 0,
     "tipo_de_sala" "public"."TipoDeSala" NOT NULL DEFAULT 'Sala',
@@ -102,8 +102,8 @@ CREATE TABLE "public"."Horario" (
     "id" TEXT NOT NULL,
     "codigo" TEXT NOT NULL,
     "dia_semana" TEXT NOT NULL,
-    "horarioInicio" TIME NOT NULL,
-    "horarioFim" TIME NOT NULL,
+    "horarioInicio" TIME(6) NOT NULL,
+    "horarioFim" TIME(6) NOT NULL,
 
     CONSTRAINT "Horario_pkey" PRIMARY KEY ("id")
 );
@@ -161,6 +161,20 @@ CREATE TABLE "public"."UserCurso" (
     CONSTRAINT "UserCurso_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."Feedback" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "npsScore" INTEGER NOT NULL,
+    "comment" TEXT NOT NULL,
+    "page" TEXT,
+    "feature" TEXT,
+    "metadata" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Predio_codigo_key" ON "public"."Predio"("codigo");
 
@@ -186,37 +200,40 @@ ALTER TABLE "public"."Turma" ADD CONSTRAINT "Turma_id_curso_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."Sala" ADD CONSTRAINT "Sala_predioId_fkey" FOREIGN KEY ("predioId") REFERENCES "public"."Predio"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_disciplina_fkey" FOREIGN KEY ("id_disciplina") REFERENCES "public"."Disciplina"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_turma_fkey" FOREIGN KEY ("id_turma") REFERENCES "public"."Turma"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_sala_fkey" FOREIGN KEY ("id_sala") REFERENCES "public"."Sala"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_horario_fkey" FOREIGN KEY ("id_horario") REFERENCES "public"."Horario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ModuloDisciplina" ADD CONSTRAINT "ModuloDisciplina_id_disciplina_fkey" FOREIGN KEY ("id_disciplina") REFERENCES "public"."Disciplina"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_sala_fkey" FOREIGN KEY ("id_sala") REFERENCES "public"."Sala"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ModuloDisciplina" ADD CONSTRAINT "ModuloDisciplina_id_sala_fkey" FOREIGN KEY ("id_sala") REFERENCES "public"."Sala"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_turma_fkey" FOREIGN KEY ("id_turma") REFERENCES "public"."Turma"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Alocacao" ADD CONSTRAINT "Alocacao_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."ModuloDisciplina" ADD CONSTRAINT "ModuloDisciplina_id_disciplina_fkey" FOREIGN KEY ("id_disciplina") REFERENCES "public"."Disciplina"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."ModuloDisciplina" ADD CONSTRAINT "ModuloDisciplina_id_horario_fkey" FOREIGN KEY ("id_horario") REFERENCES "public"."Horario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ProfessorDisciplina" ADD CONSTRAINT "ProfessorDisciplina_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."ModuloDisciplina" ADD CONSTRAINT "ModuloDisciplina_id_sala_fkey" FOREIGN KEY ("id_sala") REFERENCES "public"."Sala"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."ProfessorDisciplina" ADD CONSTRAINT "ProfessorDisciplina_id_disciplina_fkey" FOREIGN KEY ("id_disciplina") REFERENCES "public"."Disciplina"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."UserCurso" ADD CONSTRAINT "UserCurso_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."ProfessorDisciplina" ADD CONSTRAINT "ProfessorDisciplina_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."UserCurso" ADD CONSTRAINT "UserCurso_id_curso_fkey" FOREIGN KEY ("id_curso") REFERENCES "public"."Curso"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."UserCurso" ADD CONSTRAINT "UserCurso_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Feedback" ADD CONSTRAINT "Feedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -44,6 +44,7 @@ model User {
   disciplinas       ProfessorDisciplina[]
   cursos            UserCurso[]
   feedbacks         Feedback[]
+  notificacoes      Notificacao[]
 }
 
 model Disciplina {
@@ -180,6 +181,17 @@ enum TurnoCurso {
   NOTURNO
   INTEGRAL
 }
+// Enums de Notificação
+enum NotificacaoStatus {
+  PENDENTE
+  LIDA
+  RESPONDIDA
+}
+
+enum NotificacaoType {
+  SOLICITACAO_TROCA_SALA
+  GENERICA
+}
 
 model Feedback {
   id         String   @id @default(uuid())
@@ -191,4 +203,20 @@ model Feedback {
   feature    String?
   metadata   Json?
   created_at DateTime @default(now())
+}
+
+/// Notificações internas para professores/usuários (in-app)
+model Notificacao {
+  id            String            @id @default(uuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  type          NotificacaoType
+  title         String
+  message       String
+  status        NotificacaoStatus @default(PENDENTE)
+  replyMessage  String?
+  metadata      Json?
+  created_at    DateTime          @default(now())
+  read_at       DateTime?
+  responded_at  DateTime?
 }

@@ -1,0 +1,51 @@
+@baseURL = http://localhost:3333
+
+# @name Login
+POST {{baseURL}}/session
+Content-Type: application/json
+
+{
+  "email": "admin.admin@email.com",
+  "senha": "123123"
+}
+
+###
+### Notificações - Testes de API
+
+# @name ListarNotificacoes
+GET {{baseURL}}/notifications?status=PENDENTE
+Authorization: Bearer {{Login.response.body.token}}
+Content-Type: application/json
+
+###
+
+# @name CriarNotificacao
+POST {{baseURL}}/notifications
+Authorization: Bearer {{Login.response.body.token}}
+Content-Type: application/json
+
+{
+  "userId": "71e5af52-ca33-4af1-a0ae-fe06647d5263",
+  "type": "SOLICITACAO_TROCA_SALA",
+  "title": "Solicitação de troca de sala",
+  "message": "Você pode dar aula na sala LAB-02 na próxima terça?",
+  "metadata": { "dia": "TERCA", "sala_sugerida": "LAB-02" }
+}
+
+###
+
+# @name MarcarNotificacaoLida
+PATCH {{baseURL}}/notifications/eed13604-84dc-4a37-b354-f527b7392ef4/read
+Authorization: Bearer {{Login.response.body.token}}
+
+
+###
+
+# @name ResponderNotificacao
+POST {{baseURL}}/notifications/eed13604-84dc-4a37-b354-f527b7392ef4/respond
+Authorization: Bearer {{Login.response.body.token}}
+Content-Type: application/json
+
+{
+  "replyMessage": "Posso sim, confirmado."
+}

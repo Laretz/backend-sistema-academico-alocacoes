@@ -2,14 +2,14 @@
 @authToken = {{login.response.body.token}}
 
 ### 1. Registrar novo usuário (Professor)
-POST {{baseURL}}/users
+POST {{baseURL}}/register
 Content-Type: application/json
 
 {
-  "nome": "João Silva",
-  "email": "joao.silva@email.com",
-  "senha": "123456",
-  "role": "PROFESSOR",
+  "nome": "admin",
+  "email": "admin.admin@email.com",
+  "senha": "123123",
+  "role": "ADMIN",
   "especializacao": "Matemática",
   "carga_horaria_max": 40,
   "preferencia": "Manhã"
@@ -44,7 +44,7 @@ POST {{baseURL}}/session
 Content-Type: application/json
 
 {
-  "email": "renatodebone1@email.com",
+  "email": "admin.admin@email.com",
   "senha": "123123"
 }
 

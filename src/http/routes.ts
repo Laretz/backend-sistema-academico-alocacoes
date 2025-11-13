@@ -25,6 +25,7 @@ import { routesSalas } from "./controllers/salas/routes";
 import { routesUsers } from "./controllers/users/routes";
 import { routesAlocacoes } from "./controllers/alocacoes/routes";
 import { routesFeedback } from "./controllers/feedback/routes";
+import { routesNotificacoes } from "./controllers/notificacoes/routes";
 
 import { verifyJWT } from "./middlewares/verify-jwt";
 import { verifyUseRole } from "./middlewares/verify-user-role";
@@ -62,6 +63,9 @@ export async function appRoutes(app: FastifyInstance) {
 
   // Feedback - Rotas para avaliação de usuários
   await app.register(routesFeedback);
+
+  // Notificações - Rotas in-app para professores
+  await app.register(routesNotificacoes);
 
   // Alocações Genéticas (sem autenticação para testes)
   app.post("/alocacoes/genetica", executeGeneticAllocation);
