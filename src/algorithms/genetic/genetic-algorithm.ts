@@ -878,19 +878,32 @@ export class GeneticAlgorithm {
       allGenes: cromossomo.genes
     };
     
+    let invalidHardCount = 0; // rastrear violações hard no cromossomo
     // Avaliar cada gene individualmente
     for (const gene of cromossomo.genes) {
+      // Se violar qualquer hard constraint, o gene não contribui para o fitness
+      const hardValidation = constraintManager.validateHardConstraints(gene, context);
+      if (!hardValidation.isValid) {
+        invalidHardCount++;
+        continue;
+      }
+      
       let geneFitness = 100; // Score base por gene
       
-      // Aplicar penalidades por violações de restrições hard
+      // Penalidades (não devem superar os soft a ponto de tornar inválidos elegíveis)
       const hardPenalty = constraintManager.getHardConstraintPenalty(gene, context);
       geneFitness -= hardPenalty;
       
-      // Aplicar bonificações por restrições soft
+      // Bonificações por restrições soft
       const softScore = constraintManager.calculateSoftScore(gene, context);
       geneFitness += softScore;
       
       totalFitness += Math.max(0, geneFitness);
+    }
+    
+    // Se houver qualquer violação hard no cromossomo, torná-lo inelegível
+    if (invalidHardCount > 0) {
+      return 0;
     }
     
     // Bonificações globais do cromossomo
@@ -1230,11 +1243,7 @@ export class GeneticAlgorithm {
    /**
     * Extrai o número do horário do código (ex: M1 -> 1, T3 -> 3)
     */
-   private getHorarioNumber(codigo: string): number {
-     const numero = codigo.substring(1); // Remove a primeira letra (M, T, N)
-     return parseInt(numero, 10);
-   }
- 
+
     private checkConflicts(cromossomo: Cromossomo): { professorConflicts: number; salaConflicts: number } {
     const professorHorarios = new Map<string, Set<string>>();
     const salaHorarios = new Map<string, Set<string>>();
@@ -1636,7 +1645,7 @@ export class GeneticAlgorithm {
      const disciplina = this.turma.disciplinas.find(d => d.id === gene.disciplinaId)!;
      const salasCompativeis = this.salas.filter(sala => 
        sala.id !== gene.salaId &&
-       sala.capacidade >= this.turma.numAlunos &&
+       sala.capacidade >= this.turma.num_alunos &&
        (disciplina.tipoSala === 'Lab' ? sala.computadores > 0 : true)
      );
      

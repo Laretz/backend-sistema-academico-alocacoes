@@ -25,6 +25,7 @@ import { excluirCurso } from "./excluir-curso";
 import { buscarDisciplinasCurso } from "./buscar-disciplinas-curso";
 import { vincularDisciplinaCurso } from "./vincular-disciplina-curso";
 import { desvincularDisciplinaCurso } from "./desvincular-disciplina-curso";
+import { buscarDisciplinasCursoVinculos } from "./buscar-disciplinas-curso-vinculos";
 
 export const routesCursos = async (app: FastifyTypedInstance) => {
   // POST /cursos - Criar curso
@@ -109,6 +110,41 @@ export const routesCursos = async (app: FastifyTypedInstance) => {
       },
     },
     buscarDisciplinasCurso
+  );
+
+  // GET /cursos/:id/disciplinas-vinculos - Listar vínculos CursoDisciplina (com IDs)
+  app.get(
+    "/cursos/:id/disciplinas-vinculos",
+    {
+      schema: {
+        description: "Lista vínculos CursoDisciplina com IDs e dados da disciplina",
+        tags: ["Cursos 🎓"],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: z.object({
+            vinculos: z.array(
+              z.object({
+                id: z.string().uuid(),
+                id_curso: z.string().uuid(),
+                id_disciplina: z.string().uuid(),
+                disciplina: z.object({
+                  id: z.string().uuid(),
+                  nome: z.string(),
+                  semestre: z.number(),
+                  obrigatoria: z.boolean(),
+                  carga_horaria: z.number(),
+                  codigo: z.string().nullable().optional(),
+                  horario_consolidado: z.string().nullable().optional(),
+                }),
+              })
+            ),
+          }),
+          400: validationErrorResponseSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarDisciplinasCursoVinculos
   );
 
   // PUT /cursos/:id - Atualizar curso

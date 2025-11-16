@@ -10,6 +10,8 @@ export interface SoftConstraint {
   score: (gene: any, context: any) => number;
 }
 
+import { env } from '../../env';
+
 export class ConstraintManager {
   private hardConstraints: HardConstraint[];
   private softConstraints: SoftConstraint[];
@@ -23,7 +25,7 @@ export class ConstraintManager {
     return [
       {
         name: "professor_availability",
-        weight: 1000,
+        weight: env.GA_WEIGHT_PROFESSOR_AVAILABILITY,
         validate: (gene, context) => {
           // Professor não pode estar em dois lugares ao mesmo tempo
           const { professorId, horarios } = gene;
@@ -42,7 +44,7 @@ export class ConstraintManager {
       },
       {
         name: "room_availability",
-        weight: 1000,
+        weight: env.GA_WEIGHT_ROOM_AVAILABILITY,
         validate: (gene, context) => {
           // Sala não pode ter duas aulas ao mesmo tempo
           const { salaId, horarios } = gene;
@@ -61,7 +63,7 @@ export class ConstraintManager {
       },
       {
         name: "room_capacity",
-        weight: 800,
+        weight: env.GA_WEIGHT_ROOM_CAPACITY,
         validate: (gene, context) => {
           // Sala deve ter capacidade suficiente
           const { salaId } = gene;
@@ -72,7 +74,7 @@ export class ConstraintManager {
       },
       {
         name: "room_type_compatibility",
-        weight: 600,
+        weight: env.GA_WEIGHT_ROOM_TYPE_COMPATIBILITY,
         validate: (gene, context) => {
           // Disciplinas de laboratório precisam de salas com computadores
           const { disciplinaId, salaId } = gene;
@@ -92,7 +94,7 @@ export class ConstraintManager {
       },
       {
         name: "workload_limit",
-        weight: 400,
+        weight: env.GA_WEIGHT_WORKLOAD_LIMIT,
         validate: (gene, context) => {
           // Professor não pode exceder carga horária máxima
           const { professorId, horarios } = gene;
@@ -110,11 +112,11 @@ export class ConstraintManager {
       },
       {
         name: "turma_availability",
-        weight: 1000,
+        weight: env.GA_WEIGHT_TURMA_AVAILABILITY,
         validate: (gene, context) => {
           // Turma não pode ter duas aulas ao mesmo tempo
           const { horarios } = gene;
-          const { allGenes, turma } = context;
+          const { allGenes } = context;
 
           for (const otherGene of allGenes) {
             if (otherGene !== gene) {
@@ -125,6 +127,15 @@ export class ConstraintManager {
             }
           }
           return true;
+        },
+      },
+      {
+        name: "no_sunday",
+        weight: env.GA_WEIGHT_NO_SUNDAY,
+        validate: (gene, context) => {
+          // Não permitir aulas aos domingos
+          const { horarios } = gene;
+          return horarios.every((h: string) => h.split("_")[0] !== "DOMINGO");
         },
       },
     ];
@@ -250,7 +261,7 @@ export class ConstraintManager {
       },
       {
         name: "consecutive_classes",
-        weight: 30,
+        weight: env.GA_WEIGHT_CONSECUTIVE_CLASSES,
         score: (gene, context) => {
           // Aplicar regras de consecutividade baseadas na carga horária
           const { horarios, disciplinaId } = gene;
@@ -292,32 +303,32 @@ export class ConstraintManager {
               if (aulasPorDia === 2 && consecutivas === 1) {
                 consecutiveScore += 50; // Bonificação alta
               } else if (aulasPorDia === 2 && consecutivas === 0) {
-                consecutiveScore -= 30; // Penalidade por não serem consecutivas
+                consecutiveScore -= 40; // Penalidade mais forte por não serem consecutivas
               }
             } else if (cargaHoraria === 45) {
               // 45h: deve ter 3 aulas consecutivas no mesmo dia
               if (aulasPorDia === 3 && consecutivas === 2) {
-                consecutiveScore += 50; // Bonificação alta
+                consecutiveScore += 60; // Bonificação alta
               } else if (aulasPorDia === 3 && consecutivas < 2) {
-                consecutiveScore -= 40; // Penalidade por não serem todas consecutivas
+                consecutiveScore -= 60; // Penalidade forte por não serem todas consecutivas
               }
             } else if (cargaHoraria === 60) {
               // 60h: deve ter 2 aulas consecutivas em cada dia (2+2)
               if (aulasPorDia === 2 && consecutivas === 1) {
-                consecutiveScore += 25; // Bonificação por par consecutivo
+                consecutiveScore += 35; // Bonificação por par consecutivo
               } else if (aulasPorDia === 2 && consecutivas === 0) {
-                consecutiveScore -= 20; // Penalidade por não serem consecutivas
+                consecutiveScore -= 40; // Penalidade por não serem consecutivas
               } else if (aulasPorDia > 2) {
-                consecutiveScore -= 30; // Penalidade por mais de 2 aulas no mesmo dia
+                consecutiveScore -= 40; // Penalidade por mais de 2 aulas no mesmo dia
               }
             } else if (cargaHoraria === 90) {
               // 90h: deve ter 3 aulas consecutivas em cada dia (3+3)
               if (aulasPorDia === 3 && consecutivas === 2) {
-                consecutiveScore += 25; // Bonificação por trio consecutivo
+                consecutiveScore += 40; // Bonificação por trio consecutivo
               } else if (aulasPorDia === 3 && consecutivas < 2) {
-                consecutiveScore -= 30; // Penalidade por não serem todas consecutivas
+                consecutiveScore -= 60; // Penalidade forte por não serem todas consecutivas
               } else if (aulasPorDia > 3) {
-                consecutiveScore -= 50; // Penalidade severa por mais de 3 aulas no mesmo dia
+                consecutiveScore -= 60; // Penalidade severa por mais de 3 aulas no mesmo dia
               }
             } else {
               // Para outras cargas horárias, bonificar consecutividade moderadamente
@@ -327,6 +338,100 @@ export class ConstraintManager {
 
           return consecutiveScore;
         },
+      },
+      // Penalizar brechas intra-dia (ex.: T1, T2, T4)
+      {
+        name: "avoid_intra_day_gaps",
+        weight: env.GA_WEIGHT_AVOID_INTRA_DAY_GAPS,
+        score: (gene, context) => {
+          const { horarios } = gene;
+          if (horarios.length <= 1) return 0;
+
+          // Mapear slots por dia
+          const porDia = new Map<string, number[]>();
+          const ordemSlots = ["M1","M2","M3","M4","M5","M6","T1","T2","T3","T4","T5","T6","N1","N2","N3","N4"];
+          const toNum = (s: string) => ordemSlots.indexOf(s);
+
+          for (const h of horarios) {
+            const [dia, slot] = h.split("_");
+            if (!porDia.has(dia)) porDia.set(dia, []);
+            porDia.get(dia)!.push(toNum(slot));
+          }
+
+          let penalty = 0;
+          // Para cada dia, penalizar lacunas entre slots presentes
+          for (const [dia, nums] of porDia) {
+            nums.sort((a,b)=>a-b);
+            for (let i=1;i<nums.length;i++) {
+              const diff = nums[i]-nums[i-1];
+              if (diff > 1) {
+                // há brecha (ex.: 1,2,4 => diff=2 na transição 2->4)
+                penalty -= 30; // penalidade base por brecha
+                // penalizar brechas maiores um pouco mais
+                if (diff >= 2) penalty -= 10;
+              }
+            }
+          }
+
+          return penalty;
+        }
+      },
+      // NOVAS REGRAS: evitar T6, priorizar horários iniciais e evitar começar no slot 2
+      {
+        name: "avoid_T6",
+        weight: env.GA_WEIGHT_AVOID_T6 ?? 80,
+        score: (gene, context) => {
+          // Penalizar fortemente aulas no T6
+          const { horarios } = gene;
+          let score = 0;
+          for (const h of horarios) {
+            const slot = h.split("_")[1];
+            if (slot === "T6") {
+              score -= 100; // penalidade alta por T6
+            }
+          }
+          return score;
+        }
+      },
+      {
+        name: "prioritize_early_slots",
+        weight: env.GA_WEIGHT_PRIORITIZE_EARLY_SLOTS ?? 40,
+        score: (gene, context) => {
+          // Bonificar M1/M2/T1/T2/N1/N2 e desincentivar slots tardios
+          const early = new Set(["M1","M2","T1","T2","N1","N2"]);
+          const late = new Set(["M5","M6","T5","T6","N4"]);
+          let score = 0;
+          for (const h of gene.horarios) {
+            const slot = h.split("_")[1];
+            if (early.has(slot)) score += 10;
+            if (late.has(slot)) score -= 5;
+          }
+          return score;
+        }
+      },
+      {
+        name: "avoid_start_at_2",
+        weight: env.GA_WEIGHT_AVOID_START_AT_2 ?? 50,
+        score: (gene, context) => {
+          // Penalizar começar em 2 quando 1 está livre no mesmo dia (evita dia quebrado)
+          const porDia = new Map<string, Set<string>>();
+          for (const h of gene.horarios) {
+            const [dia, slot] = h.split("_");
+            if (!porDia.has(dia)) porDia.set(dia, new Set());
+            porDia.get(dia)!.add(slot);
+          }
+          let penalty = 0;
+          for (const [dia, slots] of porDia) {
+            // se existe "M2" sem "M1" ou "T2" sem "T1" ou "N2" sem "N1"
+            const hasM2 = slots.has("M2"), hasM1 = slots.has("M1");
+            const hasT2 = slots.has("T2"), hasT1 = slots.has("T1");
+            const hasN2 = slots.has("N2"), hasN1 = slots.has("N1");
+            if ((hasM2 && !hasM1) || (hasT2 && !hasT1) || (hasN2 && !hasN1)) {
+              penalty -= 20; // penalidade por começar no 2 sem 1
+            }
+          }
+          return penalty;
+        }
       },
       {
         name: "avoid_lunch_break",
@@ -371,7 +476,7 @@ export class ConstraintManager {
       },
       {
         name: "avoid_saturday",
-        weight: 30,
+        weight: env.GA_WEIGHT_AVOID_SATURDAY,
         score: (gene, context) => {
           // Penalizar fortemente aulas aos sábados
           const { horarios } = gene;
@@ -418,6 +523,59 @@ export class ConstraintManager {
           }
 
           return alignmentScore;
+        },
+      },
+      // NOVA REGRA: Qualidade do intervalo entre dias para cargas de 4 e 6 aulas semanais
+      {
+        name: "day_interval_quality",
+        weight: env.GA_WEIGHT_DAY_INTERVAL_QUALITY ?? 50,
+        score: (gene, context) => {
+          const { horarios, disciplinaId } = gene;
+          const { disciplinas } = context;
+          const disciplina = disciplinas.find((d) => d.id === disciplinaId);
+          if (!disciplina) return 0;
+
+          const cargaHoraria = disciplina.cargaHoraria || disciplina.carga_horaria_total;
+          const dias = Array.from(new Set(horarios.map((h) => h.split("_")[0])));
+
+          // Só avalia quando há exatamente 2 dias (casos 4 aulas = 2+2 e 6 aulas = 3+3)
+          if (dias.length !== 2) return 0;
+
+          const ordem = [
+            "SEGUNDA",
+            "TERCA",
+            "QUARTA",
+            "QUINTA",
+            "SEXTA",
+            "SABADO",
+          ];
+
+          const idx1 = ordem.indexOf(dias[0]);
+          const idx2 = ordem.indexOf(dias[1]);
+          if (idx1 === -1 || idx2 === -1) return 0;
+
+          const diff = Math.abs(idx2 - idx1);
+          let score = 0;
+
+          // Preferência: intervalo de 1 dia é o melhor cenário; >1 dia também bom; dias seguidos é ok mas inferior
+          if (diff === 2) {
+            // Ex.: SEGUNDA-QUARTA, TERCA-QUINTA, QUARTA-SEXTA
+            score = 100;
+          } else if (diff > 2) {
+            // Ex.: SEGUNDA-QUINTA (diff=3), SEGUNDA-SEXTA (diff=4)
+            score = 75;
+          } else if (diff === 1) {
+            // Ex.: SEGUNDA-TERCA ou QUARTA-QUINTA
+            score = 40;
+          } else {
+            score = 0;
+          }
+
+          // Aplicar somente para cargas de 4 e 6 aulas semanais
+          if (cargaHoraria === 60 || cargaHoraria === 90) {
+            return score;
+          }
+          return 0;
         },
       },
     ];
@@ -486,7 +644,8 @@ export class ConstraintManager {
       }
     }
 
-    return penalty;
+    // Multiplicador de penalidade via .env para tornar hard constraints mais rígidas
+    return penalty * env.GA_HARD_PENALTY_MULTIPLIER;
   }
 
   public getConstraintReport(

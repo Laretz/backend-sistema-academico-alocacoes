@@ -18,17 +18,17 @@ model Predio {
 }
 
 model Curso {
-  id                String       @id @default(uuid())
-  codigo            String       @unique
-  nome              String
-  turno             TurnoCurso
-  duracao_semestres Int
-  ativo             Boolean      @default(true)
-  created_at        DateTime     @default(now())
-  updated_at        DateTime     @updatedAt
-  disciplinas       Disciplina[]
-  turmas            Turma[]
-  users             UserCurso[]
+  id                 String            @id @default(uuid())
+  codigo             String            @unique
+  nome               String
+  turno              TurnoCurso
+  duracao_semestres  Int
+  ativo              Boolean           @default(true)
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  disciplinas        Disciplina[]
+  turmas             Turma[]
+  users              UserCurso[]
   cursos_disciplinas CursoDisciplina[]
 }
 
@@ -109,19 +109,25 @@ model Horario {
 }
 
 model Alocacao {
-  id                  String     @id @default(uuid())
+  id                  String          @id @default(uuid())
   id_user             String
   id_disciplina       String
   id_turma            String
   id_sala             String
   id_horario          String
-  is_modulo_principal Boolean    @default(true)
-  created_at          DateTime   @default(now())
-  disciplina          Disciplina @relation(fields: [id_disciplina], references: [id])
-  horario             Horario    @relation(fields: [id_horario], references: [id])
-  sala                Sala       @relation(fields: [id_sala], references: [id])
-  turma               Turma      @relation(fields: [id_turma], references: [id])
-  user                User       @relation(fields: [id_user], references: [id])
+  id_curso_disciplina String
+  is_modulo_principal Boolean         @default(true)
+  created_at          DateTime        @default(now())
+  disciplina          Disciplina      @relation(fields: [id_disciplina], references: [id])
+  cursoDisciplina     CursoDisciplina @relation(fields: [id_curso_disciplina], references: [id])
+  horario             Horario         @relation(fields: [id_horario], references: [id])
+  sala                Sala            @relation(fields: [id_sala], references: [id])
+  turma               Turma           @relation(fields: [id_turma], references: [id])
+  user                User            @relation(fields: [id_user], references: [id])
+
+  @@unique([id_user, id_horario], name: "uniq_alocacao_user_horario")
+  @@unique([id_sala, id_horario], name: "uniq_alocacao_sala_horario")
+  @@unique([id_turma, id_horario], name: "uniq_alocacao_turma_horario")
 }
 
 model ModuloDisciplina {
@@ -196,14 +202,15 @@ model Feedback {
 }
 
 model CursoDisciplina {
-  id            String     @id @default(uuid())
+  id            String   @id @default(uuid())
   id_curso      String
   id_disciplina String
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
-  curso       Curso      @relation(fields: [id_curso], references: [id])
-  disciplina  Disciplina @relation(fields: [id_disciplina], references: [id])
+  curso      Curso      @relation(fields: [id_curso], references: [id])
+  disciplina Disciplina @relation(fields: [id_disciplina], references: [id])
+  alocacoes  Alocacao[]
 
   @@unique([id_curso, id_disciplina])
 }

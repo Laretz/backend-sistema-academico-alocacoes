@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma';
 import { GeneticAlgorithm, GeneticAlgorithmParams, Cromossomo } from '../genetic/genetic-algorithm';
 import { GeneticOperators } from '../genetic/genetic-operators';
 import { constraintManager } from '../genetic/constraints';
+import { env } from '../../env';
 
 interface AllocationRequest {
   turmaId: string;
@@ -64,11 +65,11 @@ export class AllocationService {
 
   constructor() {
     this.defaultParams = {
-      populationSize: 100,
-      generations: 500,
-      mutationRate: 0.1,
-      crossoverRate: 0.8,
-      elitismRate: 0.1
+      populationSize: env.GA_POPULATION_SIZE,
+      generations: env.GA_GENERATIONS,
+      mutationRate: env.GA_MUTATION_RATE,
+      crossoverRate: env.GA_CROSSOVER_RATE,
+      elitismRate: env.GA_ELITISM_RATE
     };
   }
 
@@ -117,12 +118,7 @@ export class AllocationService {
     try {
       console.log('🔄 Iniciando geração de preview para:', { turmaId: request.turmaId, disciplinaIds: request.disciplinaIds });
       
-      // Criar alocações temporárias para as disciplinas selecionadas
-      console.log('📝 Criando alocações temporárias...');
-      await this.createTemporaryAllocations(request.turmaId, request.disciplinaIds);
-      console.log('✅ Alocações temporárias criadas');
-      
-      // Executar algoritmo genético apenas para as disciplinas selecionadas
+      // Executar algoritmo genético apenas para as disciplinas selecionadas (sem criar registros temporários)
       console.log('🧬 Executando algoritmo genético...');
       const result = await this.allocateScheduleForPreview({
         turmaId: request.turmaId,
@@ -130,7 +126,7 @@ export class AllocationService {
         params: request.params
       });
       
-      console.log('🧬 Resultado do algoritmo genético:', { success: result.success, error: result.error, alocacoes: result.alocacoes?.length });
+      console.log('🧬 Resultado do algoritmo genético (preview):', { success: result.success, error: result.error, alocacoes: result.alocacoes?.length });
       
       if (!result.success) {
         console.error('❌ Falha no algoritmo genético:', result.error);
@@ -140,11 +136,7 @@ export class AllocationService {
         };
       }
 
-      // Atualizar horário consolidado das disciplinas
-      console.log('📅 Atualizando horários consolidados...');
-      await this.updateConsolidatedSchedules(request.disciplinaIds);
-      
-      // Gerar grade de horários para visualização
+      // Gerar grade de horários para visualização (somente leitura)
       console.log('📊 Gerando grade de horários...');
       const gradeHorarios = await this.generateScheduleGrid(result.alocacoes || []);
       console.log('📊 Grade de horários gerada:', Object.keys(gradeHorarios).length, 'slots');
@@ -177,12 +169,7 @@ export class AllocationService {
         success: false,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
-    } finally {
-      // Limpar alocações temporárias
-      console.log('🧹 Limpando alocações temporárias...');
-      await this.cleanupTemporaryAllocations(request.turmaId);
-      console.log('🧹 Limpeza concluída');
-    }
+    } 
   }
 
   /**
@@ -335,6 +322,15 @@ export class AllocationService {
    */
   public async saveAllocations(turmaId: string, alocacoes: AlocacaoData[]): Promise<boolean> {
     try {
+      // Obter curso da turma para resolver CursoDisciplina
+      const turma = await prisma.turma.findUnique({
+        where: { id: turmaId },
+        select: { id_curso: true }
+      });
+      if (!turma?.id_curso) {
+        throw new Error(`Turma ${turmaId} sem curso associado`);
+      }
+
       await prisma.$transaction(async (tx) => {
         // Remover alocações existentes da turma
         await tx.alocacao.deleteMany({
@@ -343,6 +339,17 @@ export class AllocationService {
 
         // Criar novas alocações
         for (const alocacao of alocacoes) {
+          // Resolver vínculo CursoDisciplina
+          const vinculo = await tx.cursoDisciplina.findUnique({
+            where: {
+              id_curso_id_disciplina: {
+                id_curso: turma.id_curso,
+                id_disciplina: alocacao.disciplinaId,
+              },
+            },
+            select: { id: true },
+          });
+
           await tx.alocacao.create({
             data: {
               id_turma: turmaId,
@@ -350,8 +357,12 @@ export class AllocationService {
               id_user: alocacao.professorId,
               id_sala: alocacao.salaId,
               id_horario: alocacao.horarioId,
-              is_modulo_principal: true // Assumindo que todas são módulo principal
-            }
+              is_modulo_principal: true, // Assumindo que todas são módulo principal
+              // Conectar CursoDisciplina quando disponível (compatível com novo modelo)
+              ...(vinculo
+                ? { cursoDisciplina: { connect: { id: vinculo.id } } }
+                : {}),
+            },
           });
         }
       });
@@ -538,12 +549,16 @@ export class AllocationService {
       }
 
       // Buscar disciplinas do curso da turma
-      const disciplinas = await prisma.disciplina.findMany({
-        where: { 
+      const vinculos = await prisma.cursoDisciplina.findMany({
+        where: {
           id_curso: turma.id_curso,
-          obrigatoria: true // Apenas disciplinas obrigatórias por enquanto
-        }
+        },
+        include: {
+          disciplina: true,
+        },
       });
+
+      const disciplinas = vinculos.map(v => v.disciplina).filter(Boolean);
 
       if (!disciplinas || disciplinas.length === 0) {
         return {
@@ -620,12 +635,14 @@ export class AllocationService {
     }
 
     // Verificar se existem disciplinas no curso da turma
-    const disciplinas = await prisma.disciplina.findMany({
-      where: { 
+    const vinculos = await prisma.cursoDisciplina.findMany({
+      where: {
         id_curso: turma.id_curso,
-        obrigatoria: true
-      }
+      },
+      include: { disciplina: true }
     });
+
+    const disciplinas = vinculos.map(v => v.disciplina).filter(Boolean);
 
     if (disciplinas.length === 0) {
       return { isValid: false, error: 'Curso da turma não possui disciplinas obrigatórias cadastradas' };
@@ -702,7 +719,30 @@ export class AllocationService {
   }): Promise<AlocacaoData[]> {
     const alocacoes: AlocacaoData[] = [];
 
+    // Contexto para validação de hard constraints
+    const context = {
+      allGenes: cromossomo.genes,
+      professores: data.professores,
+      salas: data.salas,
+      horarios: data.horarios,
+      disciplinas: data.turma.disciplinas,
+      turma: data.turma
+    };
+
     for (const gene of cromossomo.genes) {
+      // Gatekeeper: validar gene contra hard constraints antes de persistir
+      const validation = constraintManager.validateHardConstraints(gene, context);
+      if (!validation.isValid) {
+        console.warn('Descartando gene por violação de hard constraints:', {
+          disciplinaId: gene.disciplinaId,
+          professorId: gene.professorId,
+          salaId: gene.salaId,
+          horarios: gene.horarios,
+          violations: validation.violations
+        });
+        continue; // não persiste alocações inválidas
+      }
+
       // Para cada horário do gene, criar uma alocação
       for (const horarioStr of gene.horarios) {
         // Encontrar o horário correspondente
@@ -972,21 +1012,37 @@ export class AllocationService {
       });
       const salas = await prisma.sala.findMany();
       const horarios = await prisma.horario.findMany();
+      const turma = await prisma.turma.findUnique({
+        where: { id: turmaId },
+        select: { id_curso: true }
+      });
 
-      if (!professores.length || !salas.length || !horarios.length) {
+      if (!professores.length || !salas.length || !horarios.length || !turma?.id_curso) {
         throw new Error('Dados insuficientes para gerar preview');
       }
 
       // Criar alocações temporárias para cada disciplina
       for (const disciplinaId of disciplinaIds) {
+        const vinculo = await prisma.cursoDisciplina.findUnique({
+          where: {
+            id_curso_id_disciplina: {
+              id_curso: turma.id_curso,
+              id_disciplina: disciplinaId,
+            },
+          },
+          select: { id: true },
+        });
+
         await prisma.alocacao.create({
           data: {
-            id_turma: turmaId,
-            id_disciplina: disciplinaId,
-            id_user: professores[0].id, // Temporário
-            id_sala: salas[0].id, // Temporário
-            id_horario: horarios[0].id, // Temporário
-            is_modulo_principal: true
+            turma: { connect: { id: turmaId } },
+            // Usar conexão explícita com a relação disciplina para atender ao schema do Prisma
+            disciplina: { connect: { id: disciplinaId } },
+            user: { connect: { id: professores[0].id } }, // Temporário
+            sala: { connect: { id: salas[0].id } }, // Temporário
+            horario: { connect: { id: horarios[0].id } }, // Temporário
+            is_modulo_principal: true,
+            ...(vinculo ? { cursoDisciplina: { connect: { id: vinculo.id } } } : {}),
           }
         });
       }
@@ -1066,7 +1122,7 @@ export class AllocationService {
         const professor = professores.find(p => p.id === alocacao.professorId);
         const sala = salas.find(s => s.id === alocacao.salaId);
         const horario = horarios.find(h => h.id === alocacao.horarioId);
-
+    
         if (horario) {
           const key = `${horario.dia_semana}_${horario.codigo}`;
           
@@ -1080,10 +1136,11 @@ export class AllocationService {
             professor: professor?.nome || 'Professor não encontrado',
             sala: sala?.nome || 'Sala não encontrada',
             horario: `${horario.dia_semana} - ${horario.codigo}`,
-            disciplinaObj: disciplina,
-            professorObj: professor,
-            salaObj: sala,
-            horarioObj: horario
+            // IDs para referência, mantendo apenas tipos primitivos
+            disciplinaId: disciplina?.id,
+            professorId: professor?.id,
+            salaId: sala?.id,
+            horarioId: horario.id
           });
         }
       } catch (error) {

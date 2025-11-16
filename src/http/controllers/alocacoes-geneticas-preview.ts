@@ -60,10 +60,10 @@ async function formatScheduleForPreview(gradeHorarios: Record<string, any[]>) {
   return schedule;
 }
 
-// Schema de validação para requisição de preview de alocação genética
+// Schema de validação para requisição de preview de alocação genética (migrado para cursoDisciplinaIds)
 const previewGeneticAllocationBodySchema = z.object({
   turmaId: z.string().uuid('ID da turma deve ser um UUID válido'),
-  disciplinaIds: z.array(z.string().uuid()).min(1, 'Deve selecionar pelo menos uma disciplina'),
+  cursoDisciplinaIds: z.array(z.string().uuid()).min(1, 'Selecione ao menos uma disciplina vinculada ao curso'),
   params: z.object({
     populationSize: z.number().int().min(10).max(1000).optional().default(50),
     generations: z.number().int().min(10).max(500).optional().default(100),
@@ -82,7 +82,20 @@ export async function previewGeneticAllocation(
 ) {
   try {
     // Validar dados da requisição
-    const { turmaId, disciplinaIds, params } = previewGeneticAllocationBodySchema.parse(request.body);
+    const { turmaId, cursoDisciplinaIds, params } = previewGeneticAllocationBodySchema.parse(request.body);
+    
+    // Mapear cursoDisciplinaIds -> disciplinaIds
+    const vinculos = await prisma.cursoDisciplina.findMany({
+      where: { id: { in: cursoDisciplinaIds } },
+      select: { id_disciplina: true }
+    });
+    const disciplinaIds = vinculos.map(v => v.id_disciplina);
+    if (disciplinaIds.length === 0) {
+      return reply.status(400).send({
+        error: 'Erro na geração do preview',
+        message: 'Nenhum vínculo CursoDisciplina válido encontrado'
+      });
+    }
     
     // Criar instância do serviço de alocação
     const allocationService = new AllocationService();
@@ -121,13 +134,52 @@ export async function previewGeneticAllocation(
           }),
           prisma.horario.findUnique({ where: { id: alocacao.horarioId } })
         ]);
-        
+    
+        // Sanitizar objetos para evitar erros de serialização (BigInt/Date/estruturas complexas)
+        const disciplinaSafe = disciplina ? {
+          id: disciplina.id,
+          nome: disciplina.nome,
+          codigo: disciplina.codigo,
+          tipo_de_sala: disciplina.tipo_de_sala,
+          carga_horaria: disciplina.carga_horaria != null && typeof (disciplina.carga_horaria as any) === 'bigint' 
+            ? Number(disciplina.carga_horaria as any) 
+            : disciplina.carga_horaria
+        } : null;
+    
+        const professorSafe = professor ? {
+          id: professor.id,
+          nome: professor.nome,
+        } : null;
+    
+        const salaSafe = sala ? {
+          id: sala.id,
+          nome: sala.nome,
+          tipo: sala.tipo,
+          capacidade: sala.capacidade != null && typeof (sala.capacidade as any) === 'bigint' 
+            ? Number(sala.capacidade as any) 
+            : sala.capacidade,
+          computadores: sala.computadores != null && typeof (sala.computadores as any) === 'bigint' 
+            ? Number(sala.computadores as any) 
+            : sala.computadores,
+          predio: sala.predio ? { id: sala.predio.id, nome: sala.predio.nome } : null,
+        } : null;
+    
+        const horarioSafe = horario ? {
+          id: horario.id,
+          codigo: horario.codigo,
+          dia_semana: horario.dia_semana,
+        } : null;
+    
         return {
-          ...alocacao,
-          disciplina,
-          professor,
-          sala,
-          horario
+          disciplina: disciplinaSafe,
+          professor: professorSafe,
+          sala: salaSafe,
+          horario: horarioSafe,
+          disciplinaId: alocacao.disciplinaId,
+          professorId: alocacao.professorId,
+          salaId: alocacao.salaId,
+          horarioId: alocacao.horarioId,
+          horarioStr: alocacao.horarioStr
         };
       })
     );

@@ -28,7 +28,7 @@ export const alocacaoParamsSchema = z.object({
 export const createAlocacaoSchema = z
   .object({
     id_user: z.string().uuid("ID do usuário deve ser um UUID válido"),
-    id_disciplina: z.string().uuid("ID da disciplina deve ser um UUID válido"),
+    id_curso_disciplina: z.string().uuid("ID de cursoDisciplina deve ser um UUID válido"),
     id_turma: z.string().uuid("ID da turma deve ser um UUID válido"),
     id_sala: z.string().uuid("ID da sala deve ser um UUID válido"),
     id_horario: z.string().uuid("ID do horário deve ser um UUID válido").optional(),
@@ -50,7 +50,7 @@ export const createAlocacaoSchema = z
 // Schema para atualizar alocação
 export const updateAlocacaoSchema = z.object({
   id_user: z.string().uuid("ID do usuário deve ser um UUID válido").optional(),
-  id_disciplina: z.string().uuid("ID da disciplina deve ser um UUID válido").optional(),
+  id_curso_disciplina: z.string().uuid("ID de cursoDisciplina deve ser um UUID válido").optional(),
   id_turma: z.string().uuid("ID da turma deve ser um UUID válido").optional(),
   id_sala: z.string().uuid("ID da sala deve ser um UUID válido").optional(),
   id_horario: z.string().uuid("ID do horário deve ser um UUID válido").optional(),
@@ -90,6 +90,7 @@ export const excluirAlocacoesTurmaParamsSchema = z.object({
 });
 
 // ===== SCHEMAS DE RESPOSTA =====
+
 
 // Schema para horário na resposta
 export const horarioResponseSchema = z.object({
@@ -167,7 +168,7 @@ export const salaAlocacaoResponseSchema = z.object({
 export const alocacaoResponseSchema = z.object({
   id: z.string(),
   id_user: z.string(),
-  id_disciplina: z.string(),
+  id_curso_disciplina: z.string(),
   id_turma: z.string(),
   id_sala: z.string(),
   id_horario: z.string(),
@@ -179,11 +180,17 @@ export const alocacaoResponseSchema = z.object({
   horario: horarioResponseSchema.optional(),
 });
 
+// Resposta para criação de alocação: único ou múltiplos
+export const createAlocacaoResponseSchema = z.union([
+  z.object({ alocacao: alocacaoResponseSchema, conflitos: z.any().optional() }),
+  z.object({ alocacoes: z.array(alocacaoResponseSchema), conflitos: z.any().optional() }),
+]);
+
 // Schema simples para alocação (sem relacionamentos)
 export const alocacaoSimpleResponseSchema = z.object({
   id: z.string(),
   id_user: z.string(),
-  id_disciplina: z.string(),
+  id_curso_disciplina: z.string(),
   id_turma: z.string(),
   id_sala: z.string(),
   id_horario: z.string(),

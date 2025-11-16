@@ -6,7 +6,7 @@ export async function criarAlocacao(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { id_user, id_disciplina, id_turma, id_sala, id_horario, id_horarios } =
+  const { id_user, id_curso_disciplina, id_turma, id_sala, id_horario, id_horarios } =
     createAlocacaoSchema.parse(request.body);
 
   try {
@@ -15,21 +15,34 @@ export async function criarAlocacao(
     // Normalizar para sempre usar array de horários
     const horariosArray = id_horarios || (id_horario ? [id_horario] : []);
 
-    const { alocacoes } = await criarAlocacaoUseCase.execute({
+    const { alocacoes, conflitos } = await criarAlocacaoUseCase.execute({
       id_user,
-      id_disciplina,
+      id_curso_disciplina,
       id_turma,
       id_sala,
       id_horarios: horariosArray,
     });
 
-    // Se foi um único horário, retornar como objeto único para compatibilidade
+    // Se foi um único horário, tratar retorno único
     if (id_horario) {
-      return reply.status(201).send({ alocacao: alocacoes[0] });
+      if (alocacoes.length === 0) {
+        return reply.status(409).send({
+          message: "Conflito detectado. Nenhuma alocação foi criada para o horário informado.",
+          conflitos,
+        });
+      }
+      return reply.status(201).send({ alocacao: alocacoes[0], conflitos });
     }
 
-    // Se foram múltiplos horários, retornar array
-    return reply.status(201).send({ alocacoes });
+    // Vários horários: criar parcial possível e retornar detalhes dos conflitos
+    if (alocacoes.length === 0) {
+      return reply.status(409).send({
+        message: "Conflitos detectados. Nenhuma alocação foi criada.",
+        conflitos,
+      });
+    }
+
+    return reply.status(201).send({ alocacoes, conflitos });
   } catch (error) {
     throw error;
   }

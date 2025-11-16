@@ -13,7 +13,7 @@ export async function vincularUserCurso(request: FastifyRequest, reply: FastifyR
       id_curso,
     });
 
-    return reply.status(201).send({ userCurso });
+    return reply.status(201).send(userCurso);
   } catch (error) {
     throw error;
   }
