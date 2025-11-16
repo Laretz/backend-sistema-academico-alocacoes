@@ -8,7 +8,7 @@ export async function atualizarAlocacao(
   reply: FastifyReply
 ) {
   const { id } = alocacaoParamsSchema.parse(request.params);
-  const { id_user, id_disciplina, id_turma, id_sala, id_horario } =
+  const { id_user, id_curso_disciplina, id_turma, id_sala, id_horario } =
     updateAlocacaoSchema.parse(request.body);
 
   try {
@@ -17,7 +17,7 @@ export async function atualizarAlocacao(
     const { alocacao } = await atualizarAlocacaoUseCase.execute({
       id,
       id_user,
-      id_disciplina,
+      id_curso_disciplina,
       id_turma,
       id_sala,
       id_horario,

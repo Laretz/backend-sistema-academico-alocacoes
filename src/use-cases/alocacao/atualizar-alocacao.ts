@@ -2,23 +2,27 @@ import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
+import { TurmasRepository } from "../../repositories/turmas-repository";
+import { CursoDisciplinaRepository } from "../../repositories/curso-disciplina-repository";
 
 interface AtualizarAlocacaoUseCaseRequest {
     id: string;
-    id_user: string | undefined;
-    id_disciplina: string | undefined;
-    id_turma: string | undefined;
-    id_sala: string | undefined;
-    id_horario: string | undefined;
+    id_user?: string | undefined;
+    id_curso_disciplina?: string | undefined;
+    id_turma?: string | undefined;
+    id_sala?: string | undefined;
+    id_horario?: string | undefined;
 }
 
 export class AtualizarAlocacaoUseCase {
     constructor(
         private alocacoesRepository: AlocacoesRepository,
-        private disciplinasRepository: DisciplinasRepository
+        private disciplinasRepository: DisciplinasRepository,
+        private turmasRepository: TurmasRepository,
+        private cursoDisciplinaRepository: CursoDisciplinaRepository,
     ) {}
 
-    async execute({ id, id_user, id_disciplina, id_turma, id_sala, id_horario }: AtualizarAlocacaoUseCaseRequest) {
+    async execute({ id, id_user, id_curso_disciplina, id_turma, id_sala, id_horario }: AtualizarAlocacaoUseCaseRequest) {
         const alocacaoExiste = await this.alocacoesRepository.findById(id);
 
         if (!alocacaoExiste) {
@@ -29,6 +33,7 @@ export class AtualizarAlocacaoUseCase {
         const updateData: {
             user?: { connect: { id: string } };
             disciplina?: { connect: { id: string } };
+            cursoDisciplina?: { connect: { id: string } };
             turma?: { connect: { id: string } };
             sala?: { connect: { id: string } };
             horario?: { connect: { id: string } };
@@ -40,9 +45,31 @@ export class AtualizarAlocacaoUseCase {
             };
         }
         
-        if (id_disciplina !== undefined) {
+        let disciplinaIdParaConsolidar: string | undefined = undefined;
+
+        if (id_curso_disciplina !== undefined) {
+            // Validar compatibilidade com turma (se id_turma foi fornecido, usar o novo; senão, usar o existente)
+            const turmaIdParaValidar = id_turma ?? alocacaoExiste.id_turma;
+            const turma = await this.turmasRepository.findById(turmaIdParaValidar);
+            if (!turma) {
+                throw new Error("Turma não encontrada");
+            }
+
+            const cursoDisciplina = await this.cursoDisciplinaRepository.findById(id_curso_disciplina);
+            if (!cursoDisciplina) {
+                throw new Error("CursoDisciplina não encontrado");
+            }
+            if (cursoDisciplina.id_curso !== turma.id_curso) {
+                throw new Error("CursoDisciplina não pertence ao curso da turma");
+            }
+
+            disciplinaIdParaConsolidar = cursoDisciplina.id_disciplina;
+
+            updateData.cursoDisciplina = {
+                connect: { id: id_curso_disciplina }
+            };
             updateData.disciplina = {
-                connect: { id: id_disciplina }
+                connect: { id: cursoDisciplina.id_disciplina }
             };
         }
         
@@ -67,8 +94,8 @@ export class AtualizarAlocacaoUseCase {
         const alocacao = await this.alocacoesRepository.update(id, updateData);
 
         // Gerar horário consolidado automaticamente após atualizar alocação
-        if (id_disciplina !== undefined || alocacaoExiste.id_disciplina) {
-            const disciplinaId = id_disciplina || alocacaoExiste.id_disciplina;
+        const disciplinaId = disciplinaIdParaConsolidar || alocacaoExiste.id_disciplina;
+        if (disciplinaId) {
             const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
             const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
             

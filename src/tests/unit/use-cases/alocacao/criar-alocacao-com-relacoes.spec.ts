@@ -6,12 +6,16 @@ import { InMemoryUsersRepository } from "@/repositories/in-memory/in-memory-user
 import { InMemoryCursosRepository } from "@/repositories/in-memory/in-memory-cursos-repository";
 import { InMemoryUserCursoRepository } from "@/repositories/in-memory/in-memory-user-curso-repository";
 import { VincularUserCursoUseCase } from "@/use-cases/user-curso/vincular-user-curso";
+import { InMemoryTurmasRepository } from "@/repositories/in-memory/in-memory-turmas-repository";
+import { InMemoryCursoDisciplinaRepository } from "@/repositories/in-memory/in-memory-curso-disciplina-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
 let disciplinasRepository: InMemoryDisciplinasRepository;
 let usersRepository: InMemoryUsersRepository;
 let cursosRepository: InMemoryCursosRepository;
 let userCursoRepository: InMemoryUserCursoRepository;
+let turmasRepository: InMemoryTurmasRepository;
+let cursoDisciplinaRepository: InMemoryCursoDisciplinaRepository;
 let sut: CriarAlocacaoUseCase;
 let vincularUserCursoUseCase: VincularUserCursoUseCase;
 
@@ -22,8 +26,15 @@ describe("Criar Alocação com Relações N:N", () => {
     usersRepository = new InMemoryUsersRepository();
     cursosRepository = new InMemoryCursosRepository();
     userCursoRepository = new InMemoryUserCursoRepository();
+    turmasRepository = new InMemoryTurmasRepository();
+    cursoDisciplinaRepository = new InMemoryCursoDisciplinaRepository();
 
-    sut = new CriarAlocacaoUseCase(alocacoesRepository, disciplinasRepository);
+    sut = new CriarAlocacaoUseCase(
+      alocacoesRepository,
+      disciplinasRepository,
+      turmasRepository,
+      cursoDisciplinaRepository
+    );
     vincularUserCursoUseCase = new VincularUserCursoUseCase(
       userCursoRepository,
       usersRepository,
@@ -40,6 +51,18 @@ describe("Criar Alocação com Relações N:N", () => {
       duracao_semestres: 8,
     });
 
+    // Criar turma do curso
+    const turma = await turmasRepository.create({
+      id: "turma-1",
+      nome: "Turma 1",
+      num_alunos: 30,
+      periodo: 1,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: curso.id } },
+    } as any);
+
     // Criar professor
     const professor = await usersRepository.create({
       nome: "Professor Teste",
@@ -55,8 +78,9 @@ describe("Criar Alocação com Relações N:N", () => {
       id_curso: curso.id,
     });
 
-    // Criar disciplina
+    // Criar disciplina do curso e vínculo curso-disciplina
     const disciplina = await disciplinasRepository.create({
+      id: "disciplina-1",
       nome: "Programação I",
       carga_horaria: 60,
       total_aulas: 30,
@@ -69,12 +93,13 @@ describe("Criar Alocação com Relações N:N", () => {
         connect: { id: curso.id },
       },
     });
+    const cursoDisciplina = await cursoDisciplinaRepository.create({ id_curso: curso.id, id_disciplina: disciplina.id });
 
     // Criar alocação
     const { alocacoes } = await sut.execute({
       id_user: professor.id,
-      id_disciplina: disciplina.id,
-      id_turma: "turma-1",
+      id_curso_disciplina: cursoDisciplina.id,
+      id_turma: turma.id,
       id_sala: "sala-1",
       id_horarios: ["horario-1"],
     });
@@ -84,6 +109,7 @@ describe("Criar Alocação com Relações N:N", () => {
       expect.objectContaining({
         id_user: professor.id,
         id_disciplina: disciplina.id,
+        id_curso_disciplina: cursoDisciplina.id,
       })
     );
   });

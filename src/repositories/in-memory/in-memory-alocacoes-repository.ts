@@ -8,18 +8,26 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   public items: AlocacaoWithRelations[] = [];
 
   async create(data: Prisma.AlocacaoCreateInput): Promise<Alocacao> {
+    const idUser = (typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id) ? data.user.connect.id : randomUUID();
+    const idDisciplina = (typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id) ? data.disciplina.connect.id : randomUUID();
+    const idCursoDisciplina = (typeof data.cursoDisciplina === 'object' && 'connect' in data.cursoDisciplina && data.cursoDisciplina.connect?.id) ? data.cursoDisciplina.connect.id : randomUUID();
+    const idTurma = (typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id) ? data.turma.connect.id : randomUUID();
+    const idSala = (typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id) ? data.sala.connect.id : randomUUID();
+    const idHorario = (typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id) ? data.horario.connect.id : randomUUID();
+
     const alocacao: AlocacaoWithRelations = {
       id: randomUUID(),
-      id_user: typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id ? data.user.connect.id : randomUUID(),
-      id_disciplina: typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id ? data.disciplina.connect.id : randomUUID(),
-      id_turma: typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id ? data.turma.connect.id : randomUUID(),
-      id_sala: typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id ? data.sala.connect.id : randomUUID(),
-      id_horario: typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id ? data.horario.connect.id : randomUUID(),
+      id_user: idUser,
+      id_disciplina: idDisciplina,
+      id_curso_disciplina: idCursoDisciplina,
+      id_turma: idTurma,
+      id_sala: idSala,
+      id_horario: idHorario,
       is_modulo_principal: true,
       created_at: new Date(),
       // Dados mockados para as relações - em um teste real, você forneceria estes dados
       user: {
-        id: typeof data.user === 'object' && 'connect' in data.user && data.user.connect?.id ? data.user.connect.id : randomUUID(),
+        id: idUser,
         nome: 'Professor Teste',
         email: 'professor@teste.com',
         senha: 'senha123',
@@ -29,7 +37,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         preferencia: null,
       },
       disciplina: {
-        id: typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id ? data.disciplina.connect.id : randomUUID(),
+        id: idDisciplina,
         nome: 'Disciplina Teste',
         codigo: 'DISC001',
         carga_horaria: 60,
@@ -46,8 +54,13 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         semestre: 1,
         obrigatoria: true,
       },
+      cursoDisciplina: {
+        id: idCursoDisciplina,
+        id_curso: randomUUID(),
+        id_disciplina: idDisciplina,
+      },
       turma: {
-        id: typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id ? data.turma.connect.id : randomUUID(),
+        id: idTurma,
         nome: 'Turma Teste',
         num_alunos: 30,
         periodo: 1,
@@ -56,7 +69,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         ativa: true,
       },
       sala: {
-        id: typeof data.sala === 'object' && 'connect' in data.sala && data.sala.connect?.id ? data.sala.connect.id : randomUUID(),
+        id: idSala,
         nome: 'Sala Teste',
         numero: '101',
         capacidade: 40,
@@ -74,7 +87,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         },
       },
       horario: {
-        id: typeof data.horario === 'object' && 'connect' in data.horario && data.horario.connect?.id ? data.horario.connect.id : randomUUID(),
+        id: idHorario,
         codigo: 'M1',
         dia_semana: 'SEGUNDA',
         horario_inicio: new Date('2024-01-01T08:00:00'),
@@ -166,6 +179,14 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     if (data.disciplina && typeof data.disciplina === 'object' && 'connect' in data.disciplina && data.disciplina.connect?.id) {
       alocacao.id_disciplina = data.disciplina.connect.id;
     }
+    if (data.cursoDisciplina && typeof data.cursoDisciplina === 'object' && 'connect' in data.cursoDisciplina && data.cursoDisciplina.connect?.id) {
+      alocacao.id_curso_disciplina = data.cursoDisciplina.connect.id;
+      alocacao.cursoDisciplina = {
+        id: data.cursoDisciplina.connect.id,
+        id_curso: alocacao.turma.id_curso,
+        id_disciplina: alocacao.id_disciplina,
+      };
+    }
     if (data.turma && typeof data.turma === 'object' && 'connect' in data.turma && data.turma.connect?.id) {
       alocacao.id_turma = data.turma.connect.id;
     }
@@ -196,6 +217,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       id: alocacaoData.id || randomUUID(),
       id_user: alocacaoData.id_user || randomUUID(),
       id_disciplina: alocacaoData.id_disciplina || randomUUID(),
+      id_curso_disciplina: alocacaoData.id_curso_disciplina || randomUUID(),
       id_turma: alocacaoData.id_turma || randomUUID(),
       id_sala: alocacaoData.id_sala || randomUUID(),
       id_horario: alocacaoData.id_horario || randomUUID(),
@@ -228,6 +250,11 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         id_curso: randomUUID(),
         semestre: 1,
         obrigatoria: true,
+      },
+      cursoDisciplina: alocacaoData.cursoDisciplina || {
+        id: alocacaoData.id_curso_disciplina || randomUUID(),
+        id_curso: randomUUID(),
+        id_disciplina: alocacaoData.id_disciplina || randomUUID(),
       },
       turma: alocacaoData.turma || {
         id: alocacaoData.id_turma || randomUUID(),
