@@ -16,6 +16,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -78,6 +79,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -138,6 +140,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -161,6 +164,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -182,6 +186,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -195,8 +200,6 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-
-
   async findAllByTurmaId(id_turma: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
@@ -205,6 +208,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -228,6 +232,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -248,6 +253,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: true,
         horario: true,
@@ -263,6 +269,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -302,6 +309,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {
@@ -342,6 +350,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       include: {
         user: true,
         disciplina: true,
+        cursoDisciplina: true,
         turma: true,
         sala: {
           include: {

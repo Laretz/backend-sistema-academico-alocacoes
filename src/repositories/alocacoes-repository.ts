@@ -30,6 +30,11 @@ export type AlocacaoWithRelations = Alocacao & {
     semestre: number;
     obrigatoria: boolean;
   };
+  cursoDisciplina?: {
+    id: string;
+    id_curso: string;
+    id_disciplina: string;
+  };
   turma: {
     id: string;
     nome: string;

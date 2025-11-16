@@ -16,7 +16,8 @@
     "test:coverage:unit": "vitest run --coverage --project unit --config vitest.config.mts",
     "test:coverage:e2e": "vitest run --coverage --project e2e --config vitest.config.mts",
     "test:ui": "vitest --ui --config vitest.config.mts",
-    "setup:horarios": "tsx src/scripts/criar-horarios-padrao.ts"
+    "setup:horarios": "tsx src/scripts/criar-horarios-padrao.ts",
+    "backfill:alocacao-cursodisciplina": "tsx src/scripts/backfill-alocacao-curso-disciplina.ts"
   },
   "keywords": [],
   "author": "",

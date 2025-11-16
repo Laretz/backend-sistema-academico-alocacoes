@@ -28,6 +28,7 @@ import {
   alocacoesTurmaPeriodoParamsSchema,
   excluirAlocacoesTurmaParamsSchema,
   alocacaoResponseSchema,
+  createAlocacaoResponseSchema,
   alocacoesListResponseSchema,
   gradeHorariosResponseSchema,
   quantidadeAulasProfessorResponseSchema,
@@ -49,7 +50,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
       description: "Cria uma nova alocação de professor, disciplina, turma e sala em horário(s) específico(s)",
       body: createAlocacaoSchema,
       response: {
-        201: alocacaoResponseSchema,
+        201: createAlocacaoResponseSchema,
         400: alocacaoValidationErrorSchema,
         401: invalidTokenErrorSchema,
         403: invalidTokenErrorSchema,

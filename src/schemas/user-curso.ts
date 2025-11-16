@@ -45,25 +45,34 @@ export const userCursoQuerySchema = z.object({
 
 // ===== SCHEMAS DE RESPOSTA =====
 
-// Schema para resposta de curso (usado em buscar cursos do usuário)
+// Schema para resposta de curso (alinhado ao retorno do repositório PrismaUserCursoRepository)
 export const cursoResponseSchema = z.object({
   id: uuidSchema,
-  nome: z.string(),
   codigo: z.string(),
-  descricao: z.string().nullable(),
-  carga_horaria: z.number(),
-  created_at: z.date(),
-  updated_at: z.date()
+  nome: z.string(),
+  turno: z.enum(['MATUTINO', 'VESPERTINO', 'NOTURNO', 'INTEGRAL']),
+  duracao_semestres: z.number(),
+  vinculo: z.object({
+    id: uuidSchema,
+    ativo: z.boolean(),
+    created_at: z.date(),
+  }),
 });
 
-// Schema para resposta de usuário (usado em buscar usuários do curso)
+// Schema para resposta de usuário (alinhado ao retorno do repositório PrismaUserCursoRepository)
 export const usuarioResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
   email: z.string().email(),
   role: z.enum(['ADMIN', 'PROFESSOR', 'COORDENADOR']),
-  created_at: z.date(),
-  updated_at: z.date()
+  especializacao: z.string().nullable(),
+  carga_horaria_max: z.number().nullable(),
+  preferencia: z.string().nullable(),
+  vinculo: z.object({
+    id: uuidSchema,
+    ativo: z.boolean(),
+    created_at: z.date(),
+  }),
 });
 
 // Schema para resposta de vinculação user-curso
@@ -71,6 +80,7 @@ export const userCursoResponseSchema = z.object({
   id: uuidSchema,
   id_user: uuidSchema,
   id_curso: uuidSchema,
+  ativo: z.boolean(),
   created_at: z.date(),
   updated_at: z.date()
 });
@@ -78,17 +88,17 @@ export const userCursoResponseSchema = z.object({
 // Schema para lista de cursos do usuário
 export const cursosUsuarioListResponseSchema = z.object({
   cursos: z.array(cursoResponseSchema),
-  total: z.number(),
-  page: z.number(),
-  limit: z.number(),
-  totalPages: z.number()
+  total: z.number().optional(),
+  page: z.number().optional(),
+  limit: z.number().optional(),
+  totalPages: z.number().optional()
 });
 
 // Schema para lista de usuários do curso
 export const usuariosCursoListResponseSchema = z.object({
   usuarios: z.array(usuarioResponseSchema),
-  total: z.number(),
-  page: z.number(),
-  limit: z.number(),
-  totalPages: z.number()
+  total: z.number().optional(),
+  page: z.number().optional(),
+  limit: z.number().optional(),
+  totalPages: z.number().optional()
 });
