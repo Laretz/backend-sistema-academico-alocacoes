@@ -45,6 +45,7 @@ model User {
   disciplinas       ProfessorDisciplina[]
   cursos            UserCurso[]
   feedbacks         Feedback[]
+  notificacoes      Notificacao[]
 }
 
 model Disciplina {
@@ -213,4 +214,30 @@ model CursoDisciplina {
   alocacoes  Alocacao[]
 
   @@unique([id_curso, id_disciplina])
+}
+
+enum NotificacaoStatus {
+  PENDENTE
+  LIDA
+  RESPONDIDA
+}
+
+enum NotificacaoType {
+  SOLICITACAO_TROCA_SALA
+  GENERICA
+}
+
+model Notificacao {
+  id           String            @id @default(uuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         NotificacaoType
+  title        String
+  message      String
+  status       NotificacaoStatus @default(PENDENTE)
+  replyMessage String?
+  metadata     Json?
+  created_at   DateTime          @default(now())
+  read_at      DateTime?
+  responded_at DateTime?
 }

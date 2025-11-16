@@ -25,6 +25,7 @@ import { routesSalas } from "./controllers/salas/routes";
 import { routesUsers } from "./controllers/users/routes";
 import { routesAlocacoes } from "./controllers/alocacoes/routes";
 import { routesFeedback } from "./controllers/feedback/routes";
+import { routesNotificacoes } from "./controllers/notificacoes/routes";
 
 import { verifyJWT } from "./middlewares/verify-jwt";
 import { verifyUseRole } from "./middlewares/verify-user-role";
@@ -63,6 +64,9 @@ export async function appRoutes(app: FastifyInstance) {
   // Feedback - Rotas para avaliação de usuários
   await app.register(routesFeedback);
 
+  // Notificações - Rotas organizadas com schemas Zod
+  await app.register(routesNotificacoes, { prefix: "/notificacoes" });
+
   // Alocações Genéticas (sem autenticação para testes)
   app.post("/alocacoes/genetica", executeGeneticAllocation);
   app.post("/alocacoes/genetica/preview", previewGeneticAllocation);
@@ -77,8 +81,5 @@ export async function appRoutes(app: FastifyInstance) {
   app.get("/disciplinas/:disciplinaId/modulos", buscarModulosPorDisciplina);
   app.put("/modulos/:id", { onRequest: [verifyJWT] }, atualizarModulo);
   app.delete("/modulos/:id", { onRequest: [verifyJWT] }, excluirModulo);
-
-
-
 
 }
