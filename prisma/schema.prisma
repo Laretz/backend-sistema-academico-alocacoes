@@ -46,6 +46,7 @@ model User {
   cursos            UserCurso[]
   feedbacks         Feedback[]
   notificacoes      Notificacao[]
+  reservasSala      ReservaSala[]
 }
 
 model Disciplina {
@@ -67,7 +68,6 @@ model Disciplina {
   obrigatoria         Boolean               @default(true)
   alocacoes           Alocacao[]
   curso               Curso                 @relation(fields: [id_curso], references: [id])
-  modulos             ModuloDisciplina[]
   professores         ProfessorDisciplina[]
   cursos_vinculos     CursoDisciplina[]
 }
@@ -95,7 +95,7 @@ model Sala {
   predioId     String?
   ativa        Boolean            @default(true)
   alocacoes    Alocacao[]
-  modulos      ModuloDisciplina[]
+  reservas     ReservaSala[]
   predio       Predio?            @relation(fields: [predioId], references: [id])
 }
 
@@ -106,7 +106,7 @@ model Horario {
   horario_inicio DateTime           @map("horarioInicio") @db.Time(6)
   horario_fim    DateTime           @map("horarioFim") @db.Time(6)
   alocacoes      Alocacao[]
-  modulos        ModuloDisciplina[]
+  reservas       ReservaSala[]
 }
 
 model Alocacao {
@@ -131,19 +131,31 @@ model Alocacao {
   @@unique([id_turma, id_horario], name: "uniq_alocacao_turma_horario")
 }
 
-model ModuloDisciplina {
-  id                    String     @id @default(uuid())
-  id_disciplina         String
-  id_alocacao_principal String
-  id_sala               String
-  id_horario            String
-  data_inicio           DateTime
-  data_fim              DateTime
-  ativo                 Boolean    @default(true)
-  created_at            DateTime   @default(now())
-  disciplina            Disciplina @relation(fields: [id_disciplina], references: [id])
-  horario               Horario    @relation(fields: [id_horario], references: [id])
-  sala                  Sala       @relation(fields: [id_sala], references: [id])
+enum ReservaStatus {
+  ATIVA
+  CANCELADA
+}
+
+model ReservaSala {
+  id           String         @id @default(uuid())
+  salaId       String
+  horarioId    String
+  date         DateTime
+  titulo       String
+  descricao    String?
+  criado_por   String
+  status       ReservaStatus  @default(ATIVA)
+  recurrenceRule String?
+  recurrenceEnd DateTime?
+  seriesId     String?
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+
+  sala      Sala    @relation(fields: [salaId], references: [id])
+  horario   Horario @relation(fields: [horarioId], references: [id])
+  criadoPor User    @relation(fields: [criado_por], references: [id])
+
+  @@unique([salaId, horarioId, date], name: "uniq_reserva_sala_horario_date")
 }
 
 model ProfessorDisciplina {

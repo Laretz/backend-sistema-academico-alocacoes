@@ -24,7 +24,7 @@ import {
 export async function routesNotificacoes(app: FastifyTypedInstance) {
   // Coordenador cria solicitação de troca de sala (ou outras notificações)
   app.post(
-    "/notifications",
+    "/",
     {
       preHandler: [verifyJWT, verifyUseRole("COORDENADOR")],
       schema: {
@@ -44,7 +44,7 @@ export async function routesNotificacoes(app: FastifyTypedInstance) {
 
   // Professor lista suas notificações
   app.get(
-    "/notifications",
+    "/",
     {
       preHandler: [verifyJWT],
       schema: {
@@ -64,7 +64,7 @@ export async function routesNotificacoes(app: FastifyTypedInstance) {
 
   // Professor marca notificação como lida
   app.patch(
-    "/notifications/:id/read",
+    "/:id/read",
     {
       preHandler: [verifyJWT],
       schema: {
@@ -85,7 +85,7 @@ export async function routesNotificacoes(app: FastifyTypedInstance) {
 
   // Professor responde a notificação (aceite com mensagem)
   app.post(
-    "/notifications/:id/respond",
+    "/:id/respond",
     {
       preHandler: [verifyJWT],
       schema: {

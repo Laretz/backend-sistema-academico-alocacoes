@@ -6,14 +6,7 @@ import {
   getGeneticAllocationReport,
 } from "./controllers/alocacoes-geneticas";
 import { previewGeneticAllocation } from "./controllers/alocacoes-geneticas-preview";
-import {
-  criarModulo,
-  buscarModulos,
-  buscarModulo,
-  atualizarModulo,
-  excluirModulo,
-  buscarModulosPorDisciplina,
-} from "./controllers/modulos";
+import { routesReservasSala } from "./controllers/reservas-sala/routes";
 import { routesCursos } from "./controllers/cursos/routes";
 import { routesDisciplinas } from "./controllers/disciplinas/routes";
 import { prediosRoutes } from "./controllers/predios/routes";
@@ -67,19 +60,14 @@ export async function appRoutes(app: FastifyInstance) {
   // Notificações - Rotas organizadas com schemas Zod
   await app.register(routesNotificacoes, { prefix: "/notificacoes" });
 
+  // Reservas de Sala - Novas rotas organizadas com schemas Zod
+  await app.register(routesReservasSala);
+
   // Alocações Genéticas (sem autenticação para testes)
   app.post("/alocacoes/genetica", executeGeneticAllocation);
   app.post("/alocacoes/genetica/preview", previewGeneticAllocation);
   app.get("/alocacoes/genetica/:turmaId/status", getGeneticAllocationStatus);
   app.delete("/alocacoes/genetica/:turmaId", cancelGeneticAllocation);
   app.get("/alocacoes/genetica/:turmaId/relatorio", getGeneticAllocationReport);
-
-  // Módulos
-  app.post("/modulos", { onRequest: [verifyJWT] }, criarModulo);
-  app.get("/modulos", buscarModulos);
-  app.get("/modulos/:id", buscarModulo);
-  app.get("/disciplinas/:disciplinaId/modulos", buscarModulosPorDisciplina);
-  app.put("/modulos/:id", { onRequest: [verifyJWT] }, atualizarModulo);
-  app.delete("/modulos/:id", { onRequest: [verifyJWT] }, excluirModulo);
 
 }

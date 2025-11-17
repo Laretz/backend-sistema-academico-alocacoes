@@ -81,9 +81,9 @@ export const errorResponseSchema = z.object({
 
 // Schema de erro de validação
 export const validationErrorResponseSchema = z.object({
-  error: z.string(),
+  code: z.string(),
   message: z.string(),
-  issues: z.array(z.string()).optional(),
+  details: z.unknown().optional(),
 });
 
 // Responses para criar curso
@@ -115,7 +115,6 @@ export const notFoundResponseSchema = z.object({
 });
 
 export const internalServerErrorResponseSchema = z.object({
-  error: z.string().default("Erro interno do servidor"),
   message: z.string().default("Ocorreu um erro inesperado"),
 });
 
