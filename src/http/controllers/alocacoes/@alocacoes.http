@@ -1,10 +1,19 @@
 @baseURL = http://localhost:3333
 @authToken = {{login.response.body.token}}
 
+# @name Login
+POST {{baseURL}}/session
+Content-Type: application/json
+
+{
+  "email": "renatodebone1@email.com",
+  "senha": "123123"
+}
+
 ### 1. Criar nova alocação (horário único)
 POST {{baseURL}}/alocacoes
-Authorization: Bearer {{authToken}}
 Content-Type: application/json
+Authorization: Bearer {{Login.response.body.token}}
 
 {
   "id_user": "550e8400-e29b-41d4-a716-446655440001",
@@ -32,19 +41,20 @@ Content-Type: application/json
 
 ### 3. Listar todas as alocações
 GET {{baseURL}}/alocacoes
-Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Authorization: Bearer {{Login.response.body.token}}
 
 ### 4. Listar alocações com paginação
 GET {{baseURL}}/alocacoes?page=1
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{Login.response.body.token}}
 
 ### 5. Buscar alocação por ID
-GET {{baseURL}}/alocacoes/{{alocacaoId}}
-Authorization: Bearer {{authToken}}
+GET {{baseURL}}/alocacoes/4ab5d3d4-f476-4ef9-b2a5-1a1e538dfc1b
+Authorization: Bearer {{Login.response.body.token}}
 
 ### 6. Buscar alocações por professor
-GET {{baseURL}}/alocacoes/professor/{{professorId}}
-Authorization: Bearer {{authToken}}
+GET {{baseURL}}/alocacoes/professor/71a03754-a644-46e8-9b17-c7440ec4b575
+Authorization: Bearer {{Login.response.body.token}}
 
 ### 7. Buscar alocações por professor com paginação
 GET {{baseURL}}/alocacoes/professor/{{professorId}}?page=1
@@ -92,7 +102,7 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "id_user": "550e8400-e29b-41d4-a716-446655440007",
+  "id_user": "71a03754-a644-46e8-9b17-c7440ec4b575",
   "id_curso_disciplina": "550e8400-e29b-41d4-a716-446655440208",
   "id_turma": "550e8400-e29b-41d4-a716-446655440009",
   "id_sala": "550e8400-e29b-41d4-a716-446655440010",

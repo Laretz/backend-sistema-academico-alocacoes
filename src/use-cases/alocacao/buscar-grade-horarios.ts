@@ -75,41 +75,48 @@ export class BuscarGradeHorariosUseCase {
             sabado: []
         };
 
+        // Garantir robustez contra registros incompletos (evitar 500 por serialização)
         alocacoes.forEach((alocacao: any) => {
+            // Ignora registros sem relação de horário (id_horario nulo)
+            if (!alocacao?.horario) {
+                return;
+            }
+
             const horarioAlocacao: HorarioAlocacao = {
                 id: alocacao.id,
                 dia_semana: alocacao.horario.dia_semana,
                 horario_inicio: alocacao.horario.horario_inicio,
-        horario_fim: alocacao.horario.horario_fim,
+                horario_fim: alocacao.horario.horario_fim,
                 disciplina: {
-                    id: alocacao.disciplina.id,
-                    nome: alocacao.disciplina.nome,
-                    cargaHorariaTotal: alocacao.disciplina.cargaHorariaTotal
+                    id: alocacao.disciplina?.id ?? "",
+                    nome: alocacao.disciplina?.nome ?? "",
+                    // Alinha ao schema: usa carga_horaria do Prisma como cargaHorariaTotal
+                    cargaHorariaTotal: alocacao.disciplina?.carga_horaria ?? 0,
                 },
                 professor: {
-                    id: alocacao.user.id,
-                    nome: alocacao.user.nome,
-                    especializacao: alocacao.user.especializacao
+                    id: alocacao.user?.id ?? "",
+                    nome: alocacao.user?.nome ?? "",
+                    especializacao: alocacao.user?.especializacao ?? null,
                 },
                 sala: {
-                    id: alocacao.sala.id,
-                    nome: alocacao.sala.nome,
-                    predio: alocacao.sala.predio?.nome || '',
-                    capacidade: alocacao.sala.capacidade,
-                    tipo: alocacao.sala.tipo
+                    id: alocacao.sala?.id ?? "",
+                    nome: alocacao.sala?.nome ?? "",
+                    predio: alocacao.sala?.predio?.nome ?? "",
+                    capacidade: alocacao.sala?.capacidade ?? 0,
+                    tipo: alocacao.sala?.tipo ?? "",
                 },
                 turma: {
-                    id: alocacao.turma.id,
-                    nome: alocacao.turma.nome,
-                    num_alunos: alocacao.turma.num_alunos,
-                    periodo: alocacao.turma.periodo,
-                    turno: alocacao.turma.turno
-                }
+                    id: alocacao.turma?.id ?? "",
+                    nome: alocacao.turma?.nome ?? "",
+                    num_alunos: alocacao.turma?.num_alunos ?? 0,
+                    periodo: alocacao.turma?.periodo ?? 0,
+                    turno: alocacao.turma?.turno ?? "",
+                },
             };
 
             // Mapeia o dia da semana para a propriedade correspondente
-            const dia_semana = alocacao.horario.dia_semana.toLowerCase();
-    switch (dia_semana) {
+            const dia_semana = String(alocacao.horario.dia_semana).toLowerCase();
+            switch (dia_semana) {
                 case 'segunda':
                 case 'segunda-feira':
                     gradeHorarios.segunda.push(horarioAlocacao);

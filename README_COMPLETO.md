@@ -409,7 +409,7 @@ DELETE /users/:id      # Excluir usuário
 
 ### 🔐 **Segurança Avançada**
 
-- [ ] Implementar refresh tokens
+- [x] Implementar refresh tokens
 - [ ] Rate limiting para APIs
 - [ ] Logs de auditoria detalhados
 - [ ] Validação de força de senha
@@ -462,7 +462,7 @@ http://localhost:3333/docs
 - [x] **Docker Compose** - Orquestração do banco PostgreSQL ✅
 - [x] **Build Script** - Comando `npm run build` com tsup ✅
 - [x] **Start Script** - Comando `npm start` para produção ✅
-- [ ] CI/CD com GitHub Actions
+- [x] CI/CD com GitHub Actions
 - [ ] Deploy automatizado
 - [ ] Containerização completa
 - [ ] Kubernetes para orquestração
