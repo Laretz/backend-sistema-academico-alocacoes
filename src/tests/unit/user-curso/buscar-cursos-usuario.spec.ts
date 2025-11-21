@@ -22,7 +22,6 @@ describe("Buscar Cursos Usuario Use Case", () => {
   });
 
   it("deve ser possível buscar cursos de um usuário", async () => {
-    // Criar usuário
     const user = await usersRepository.create({
       nome: "João Silva",
       email: "joao@example.com",
@@ -30,78 +29,27 @@ describe("Buscar Cursos Usuario Use Case", () => {
       role: "PROFESSOR",
     });
 
-    // Criar cursos
-    const curso1 = await cursosRepository.create({
-      codigo: "SI",
-      nome: "Sistemas de Informação",
-      turno: "NOTURNO",
-      duracao_semestres: 8,
-    });
+    const curso1 = await cursosRepository.create({ codigo: "SI", nome: "Sistemas de Informação", turno: "NOTURNO", duracao_semestres: 8 });
+    const curso2 = await cursosRepository.create({ codigo: "CC", nome: "Ciência da Computação", turno: "MATUTINO", duracao_semestres: 8 });
+    const curso3 = await cursosRepository.create({ codigo: "ADS", nome: "Análise e Desenvolvimento de Sistemas", turno: "NOTURNO", duracao_semestres: 6 });
 
-    const curso2 = await cursosRepository.create({
-      codigo: "CC",
-      nome: "Ciência da Computação",
-      turno: "MATUTINO",
-      duracao_semestres: 8,
-    });
+    await userCursoRepository.create({ user: { connect: { id: user.id } }, curso: { connect: { id: curso1.id } }, ativo: true });
+    await userCursoRepository.create({ user: { connect: { id: user.id } }, curso: { connect: { id: curso2.id } }, ativo: true });
+    await userCursoRepository.create({ user: { connect: { id: user.id } }, curso: { connect: { id: curso3.id } }, ativo: false });
 
-    const curso3 = await cursosRepository.create({
-      codigo: "ADS",
-      nome: "Análise e Desenvolvimento de Sistemas",
-      turno: "NOTURNO",
-      duracao_semestres: 6,
-    });
-
-    // Criar vínculos
-    await userCursoRepository.create({
-      user: { connect: { id: user.id } },
-      curso: { connect: { id: curso1.id } },
-      ativo: true,
-    });
-
-    await userCursoRepository.create({
-      user: { connect: { id: user.id } },
-      curso: { connect: { id: curso2.id } },
-      ativo: true,
-    });
-
-    // Criar vínculo inativo (não deve aparecer)
-    await userCursoRepository.create({
-      user: { connect: { id: user.id } },
-      curso: { connect: { id: curso3.id } },
-      ativo: false,
-    });
-
-    const { cursos } = await sut.execute({
-      id_user: user.id,
-    });
-
+    const { cursos } = await sut.execute({ id_user: user.id });
     expect(cursos).toHaveLength(2);
     expect(cursos[0]!.id).toEqual(curso1.id);
     expect(cursos[1]!.id).toEqual(curso2.id);
   });
 
   it("não deve ser possível buscar cursos de um usuário inexistente", async () => {
-    await expect(() =>
-      sut.execute({
-        id_user: "user-inexistente",
-      })
-    ).rejects.toBeInstanceOf(RecursoNaoEncontradoError);
+    await expect(() => sut.execute({ id_user: "user-inexistente" })).rejects.toBeInstanceOf(RecursoNaoEncontradoError);
   });
 
   it("deve retornar lista vazia se usuário não tem cursos ativos", async () => {
-    // Criar usuário
-    const user = await usersRepository.create({
-      nome: "Professor Teste",
-      email: "professor@teste.com",
-      senha: "hash",
-      role: "PROFESSOR",
-    });
-
-    const { cursos } = await sut.execute({
-      id_user: user.id,
-    });
-
+    const user = await usersRepository.create({ nome: "Professor Teste", email: "professor@teste.com", senha: "hash", role: "PROFESSOR" });
+    const { cursos } = await sut.execute({ id_user: user.id });
     expect(cursos).toHaveLength(0);
   });
 });

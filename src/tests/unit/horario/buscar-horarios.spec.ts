@@ -38,13 +38,13 @@ describe("BuscarHorariosUseCase", () => {
     const { horarios } = await sut.execute();
     expect(horarios.length).toBe(4);
     // Ordem esperada: SEGUNDA (M2, T2) [por codigo M antes de T], TERCA (M1), QUARTA (N3)
-    expect(horarios[0].dia_semana).toBe("SEGUNDA");
-    expect(horarios[0].codigo).toBe("M2");
-    expect(horarios[1].codigo).toBe("T2");
-    expect(horarios[2].dia_semana).toBe("TERCA");
-    expect(horarios[2].codigo).toBe("M1");
-    expect(horarios[3].dia_semana).toBe("QUARTA");
-    expect(horarios[3].codigo).toBe("N3");
+    expect(horarios[0]!.dia_semana).toBe("SEGUNDA");
+    expect(horarios[0]!.codigo).toBe("M2");
+    expect(horarios[1]!.codigo).toBe("T2");
+    expect(horarios[2]!.dia_semana).toBe("TERCA");
+    expect(horarios[2]!.codigo).toBe("M1");
+    expect(horarios[3]!.dia_semana).toBe("QUARTA");
+    expect(horarios[3]!.codigo).toBe("N3");
   });
 
   it("deve retornar lista vazia quando não houver horários", async () => {

@@ -80,6 +80,9 @@ export class InMemoryHorariosRepository implements HorariosRepository {
     }
 
     const current = this.items[idx];
+    if (!current) {
+      throw new Error("Horario not found");
+    }
     const updated: Horario = {
       ...current,
       codigo: (data.codigo as string) ?? current.codigo,

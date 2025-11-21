@@ -30,21 +30,21 @@ describe("BuscarCargaHorariaProfessoresUseCase", () => {
 
     // cria alocações: prof0 -> 10, prof1 -> 5, prof2 -> 0
     for (let i = 0; i < 10; i++) {
-      await alocRepo.createWithCustomData({ id_user: professorIds[0] });
+      await alocRepo.createWithCustomData({ id_user: professorIds[0]! });
     }
     for (let i = 0; i < 5; i++) {
-      await alocRepo.createWithCustomData({ id_user: professorIds[1] });
+      await alocRepo.createWithCustomData({ id_user: professorIds[1]! });
     }
 
     const sut = new BuscarCargaHorariaProfessoresUseCase(alocRepo, usersRepo);
     const { cargaHoraria } = await sut.execute();
 
-    expect(cargaHoraria[professorIds[0]]).toBe(10);
-    expect(cargaHoraria[professorIds[1]]).toBe(5);
-    expect(cargaHoraria[professorIds[2]]).toBe(0);
+    expect(cargaHoraria[professorIds[0]!]).toBe(10);
+    expect(cargaHoraria[professorIds[1]!]).toBe(5);
+    expect(cargaHoraria[professorIds[2]!]).toBe(0);
     // garante que não há chave para alunos
     // pega um aluno criado e verifica ausência
-    const alunoId = usersRepo.items.find(u => u.role === "ALUNO")!.id;
+    const alunoId = usersRepo.items.find((u) => u.role === "ALUNO")!.id;
     expect(cargaHoraria[alunoId]).toBeUndefined();
   });
 });

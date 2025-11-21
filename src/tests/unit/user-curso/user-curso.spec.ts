@@ -215,10 +215,9 @@ describe("Use Cases UserCurso", () => {
       );
     });
   });
-  // Erros — UserCursoAlreadyExistsError (teste direto)
+
   describe("Erros — UserCursoAlreadyExistsError (teste direto)", () => {
     it("deve instanciar e lançar UserCursoAlreadyExistsError corretamente", async () => {
-      // TODO remover logs após validação
       console.log("[LOG TEST] Instanciando UserCursoAlreadyExistsError");
       const error = new UserCursoAlreadyExistsError();
       expect(error).toBeInstanceOf(Error);

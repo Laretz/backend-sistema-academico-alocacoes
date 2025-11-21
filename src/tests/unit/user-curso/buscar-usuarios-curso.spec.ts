@@ -22,7 +22,6 @@ describe("Buscar Usuarios Curso Use Case", () => {
   });
 
   it("deve ser possível buscar usuários de um curso", async () => {
-    // Criar usuários
     const user1 = await usersRepository.create({
       nome: "João Silva",
       email: "joao@example.com",
@@ -44,7 +43,6 @@ describe("Buscar Usuarios Curso Use Case", () => {
       role: "PROFESSOR",
     });
 
-    // Criar curso
     const curso = await cursosRepository.create({
       codigo: "SI",
       nome: "Sistemas de Informação",
@@ -52,29 +50,11 @@ describe("Buscar Usuarios Curso Use Case", () => {
       duracao_semestres: 8,
     });
 
-    // Criar vínculos
-    await userCursoRepository.create({
-      user: { connect: { id: user1.id } },
-      curso: { connect: { id: curso.id } },
-      ativo: true,
-    });
+    await userCursoRepository.create({ user: { connect: { id: user1.id } }, curso: { connect: { id: curso.id } }, ativo: true });
+    await userCursoRepository.create({ user: { connect: { id: user2.id } }, curso: { connect: { id: curso.id } }, ativo: true });
+    await userCursoRepository.create({ user: { connect: { id: user3.id } }, curso: { connect: { id: curso.id } }, ativo: false });
 
-    await userCursoRepository.create({
-      user: { connect: { id: user2.id } },
-      curso: { connect: { id: curso.id } },
-      ativo: true,
-    });
-
-    // Criar vínculo inativo (não deve aparecer)
-    await userCursoRepository.create({
-      user: { connect: { id: user3.id } },
-      curso: { connect: { id: curso.id } },
-      ativo: false,
-    });
-
-    const { usuarios } = await sut.execute({
-      id_curso: curso.id,
-    });
+    const { usuarios } = await sut.execute({ id_curso: curso.id });
 
     expect(usuarios).toHaveLength(2);
     expect(usuarios[0]!.id).toEqual(user1.id);
@@ -82,15 +62,10 @@ describe("Buscar Usuarios Curso Use Case", () => {
   });
 
   it("não deve ser possível buscar usuários de um curso inexistente", async () => {
-    await expect(() =>
-      sut.execute({
-        id_curso: "curso-inexistente",
-      })
-    ).rejects.toBeInstanceOf(RecursoNaoEncontradoError);
+    await expect(() => sut.execute({ id_curso: "curso-inexistente" })).rejects.toBeInstanceOf(RecursoNaoEncontradoError);
   });
 
   it("deve retornar lista vazia se curso não tem usuários ativos", async () => {
-    // Criar curso
     const curso = await cursosRepository.create({
       codigo: "SI",
       nome: "Sistemas de Informação",
@@ -98,10 +73,7 @@ describe("Buscar Usuarios Curso Use Case", () => {
       duracao_semestres: 8,
     });
 
-    const { usuarios } = await sut.execute({
-      id_curso: curso.id,
-    });
-
+    const { usuarios } = await sut.execute({ id_curso: curso.id });
     expect(usuarios).toHaveLength(0);
   });
 });

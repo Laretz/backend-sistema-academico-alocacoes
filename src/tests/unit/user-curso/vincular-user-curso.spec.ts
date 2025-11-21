@@ -24,7 +24,6 @@ describe("Vincular User Curso Use Case", () => {
   });
 
   it("deve ser possível vincular um usuário a um curso", async () => {
-    // Criar usuário
     const user = await usersRepository.create({
       nome: "Professor Teste",
       email: "professor@teste.com",
@@ -32,7 +31,6 @@ describe("Vincular User Curso Use Case", () => {
       role: "PROFESSOR",
     });
 
-    // Criar curso
     const curso = await cursosRepository.create({
       codigo: "SI",
       nome: "Sistemas de Informação",
@@ -52,7 +50,6 @@ describe("Vincular User Curso Use Case", () => {
   });
 
   it("não deve ser possível vincular um usuário inexistente", async () => {
-    // Criar curso
     const curso = await cursosRepository.create({
       codigo: "SI",
       nome: "Sistemas de Informação",
@@ -69,7 +66,6 @@ describe("Vincular User Curso Use Case", () => {
   });
 
   it("não deve ser possível vincular a um curso inexistente", async () => {
-    // Criar usuário
     const user = await usersRepository.create({
       nome: "Professor Teste",
       email: "professor@teste.com",

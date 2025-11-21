@@ -4,10 +4,18 @@ import { PrismaFeedbackRepository } from "@/repositories/prisma-repositories/pri
 import { InMemoryFeedbackRepository } from "@/repositories/in-memory/in-memory-feedback-repository";
 
 class FakePrismaFeedbackRepository extends PrismaFeedbackRepository {
-  constructor(private mem: InMemoryFeedbackRepository) { super(); }
-  async create(data: any) { return this.mem.create(data); }
-  async findMany(params: any) { return this.mem.findMany(params) as any; }
-  async metrics(params?: { page?: string; feature?: string }) { return this.mem.metrics(params); }
+  constructor(private mem: InMemoryFeedbackRepository) {
+    super();
+  }
+  async create(data: any) {
+    return this.mem.create(data);
+  }
+  async findMany(params: any) {
+    return this.mem.findMany(params) as any;
+  }
+  async metrics(params?: { page?: string; feature?: string }) {
+    return this.mem.metrics(params);
+  }
 }
 
 describe("ListFeedbacksUseCase", () => {
@@ -16,20 +24,41 @@ describe("ListFeedbacksUseCase", () => {
     const repo = new FakePrismaFeedbackRepository(mem);
 
     // cria alguns feedbacks
-    await repo.create({ userId: "u1", npsScore: 10, comment: "a", page: "dashboard", feature: "notificacoes" });
+    await repo.create({
+      userId: "u1",
+      npsScore: 10,
+      comment: "a",
+      page: "dashboard",
+      feature: "notificacoes",
+    });
     await new Promise((r) => setTimeout(r, 2));
-    await repo.create({ userId: "u2", npsScore: 7, comment: "b", page: "dashboard", feature: "relatorios" });
+    await repo.create({
+      userId: "u2",
+      npsScore: 7,
+      comment: "b",
+      page: "dashboard",
+      feature: "relatorios",
+    });
     await new Promise((r) => setTimeout(r, 2));
-    await repo.create({ userId: "u3", npsScore: 5, comment: "c", page: "grades", feature: "notificacoes" });
+    await repo.create({
+      userId: "u3",
+      npsScore: 5,
+      comment: "c",
+      page: "grades",
+      feature: "notificacoes",
+    });
 
     const sut = new ListFeedbacksUseCase(repo);
 
     const { feedbacks: porPage } = await sut.execute({ page: "dashboard" });
     expect(porPage.length).toBe(2);
-    expect(porPage[0].comment).toBe("b"); // último criado primeiro
-    expect(porPage[1].comment).toBe("a");
+    expect(porPage[0]!.comment).toBe("b");
+    expect(porPage[1]!.comment).toBe("a");
 
-    const { feedbacks: porFeatureLimit } = await sut.execute({ feature: "notificacoes", limit: 1 });
+    const { feedbacks: porFeatureLimit } = await sut.execute({
+      feature: "notificacoes",
+      limit: 1,
+    });
     expect(porFeatureLimit.length).toBe(1);
   });
 });

@@ -13,7 +13,6 @@ describe("Desvincular User Curso Use Case", () => {
   });
 
   it("deve ser possível desvincular um usuário de um curso", async () => {
-    // Criar vínculo
     const userCurso = await userCursoRepository.create({
       user: { connect: { id: "user-id" } },
       curso: { connect: { id: "curso-id" } },
@@ -43,7 +42,6 @@ describe("Desvincular User Curso Use Case", () => {
   });
 
   it("não deve ser possível desvincular um vínculo já inativo", async () => {
-    // Criar vínculo inativo
     await userCursoRepository.create({
       user: { connect: { id: "user-id" } },
       curso: { connect: { id: "curso-id" } },
