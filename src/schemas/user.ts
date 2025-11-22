@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Role } from "@prisma/client";
-import { 
-  uuidSchema, 
-  searchSchema, 
+import {
+  uuidSchema,
+  searchSchema,
   sortSchema,
   paginationSchema,
-  nonEmptyStringSchema
+  nonEmptyStringSchema,
 } from "./common";
 
 // ===== SCHEMAS DE REQUEST =====
@@ -19,10 +19,10 @@ export const userParamsSchema = z.object({
 export const registerUserSchema = z.object({
   nome: nonEmptyStringSchema,
   email: z.string().email({
-    message: "Email deve ter um formato válido"
+    message: "Email deve ter um formato válido",
   }),
   senha: z.string().min(6, {
-    message: "Senha deve ter pelo menos 6 caracteres"
+    message: "Senha deve ter pelo menos 6 caracteres",
   }),
   role: z.nativeEnum(Role).optional(),
   especializacao: z.string().optional(),
@@ -33,10 +33,10 @@ export const registerUserSchema = z.object({
 // Schema para autenticação
 export const authenticateUserSchema = z.object({
   email: z.string().email({
-    message: "Email deve ter um formato válido"
+    message: "Email deve ter um formato válido",
   }),
   senha: z.string().min(6, {
-    message: "Senha deve ter pelo menos 6 caracteres"
+    message: "Senha deve ter pelo menos 6 caracteres",
   }),
 });
 
@@ -71,7 +71,7 @@ export const userSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
   email: z.string().email(),
-  role: z.enum(Role),
+  role: z.nativeEnum(Role),
   especializacao: z.string().nullable(),
   carga_horaria_max: z.number().nullable(),
   preferencia: z.string().nullable(),
@@ -103,16 +103,18 @@ export const usersListResponseSchema = z.object({
 
 // Schema de resposta para perfil do usuário
 export const profileResponseSchema = z.object({
-  user: userSchema
+  user: userSchema,
 });
 
 // Schema de resposta para verificação de token
 export const verifyTokenResponseSchema = z.object({
   valid: z.boolean(),
-  user: z.object({
-    id: z.string(),
-    role: z.nativeEnum(Role),
-  }).optional(),
+  user: z
+    .object({
+      id: z.string(),
+      role: z.nativeEnum(Role),
+    })
+    .optional(),
 });
 
 // ===== SCHEMAS DE ERRO =====

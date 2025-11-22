@@ -7,7 +7,7 @@
     "start": "node build/server.js",
     "build": "tsup src/server.ts --out-dir build",
     "test": "npm run test:unit",
-    "test:unit": "vitest run --project unit --config vitest.config.mts",
+    "test:unit": "npx prisma generate && vitest run --project unit --config vitest.config.mts",
     "test:unit:watch": "vitest --project unit --config vitest.config.mts",
     "test:e2e": "npx prisma generate && vitest run --project e2e --config vitest.config.mts",
     "test:e2e:watch": "vitest --project e2e --config vitest.config.mts",
@@ -15,7 +15,7 @@
     "test:coverage": "vitest run --coverage --config vitest.config.mts",
     "test:coverage:unit": "vitest run --coverage --project unit --config vitest.config.mts",
     "test:coverage:e2e": "vitest run --coverage --project e2e --config vitest.config.mts",
-    "test:ui": "vitest --ui --config vitest.config.mts",
+    "test:ui": "npx prisma generate && vitest --ui --config vitest.config.mts --api.host=127.0.0.1 --api.port=3001",
     "setup:horarios": "tsx src/scripts/criar-horarios-padrao.ts",
     "backfill:alocacao-cursodisciplina": "tsx src/scripts/backfill-alocacao-curso-disciplina.ts"
   },

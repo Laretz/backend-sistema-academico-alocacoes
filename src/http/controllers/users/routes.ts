@@ -23,6 +23,7 @@ import {
 import {
   validationErrorResponseSchema,
   internalServerErrorResponseSchema,
+  errorResponseSchema,
 } from "@/schemas/curso";
 
 // Importar controllers
@@ -216,6 +217,7 @@ export async function routesUsers(app: FastifyTypedInstance) {
           401: invalidTokenErrorSchema,
           403: invalidTokenErrorSchema,
           404: userNotFoundErrorSchema,
+          409: errorResponseSchema,
           500: internalServerErrorResponseSchema,
         },
       },

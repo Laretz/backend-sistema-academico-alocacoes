@@ -56,9 +56,8 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
         });
     } catch (error) {
         if (error instanceof CredenciaisInvalidas){
-            return reply.status(400).send({ 
-                error: "Credenciais inválidas",
-                message: error.message 
+            return reply.status(401).send({ 
+                message: "Credenciais inválidas"
             });
         }
         

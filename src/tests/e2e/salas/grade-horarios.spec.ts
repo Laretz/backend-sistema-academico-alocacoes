@@ -40,10 +40,10 @@ describe("Salas - Grade de horários (e2e)", () => {
       .expect(201);
 
     const resGrade = await request(app.server)
-      .get(`/salas/${sala.id}/grade-horarios`)
+      .get(`/grade-horarios?id_sala=${sala.id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
       .expect(200);
 
-    expect(resGrade.body.salaId).toBe(sala.id);
-    expect(typeof resGrade.body.grade).toBe("object");
+    expect(typeof resGrade.body.gradeHorarios).toBe("object");
   });
 });
