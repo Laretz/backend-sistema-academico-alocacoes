@@ -24,6 +24,7 @@ model Curso {
   turno              TurnoCurso
   duracao_semestres  Int
   ativo              Boolean           @default(true)
+  isDeleted          DateTime?
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
   disciplinas        Disciplina[]

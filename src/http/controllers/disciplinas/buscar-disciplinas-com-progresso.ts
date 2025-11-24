@@ -18,17 +18,19 @@ export async function buscarDisciplinasComProgresso(
 
     const buscarDisciplinasComProgressoUseCase =
       makeBuscarDisciplinasComProgressoUseCase();
+      
+    const filtros = {
+      ...(turmaId ? { turmaId } : {}),
+      ...(cursoId ? { cursoId } : {}),
+    };
 
-    const { disciplinas } = await buscarDisciplinasComProgressoUseCase.execute({
-      turmaId,
-      cursoId,
-    });
+    const { disciplinas } = await buscarDisciplinasComProgressoUseCase.execute(filtros);
 
     return reply.status(200).send({
       disciplinas,
     });
   } catch (error) {
-    console.error("Erro ao buscar disciplinas com progresso:", error);
+    console.error("Erro ao buscar disciplinas com progresso:", { turmaId: (request.query as any)?.turmaId, cursoId: (request.query as any)?.cursoId, error });
     return reply.status(500).send({
       message: "Erro interno do servidor",
     });

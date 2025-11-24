@@ -27,11 +27,11 @@ Content-Type: application/json
 }
 
 ### 3. Registrar novo usuário (Coordenador)
-POST {{baseURL}}/users
+POST {{baseURL}}/register
 Content-Type: application/json
 
 {
-  "nome": "Carlos Coordenador",
+  "nome": 1,
   "email": "carlos.coord@email.com",
   "senha": "123456",
   "role": "COORDENADOR",

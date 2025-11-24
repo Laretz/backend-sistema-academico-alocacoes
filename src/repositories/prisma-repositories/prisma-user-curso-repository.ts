@@ -44,7 +44,9 @@ export class PrismaUserCursoRepository implements UserCursoRepository {
       },
     });
 
-    return userCursos.map((uc) => ({
+    const ativos = userCursos.filter((uc) => uc.curso && uc.curso.isDeleted === null);
+
+    return ativos.map((uc) => ({
       id: uc.curso.id,
       codigo: uc.curso.codigo,
       nome: uc.curso.nome,

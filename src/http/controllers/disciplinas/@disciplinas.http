@@ -7,7 +7,7 @@ POST {{baseURL}}/session
 Content-Type: application/json
 
 {
-  "email": "test@admin.com",
+  "email": "admin@admin.com",
   "senha": "123456"
 }
 
@@ -21,7 +21,7 @@ Content-Type: application/json
 ###
 
 # @name GetDisciplinasComProgresso
-GET {{baseURL}}/disciplinas/com-progresso
+GET {{baseURL}}/disciplinas/com-progresso?turmaId=4339c652-1394-415c-a653-0a90a96fa6dd
 Content-Type: application/json
 Authorization: Bearer {{Login.response.body.token}}
 

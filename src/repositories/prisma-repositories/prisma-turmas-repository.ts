@@ -11,8 +11,17 @@ export class PrismaTurmasRepository implements TurmasRepository {
     }
 
     async findById(id: string) {
-        const turma = await prisma.turma.findUnique({
-            where: { id },
+        const turma = await prisma.turma.findFirst({
+            where: { id, curso: { isDeleted: null } },
+            include: {
+                curso: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        codigo: true,
+                    },
+                },
+            },
         });
 
         return turma;
@@ -76,6 +85,8 @@ export class PrismaTurmasRepository implements TurmasRepository {
         if (id_curso) {
             where.id_curso = id_curso;
         }
+
+        where.curso = { isDeleted: null };
 
         const [turmas, total] = await Promise.all([
             prisma.turma.findMany({

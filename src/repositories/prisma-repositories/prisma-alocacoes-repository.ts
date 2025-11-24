@@ -158,6 +158,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        turma: { curso: { isDeleted: null } },
       },
       take: 20,
       skip: (page - 1) * 20,
@@ -182,6 +183,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma: turmaId,
+        turma: { curso: { isDeleted: null } },
       },
       include: {
         user: true,
@@ -204,6 +206,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        turma: { curso: { isDeleted: null } },
       },
       include: {
         user: true,
@@ -339,6 +342,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        turma: { curso: { isDeleted: null } },
         horario: {
           codigo: {
             startsWith: periodo.toUpperCase()

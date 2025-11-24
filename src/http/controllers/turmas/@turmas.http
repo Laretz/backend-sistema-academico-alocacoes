@@ -14,7 +14,7 @@ POST {{baseURL}}/session
 Content-Type: application/json
 
 {
-  "email": "test@admin.com",
+  "email": "admin@admin.com",
   "senha": "123456"
 }
 
@@ -28,7 +28,7 @@ Authorization: Bearer {{Login.response.body.token}}
 ###
 
 # @name GetTurmaById
-GET {{baseURL}}/turmas/8e5e6446-5b31-45c0-865c-b8fe8351c6cc
+GET {{baseURL}}/turmas/4339c652-1394-415c-a653-0a90a96fa6dd
 Content-Type: application/json
 Authorization: Bearer {{Login.response.body.token}}
 

@@ -384,6 +384,7 @@ export class AllocationService {
       const turma = await prisma.turma.findUnique({
         where: { id: turmaId },
         include: {
+          curso: true,
           alocacoes: {
             include: {
               disciplina: true
@@ -394,6 +395,10 @@ export class AllocationService {
 
       if (!turma) {
         throw new Error(`Turma ${turmaId} não encontrada`);
+      }
+
+      if (!turma.curso || turma.curso.isDeleted !== null) {
+        return { success: false, error: 'Turma pertence a curso deletado' } as any;
       }
 
       // Buscar professores vinculados ao curso da turma através da tabela UserCurso

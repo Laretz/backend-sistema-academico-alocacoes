@@ -192,9 +192,9 @@ app.setErrorHandler((error, request, reply) => {
 
     // Erros de serialização de resposta
     if (error.code === 'FST_ERR_RESPONSE_SERIALIZATION') {
-        return reply.status(500).send({
-            error: 'Erro de Resposta',
-            message: 'Ocorreu um erro ao formatar a resposta do servidor.',
+        return reply.status(400).send({
+            error: 'Validation Schema Error',
+            message: 'Schema de resposta inválido: tipos ou estrutura divergentes do contrato.',
             timestamp: new Date().toISOString(),
             path: request.url,
             ...(env.NODE_ENV !== 'prod' && { details: error.message })

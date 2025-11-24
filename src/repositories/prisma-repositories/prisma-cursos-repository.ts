@@ -11,8 +11,8 @@ export class PrismaCursosRepository implements CursosRepository {
     }
 
     async findById(id: string) {
-        const curso = await prisma.curso.findUnique({
-            where: { id },
+        const curso = await prisma.curso.findFirst({
+            where: { id, isDeleted: null },
         });
 
         return curso;
@@ -20,7 +20,7 @@ export class PrismaCursosRepository implements CursosRepository {
 
     async findByNome(nome: string) {
         const curso = await prisma.curso.findFirst({
-            where: { nome },
+            where: { nome, isDeleted: null },
         });
 
         return curso;
@@ -28,7 +28,7 @@ export class PrismaCursosRepository implements CursosRepository {
 
     async findByCodigo(codigo: string) {
         const curso = await prisma.curso.findFirst({
-            where: { codigo },
+            where: { codigo, isDeleted: null },
         });
 
         return curso;
@@ -37,6 +37,7 @@ export class PrismaCursosRepository implements CursosRepository {
     async findMany() {
 
         const cursos = await prisma.curso.findMany({
+            where: { isDeleted: null },
             orderBy: { nome: 'asc' },
         });
 
@@ -56,8 +57,9 @@ export class PrismaCursosRepository implements CursosRepository {
     }
 
     async delete(id: string) {
-        await prisma.curso.delete({
+        await prisma.curso.update({
             where: { id },
+            data: { isDeleted: new Date() },
         });
     }
 }
