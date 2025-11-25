@@ -16,19 +16,42 @@ export const userParamsSchema = z.object({
 });
 
 // Schema para registro de usuário
-export const registerUserSchema = z.object({
-  nome: nonEmptyStringSchema,
-  email: z.string().email({
-    message: "Email deve ter um formato válido",
-  }),
-  senha: z.string().min(6, {
-    message: "Senha deve ter pelo menos 6 caracteres",
-  }),
-  role: z.nativeEnum(Role).optional(),
-  especializacao: z.string().optional(),
-  carga_horaria_max: z.number().positive().optional(),
-  preferencia: z.string().optional(),
-});
+export const registerUserSchema = z
+  .object({
+    nome: nonEmptyStringSchema,
+    email: z.string().email({
+      message: "Email deve ter um formato válido",
+    }),
+    senha: z.string().min(6, {
+      message: "Senha deve ter pelo menos 6 caracteres",
+    }),
+    role: z.nativeEnum(Role).optional(),
+    especializacao: z.string().optional(),
+    carga_horaria_max: z.number().positive().optional(),
+    preferencia: z.string().optional(),
+  })
+  .transform((data) => {
+    const cleaned: {
+      nome: string;
+      email: string;
+      senha: string;
+      role?: Role;
+      especializacao?: string;
+      carga_horaria_max?: number;
+      preferencia?: string;
+    } = {
+      nome: data.nome,
+      email: data.email,
+      senha: data.senha,
+    };
+
+    if (data.role !== undefined) cleaned.role = data.role;
+    if (data.especializacao !== undefined) cleaned.especializacao = data.especializacao;
+    if (data.carga_horaria_max !== undefined) cleaned.carga_horaria_max = data.carga_horaria_max;
+    if (data.preferencia !== undefined) cleaned.preferencia = data.preferencia;
+
+    return cleaned;
+  });
 
 // Schema para autenticação
 export const authenticateUserSchema = z.object({

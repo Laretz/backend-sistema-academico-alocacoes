@@ -20,7 +20,10 @@ export class BuscarCargaHorariaProfessoresUseCase {
     } while (usuariosPagina.length === 20);
 
     const professores = todosUsuarios.filter(
-      (user) => user.role === "PROFESSOR"
+      (user) =>
+        user.role === "PROFESSOR" ||
+        user.role === "ADMIN" ||
+        user.role === "COORDENADOR"
     );
 
     const cargaHoraria: Record<string, number> = {};
@@ -28,7 +31,7 @@ export class BuscarCargaHorariaProfessoresUseCase {
     // Para cada professor, contar suas alocações
     for (const professor of professores) {
       try {
-        // Buscar todas as alocações do professor (sem paginação)
+        // Buscar todas as alocaçõe
         let todasAlocacoes = [];
         let page = 1;
         let alocacoesPagina;
