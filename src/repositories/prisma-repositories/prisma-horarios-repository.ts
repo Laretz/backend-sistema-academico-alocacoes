@@ -34,7 +34,7 @@ export class PrismaHorariosRepository implements HorariosRepository {
     return horario;
   }
 
-  async findMany(page?: number) {
+  async findMany(page?: number, regime?: 'SUPERIOR' | 'TECNICO') {
     // Definir ordem dos dias da semana
     const ordemDias = {
       'SEGUNDA': 1,
@@ -46,6 +46,7 @@ export class PrismaHorariosRepository implements HorariosRepository {
     };
 
     const horarios = await prisma.horario.findMany({
+      where: regime ? { regime } : undefined,
       // Remover limitação de 20 registros para buscar todos
       // take: 20,
       // skip: (page - 1) * 20,
@@ -85,6 +86,49 @@ export class PrismaHorariosRepository implements HorariosRepository {
       
       return getOrdemCodigo(a.codigo) - getOrdemCodigo(b.codigo);
     });
+  }
+
+  async findManyWithFilters(params: { page: number; limit: number; regime?: 'SUPERIOR' | 'TECNICO'; dia_semana?: string }) {
+    const where: any = {};
+    if (params.regime) where.regime = params.regime;
+    if (params.dia_semana) where.dia_semana = params.dia_semana;
+
+    const total = await prisma.horario.count({ where });
+
+    const itens = await prisma.horario.findMany({
+      where,
+      skip: (params.page - 1) * params.limit,
+      take: params.limit,
+      orderBy: [
+        { dia_semana: 'asc' },
+        { codigo: 'asc' }
+      ]
+    });
+
+    const ordemDias = {
+      'SEGUNDA': 1,
+      'TERCA': 2,
+      'QUARTA': 3,
+      'QUINTA': 4,
+      'SEXTA': 5,
+      'SABADO': 6
+    } as const;
+
+    const getOrdemCodigo = (codigo: string) => {
+      const periodo = codigo.charAt(0);
+      const numero = parseInt(codigo.charAt(1)) || 0;
+      const ordemPeriodo = { 'M': 0, 'T': 1, 'N': 2 } as const;
+      return (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 3) * 10 + numero;
+    };
+
+    const horarios = itens.sort((a, b) => {
+      const diaA = ordemDias[a.dia_semana as keyof typeof ordemDias] || 7;
+      const diaB = ordemDias[b.dia_semana as keyof typeof ordemDias] || 7;
+      if (diaA !== diaB) return diaA - diaB;
+      return getOrdemCodigo(a.codigo) - getOrdemCodigo(b.codigo);
+    });
+
+    return { horarios, total };
   }
 
   async update(id: string, data: Prisma.HorarioUpdateInput) {

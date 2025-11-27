@@ -1,6 +1,7 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
+import { HorariosRepository } from "../../repositories/horarios-repository";
 import { TurmasRepository } from "../../repositories/turmas-repository";
 import { CursoDisciplinaRepository } from "../../repositories/curso-disciplina-repository";
 
@@ -18,6 +19,7 @@ export class CriarAlocacaoUseCase {
         private disciplinasRepository: DisciplinasRepository,
         private turmasRepository: TurmasRepository,
         private cursoDisciplinaRepository: CursoDisciplinaRepository,
+        private horariosRepository: HorariosRepository,
     ) {}
 
     async execute({ id_user, id_curso_disciplina, id_turma, id_sala, id_horarios }: CriarAlocacaoUseCaseRequest) {
@@ -42,6 +44,31 @@ export class CriarAlocacaoUseCase {
 
         // Percorrer horários, criar apenas os válidos; em caso de conflito, lançar erro conforme testes
         for (const id_horario of id_horarios) {
+            const horarioSelecionado = await this.horariosRepository.findById(id_horario);
+            if (horarioSelecionado) {
+                const dia = horarioSelecionado.dia_semana;
+                const inicio = new Date(horarioSelecionado.horario_inicio);
+                const fim = new Date(horarioSelecionado.horario_fim);
+
+                const overlapSala = await this.alocacoesRepository.findOverlapBySala(id_sala, dia, inicio, fim);
+                if (overlapSala) {
+                    const h = await this.horariosRepository.findById(overlapSala.id_horario);
+                    throw new Error(`Conflito temporal: sala já ocupada em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
+                }
+
+                const overlapUser = await this.alocacoesRepository.findOverlapByUser(id_user, dia, inicio, fim);
+                if (overlapUser) {
+                    const h = await this.horariosRepository.findById(overlapUser.id_horario);
+                    throw new Error(`Conflito temporal: professor já alocado em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
+                }
+
+                const overlapTurma = await this.alocacoesRepository.findOverlapByTurma(id_turma, dia, inicio, fim);
+                if (overlapTurma) {
+                    const h = await this.horariosRepository.findById(overlapTurma.id_horario);
+                    throw new Error(`Conflito temporal: turma já alocada em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
+                }
+            }
+
             // Verificar se professor já tem alocação neste horário
             const conflitoUser = await this.alocacoesRepository.findByUserIdAndHorarioId(id_user, id_horario);
             if (conflitoUser) {

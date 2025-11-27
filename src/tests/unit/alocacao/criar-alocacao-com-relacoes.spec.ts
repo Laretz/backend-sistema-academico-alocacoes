@@ -8,6 +8,7 @@ import { InMemoryUserCursoRepository } from "@/repositories/in-memory/in-memory-
 import { VincularUserCursoUseCase } from "@/use-cases/user-curso/vincular-user-curso";
 import { InMemoryTurmasRepository } from "@/repositories/in-memory/in-memory-turmas-repository";
 import { InMemoryCursoDisciplinaRepository } from "@/repositories/in-memory/in-memory-curso-disciplina-repository";
+import { InMemoryHorariosRepository } from "@/repositories/in-memory/in-memory-horarios-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
 let disciplinasRepository: InMemoryDisciplinasRepository;
@@ -16,6 +17,7 @@ let cursosRepository: InMemoryCursosRepository;
 let userCursoRepository: InMemoryUserCursoRepository;
 let turmasRepository: InMemoryTurmasRepository;
 let cursoDisciplinaRepository: InMemoryCursoDisciplinaRepository;
+let horariosRepository: InMemoryHorariosRepository;
 let sut: CriarAlocacaoUseCase;
 let vincularUserCursoUseCase: VincularUserCursoUseCase;
 
@@ -28,12 +30,14 @@ describe("Criar Alocação com Relações N:N", () => {
     userCursoRepository = new InMemoryUserCursoRepository();
     turmasRepository = new InMemoryTurmasRepository();
     cursoDisciplinaRepository = new InMemoryCursoDisciplinaRepository();
+    horariosRepository = new InMemoryHorariosRepository();
 
     sut = new CriarAlocacaoUseCase(
       alocacoesRepository,
       disciplinasRepository,
       turmasRepository,
-      cursoDisciplinaRepository
+      cursoDisciplinaRepository,
+      horariosRepository
     );
     vincularUserCursoUseCase = new VincularUserCursoUseCase(
       userCursoRepository,

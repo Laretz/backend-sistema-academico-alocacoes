@@ -73,6 +73,43 @@ export class InMemoryHorariosRepository implements HorariosRepository {
     return sorted.slice(startIndex, endIndex);
   }
 
+  async findManyWithFilters(params: { page: number; limit: number; regime?: 'SUPERIOR' | 'TECNICO'; dia_semana?: string }): Promise<{ horarios: Horario[]; total: number }> {
+    const ordemDias: Record<string, number> = {
+      SEGUNDA: 1,
+      TERCA: 2,
+      QUARTA: 3,
+      QUINTA: 4,
+      SEXTA: 5,
+      SABADO: 6,
+    };
+
+    const getOrdemCodigo = (codigo: string) => {
+      const periodo = codigo.charAt(0);
+      const numero = parseInt(codigo.charAt(1)) || 0;
+      const ordemPeriodo: Record<string, number> = { M: 0, T: 1, N: 2 };
+      return (ordemPeriodo[periodo] ?? 3) * 10 + numero;
+    };
+
+    let filtered = [...this.items];
+    if (params.dia_semana) filtered = filtered.filter(h => h.dia_semana === params.dia_semana);
+    if (params.regime) filtered = filtered.filter((h: any) => h.regime === params.regime);
+
+    const total = filtered.length;
+
+    const sorted = filtered.sort((a, b) => {
+      const diaA = ordemDias[a.dia_semana] ?? 7;
+      const diaB = ordemDias[b.dia_semana] ?? 7;
+      if (diaA !== diaB) return diaA - diaB;
+      return getOrdemCodigo(a.codigo) - getOrdemCodigo(b.codigo);
+    });
+
+    const startIndex = (params.page - 1) * params.limit;
+    const endIndex = startIndex + params.limit;
+    const horarios = sorted.slice(startIndex, endIndex);
+
+    return { horarios, total };
+  }
+
   async update(id: string, data: Prisma.HorarioUpdateInput): Promise<Horario> {
     const idx = this.items.findIndex((h) => h.id === id);
     if (idx === -1) {

@@ -17,6 +17,7 @@
     "test:coverage:e2e": "vitest run --coverage --project e2e --config vitest.config.mts",
     "test:ui": "npx prisma generate && vitest --ui --config vitest.config.mts --api.host=127.0.0.1 --api.port=3001",
     "setup:horarios": "tsx src/scripts/criar-horarios-padrao.ts",
+    "setup:horarios:tecnico": "tsx src/scripts/criar-horarios-tecnico.ts",
     "backfill:alocacao-cursodisciplina": "tsx src/scripts/backfill-alocacao-curso-disciplina.ts"
   },
   "keywords": [],

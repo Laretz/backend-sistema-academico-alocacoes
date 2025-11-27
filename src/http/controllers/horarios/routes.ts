@@ -44,7 +44,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarHorario,
+    criarHorario
   );
 
   // POST /horarios/codigo - Criar horário por código
@@ -63,7 +63,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarHorarioCodigo,
+    criarHorarioCodigo
   );
 
   // GET /horarios - Buscar todos os horários
@@ -82,7 +82,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarHorarios,
+    buscarHorarios
   );
 
   // GET /horarios/:id - Buscar horário por ID
@@ -102,7 +102,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarHorario,
+    buscarHorario
   );
 
   // PUT /horarios/:id - Atualizar horário
@@ -123,7 +123,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    atualizarHorario,
+    atualizarHorario
   );
 
   // DELETE /horarios/:id - Excluir horário
@@ -143,6 +143,6 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    excluirHorario,
+    excluirHorario
   );
-}
+};

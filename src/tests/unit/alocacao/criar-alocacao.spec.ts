@@ -4,11 +4,13 @@ import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-
 import { InMemoryDisciplinasRepository } from "@/repositories/in-memory/in-memory-disciplinas-repository";
 import { InMemoryTurmasRepository } from "@/repositories/in-memory/in-memory-turmas-repository";
 import { InMemoryCursoDisciplinaRepository } from "@/repositories/in-memory/in-memory-curso-disciplina-repository";
+import { InMemoryHorariosRepository } from "@/repositories/in-memory/in-memory-horarios-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
 let disciplinasRepository: InMemoryDisciplinasRepository;
 let turmasRepository: InMemoryTurmasRepository;
 let cursoDisciplinaRepository: InMemoryCursoDisciplinaRepository;
+let horariosRepository: InMemoryHorariosRepository;
 let sut: CriarAlocacaoUseCase;
 
 describe("Criar Alocação Use Case", () => {
@@ -17,11 +19,13 @@ describe("Criar Alocação Use Case", () => {
     disciplinasRepository = new InMemoryDisciplinasRepository();
     turmasRepository = new InMemoryTurmasRepository();
     cursoDisciplinaRepository = new InMemoryCursoDisciplinaRepository();
+    horariosRepository = new InMemoryHorariosRepository();
     sut = new CriarAlocacaoUseCase(
       alocacoesRepository,
       disciplinasRepository,
       turmasRepository,
-      cursoDisciplinaRepository
+      cursoDisciplinaRepository,
+      horariosRepository
     );
   });
 

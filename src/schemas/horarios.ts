@@ -51,6 +51,7 @@ export const buscarHorariosQuerySchema = z.object({
   ...paginationSchema.shape,
   ...searchSchema.shape,
   dia_semana: z.string().optional(),
+  regime: z.enum(["SUPERIOR", "TECNICO"]).optional(),
   ...sortSchema.shape,
   orderBy: z.enum(["codigo", "dia_semana", "horario_inicio", "horario_fim", "created_at"]).default("codigo"),
 });
@@ -65,6 +66,7 @@ export const horarioResponseSchema = z.object({
   dia_semana: z.string(),
   horario_inicio: dateToStringTransform,
   horario_fim: dateToStringTransform,
+  regime: z.enum(["SUPERIOR", "TECNICO"]).optional(),
 });
 
 export const horariosListResponseSchema = z.object({

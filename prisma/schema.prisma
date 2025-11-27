@@ -106,6 +106,7 @@ model Horario {
   dia_semana     String
   horario_inicio DateTime           @map("horarioInicio") @db.Time(6)
   horario_fim    DateTime           @map("horarioFim") @db.Time(6)
+  regime         RegimeHorario      @default(SUPERIOR)
   alocacoes      Alocacao[]
   reservas       ReservaSala[]
 }
@@ -201,6 +202,11 @@ enum TurnoCurso {
   VESPERTINO
   NOTURNO
   INTEGRAL
+}
+
+enum RegimeHorario {
+  SUPERIOR
+  TECNICO
 }
 
 model Feedback {

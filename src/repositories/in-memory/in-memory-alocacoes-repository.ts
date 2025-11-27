@@ -300,6 +300,48 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return this.items.filter(item => item.id_disciplina === id_disciplina);
   }
 
+  async findOverlapBySala(id_sala: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null> {
+    const inicioTime = new Date(inicio).getTime();
+    const fimTime = new Date(fim).getTime();
+    const found = this.items.find(item => {
+      return (
+        item.id_sala === id_sala &&
+        item.horario?.dia_semana === dia_semana &&
+        new Date(item.horario.horario_inicio).getTime() < fimTime &&
+        new Date(item.horario.horario_fim).getTime() > inicioTime
+      );
+    });
+    return found || null;
+  }
+
+  async findOverlapByUser(id_user: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null> {
+    const inicioTime = new Date(inicio).getTime();
+    const fimTime = new Date(fim).getTime();
+    const found = this.items.find(item => {
+      return (
+        item.id_user === id_user &&
+        item.horario?.dia_semana === dia_semana &&
+        new Date(item.horario.horario_inicio).getTime() < fimTime &&
+        new Date(item.horario.horario_fim).getTime() > inicioTime
+      );
+    });
+    return found || null;
+  }
+
+  async findOverlapByTurma(id_turma: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null> {
+    const inicioTime = new Date(inicio).getTime();
+    const fimTime = new Date(fim).getTime();
+    const found = this.items.find(item => {
+      return (
+        item.id_turma === id_turma &&
+        item.horario?.dia_semana === dia_semana &&
+        new Date(item.horario.horario_inicio).getTime() < fimTime &&
+        new Date(item.horario.horario_fim).getTime() > inicioTime
+      );
+    });
+    return found || null;
+  }
+
   async findByPeriodoManha(page: number): Promise<AlocacaoWithRelations[]> {
     // Filtra alocações do período da manhã (horários que começam antes das 12:00)
     const alocacoesManha = this.items.filter(item => {

@@ -63,6 +63,51 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
+  async findOverlapBySala(id_sala: string, dia_semana: string, inicio: Date, fim: Date) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_sala,
+        horario: {
+          dia_semana,
+          horario_inicio: { lt: fim },
+          horario_fim: { gt: inicio },
+        },
+      },
+      include: { horario: true, sala: true },
+    });
+    return alocacao || null;
+  }
+
+  async findOverlapByUser(id_user: string, dia_semana: string, inicio: Date, fim: Date) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_user,
+        horario: {
+          dia_semana,
+          horario_inicio: { lt: fim },
+          horario_fim: { gt: inicio },
+        },
+      },
+      include: { horario: true, user: true },
+    });
+    return alocacao || null;
+  }
+
+  async findOverlapByTurma(id_turma: string, dia_semana: string, inicio: Date, fim: Date) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: {
+        id_turma,
+        horario: {
+          dia_semana,
+          horario_inicio: { lt: fim },
+          horario_fim: { gt: inicio },
+        },
+      },
+      include: { horario: true, turma: true },
+    });
+    return alocacao || null;
+  }
+
   async findMany(page: number) {
     const ordemDias = {
       SEGUNDA: 1,

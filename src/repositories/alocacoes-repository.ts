@@ -77,6 +77,9 @@ export interface AlocacoesRepository {
     findByUserIdAndHorarioId(id_user: string, id_horario: string): Promise<Alocacao | null>
     findBySalaIdAndHorarioId(id_sala: string, id_horario: string): Promise<Alocacao | null>
     findByTurmaIdAndHorarioId(id_turma: string, id_horario: string): Promise<Alocacao | null>
+    findOverlapBySala(id_sala: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null>
+    findOverlapByUser(id_user: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null>
+    findOverlapByTurma(id_turma: string, dia_semana: string, inicio: Date, fim: Date): Promise<Alocacao | null>
     findMany(page: number): Promise<AlocacaoWithRelations[]>
     findByUserId(id_user: string, page: number): Promise<AlocacaoWithRelations[]>
     findByTurmaId(id_turma: string, page: number): Promise<AlocacaoWithRelations[]>
