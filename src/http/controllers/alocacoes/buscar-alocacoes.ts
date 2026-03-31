@@ -6,13 +6,14 @@ export async function buscarAlocacoes(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { page } = alocacoesQuerySchema.parse(request.query);
+  const { page, id_turma } = alocacoesQuerySchema.parse(request.query);
 
   try {
     const buscarAlocacoesUseCase = makeBuscarAlocacoesUseCase();
 
     const { alocacoes } = await buscarAlocacoesUseCase.execute({
       page,
+      id_turma,
     });
 
     return reply.status(200).send({ alocacoes });

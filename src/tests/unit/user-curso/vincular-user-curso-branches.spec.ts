@@ -27,18 +27,22 @@ class FakeCursosRepo implements CursosRepository {
   async findById(id: string) {
     return this.items.find((i) => i.id === id) ?? null;
   }
+  async findByNome(nome: string) {
+    return this.items.find((i) => i.nome === nome) ?? null;
+  }
+  async findByCodigo(codigo: string) {
+    return this.items.find((i) => i.codigo === codigo) ?? null;
+  }
   create: any;
   update: any;
   delete: any;
-  async findMany(page: number) {
+  async findMany() {
     return this.items as any;
   }
 }
 
 class FakeUserCursoRepo implements UserCursoRepository {
-  findCursosByUser(
-    id_user: string
-  ): Promise<
+  findCursosByUser(id_user: string): Promise<
     Array<{
       id: string;
       codigo: string;
@@ -50,9 +54,7 @@ class FakeUserCursoRepo implements UserCursoRepository {
   > {
     throw new Error("Method not implemented.");
   }
-  findUsuariosByCurso(
-    id_curso: string
-  ): Promise<
+  findUsuariosByCurso(id_curso: string): Promise<
     Array<{
       id: string;
       nome: string;
@@ -106,7 +108,7 @@ describe("VincularUserCursoUseCase — reativar e retornar existente", () => {
     const sut = new VincularUserCursoUseCase(
       userCurso as any,
       users as any,
-      cursos as any
+      cursos as any,
     );
     const { userCurso: vinculo } = await sut.execute({
       id_user: "u1",
@@ -130,7 +132,7 @@ describe("VincularUserCursoUseCase — reativar e retornar existente", () => {
     const sut = new VincularUserCursoUseCase(
       userCurso as any,
       users as any,
-      cursos as any
+      cursos as any,
     );
     const { userCurso: vinculo } = await sut.execute({
       id_user: "u1",

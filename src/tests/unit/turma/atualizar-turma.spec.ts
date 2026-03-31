@@ -16,8 +16,8 @@ describe("Atualizar Turma Use Case", () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
+      semestre: 1,
       curso: {
         connect: {
           id: "curso-id-teste",
@@ -29,14 +29,14 @@ describe("Atualizar Turma Use Case", () => {
       id: turmaCriada.id,
       nome: "Turma A Atualizada",
       num_alunos: 35,
-      periodo: 2,
       turno: "VESPERTINO",
+      semestre: 2,
     });
 
     expect(turma.id).toEqual(turmaCriada.id);
     expect(turma.nome).toEqual("Turma A Atualizada");
     expect(turma.num_alunos).toEqual(35);
-    expect(turma.periodo).toEqual(2);
+    expect(turma.semestre).toEqual(2);
     expect(turma.turno).toEqual("VESPERTINO");
   });
 
@@ -44,8 +44,8 @@ describe("Atualizar Turma Use Case", () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
+      semestre: 1,
       curso: {
         connect: {
           id: "curso-id-teste",
@@ -60,7 +60,7 @@ describe("Atualizar Turma Use Case", () => {
 
     expect(turma.nome).toEqual("Novo Nome");
     expect(turma.num_alunos).toEqual(30); // Mantém valor original
-    expect(turma.periodo).toEqual(1); // Mantém valor original
+    expect(turma.semestre).toEqual(1); // Mantém valor original
     expect(turma.turno).toEqual("MATUTINO"); // Mantém valor original
   });
 
@@ -68,8 +68,8 @@ describe("Atualizar Turma Use Case", () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
+      semestre: 1,
       curso: {
         connect: {
           id: "curso-id-teste",
@@ -84,16 +84,16 @@ describe("Atualizar Turma Use Case", () => {
 
     expect(turma.nome).toEqual("Turma A"); // Mantém valor original
     expect(turma.num_alunos).toEqual(40);
-    expect(turma.periodo).toEqual(1); // Mantém valor original
+    expect(turma.semestre).toEqual(1); // Mantém valor original
     expect(turma.turno).toEqual("MATUTINO"); // Mantém valor original
   });
 
-  it("deve ser possível atualizar apenas o período", async () => {
+  it("deve ser possível atualizar apenas o semestre", async () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
+      semestre: 1,
       curso: {
         connect: {
           id: "curso-id-teste",
@@ -103,12 +103,12 @@ describe("Atualizar Turma Use Case", () => {
 
     const { turma } = await sut.execute({
       id: turmaCriada.id,
-      periodo: 3,
+      semestre: 3,
     });
 
     expect(turma.nome).toEqual("Turma A"); // Mantém valor original
     expect(turma.num_alunos).toEqual(30); // Mantém valor original
-    expect(turma.periodo).toEqual(3);
+    expect(turma.semestre).toEqual(3);
     expect(turma.turno).toEqual("MATUTINO"); // Mantém valor original
   });
 
@@ -116,8 +116,8 @@ describe("Atualizar Turma Use Case", () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
+      semestre: 1,
       curso: {
         connect: {
           id: "curso-id-teste",
@@ -132,7 +132,7 @@ describe("Atualizar Turma Use Case", () => {
 
     expect(turma.nome).toEqual("Turma A"); // Mantém valor original
     expect(turma.num_alunos).toEqual(30); // Mantém valor original
-    expect(turma.periodo).toEqual(1); // Mantém valor original
+    expect(turma.semestre).toEqual(1); // Mantém valor original
     expect(turma.turno).toEqual("NOTURNO");
   });
 
@@ -141,7 +141,7 @@ describe("Atualizar Turma Use Case", () => {
       sut.execute({
         id: "id-inexistente",
         nome: "Novo Nome",
-      })
+      }),
     ).rejects.toBeInstanceOf(RecursoNaoEncontradoError);
   });
 
@@ -149,7 +149,7 @@ describe("Atualizar Turma Use Case", () => {
     const turmaCriada = await turmasRepository.create({
       nome: "Turma Original",
       num_alunos: 25,
-      periodo: 2,
+      semestre: 2,
       turno: "VESPERTINO",
       curso: {
         connect: {
@@ -164,7 +164,7 @@ describe("Atualizar Turma Use Case", () => {
 
     expect(turma.nome).toEqual("Turma Original");
     expect(turma.num_alunos).toEqual(25);
-    expect(turma.periodo).toEqual(2);
+    expect(turma.semestre).toEqual(2);
     expect(turma.turno).toEqual("VESPERTINO");
   });
 });

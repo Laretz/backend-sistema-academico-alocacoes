@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getStatsUseCase } from '@/use-cases/stats/get-stats';
+import { GetStatsUseCase } from '@/use-cases/stats/get-stats';
 
 // Mock do prisma
 vi.mock('@/lib/prisma', () => {
@@ -24,11 +24,14 @@ vi.mock('@/lib/prisma', () => {
   };
 });
 
-describe('getStatsUseCase', () => {
+describe('GetStatsUseCase', () => {
+  let sut: GetStatsUseCase;
+
   beforeEach(() => {
     vi.useFakeTimers();
     // Fixar data em uma terça-feira (2024-01-02)
     vi.setSystemTime(new Date('2024-01-02T10:30:00Z'));
+    sut = new GetStatsUseCase();
   });
 
   afterEach(() => {
@@ -36,7 +39,7 @@ describe('getStatsUseCase', () => {
   });
 
   it('deve retornar totais e métricas do dia corretamente', async () => {
-    const result = await getStatsUseCase();
+    const result = await sut.execute();
 
     expect(result.totals.usuarios).toBe(10);
     expect(result.totals.cursos).toBe(5);

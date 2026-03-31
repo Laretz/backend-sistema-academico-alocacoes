@@ -318,7 +318,6 @@ async function popularBancoCompleto() {
         data: {
           nome: 'TADS 2024.1 - 1º Semestre',
           num_alunos: 35,
-          periodo: 1,
           turno: 'NOTURNO',
           id_curso: cursos[0].id,
           semestre: 1,
@@ -329,7 +328,6 @@ async function popularBancoCompleto() {
         data: {
           nome: 'TADS 2023.2 - 2º Semestre',
           num_alunos: 32,
-          periodo: 2,
           turno: 'NOTURNO',
           id_curso: cursos[0].id,
           semestre: 2,
@@ -340,7 +338,6 @@ async function popularBancoCompleto() {
         data: {
           nome: 'TSI 2024.1 - 1º Semestre',
           num_alunos: 25,
-          periodo: 1,
           turno: 'VESPERTINO',
           id_curso: cursos[1].id,
           semestre: 1,
@@ -351,7 +348,6 @@ async function popularBancoCompleto() {
         data: {
           nome: 'TSI 2023.2 - 2º Semestre',
           num_alunos: 27,
-          periodo: 2,
           turno: 'VESPERTINO',
           id_curso: cursos[1].id,
           semestre: 2,

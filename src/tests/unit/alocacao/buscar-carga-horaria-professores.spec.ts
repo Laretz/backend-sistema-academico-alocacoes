@@ -44,7 +44,7 @@ describe("BuscarCargaHorariaProfessoresUseCase", () => {
     expect(cargaHoraria[professorIds[2]!]).toBe(0);
     // garante que não há chave para alunos
     // pega um aluno criado e verifica ausência
-    const alunoId = usersRepo.items.find((u) => u.role === "ALUNO")!.id;
+    const alunoId = usersRepo.items.find((u) => (u.role as unknown as string) === "ALUNO")!.id;
     expect(cargaHoraria[alunoId]).toBeUndefined();
   });
 });

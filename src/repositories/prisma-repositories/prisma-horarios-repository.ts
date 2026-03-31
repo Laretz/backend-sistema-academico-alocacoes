@@ -1,4 +1,4 @@
-import { Prisma, Horario } from "@prisma/client";
+import { Prisma, Horario, RegimeHorario } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { HorariosRepository } from "../horarios-repository";
 
@@ -21,7 +21,7 @@ export class PrismaHorariosRepository implements HorariosRepository {
   async findByDiaEHorario(
     dia_semana: string,
     horario_inicio: Date,
-    horario_fim: Date
+    horario_fim: Date,
   ): Promise<Horario | null> {
     const horario = await prisma.horario.findFirst({
       where: {
@@ -34,15 +34,15 @@ export class PrismaHorariosRepository implements HorariosRepository {
     return horario;
   }
 
-  async findMany(page?: number, regime?: 'SUPERIOR' | 'TECNICO') {
+  async findMany(page?: number, regime?: RegimeHorario) {
     // Definir ordem dos dias da semana
     const ordemDias = {
-      'SEGUNDA': 1,
-      'TERCA': 2,
-      'QUARTA': 3,
-      'QUINTA': 4,
-      'SEXTA': 5,
-      'SABADO': 6
+      SEGUNDA: 1,
+      TERCA: 2,
+      QUARTA: 3,
+      QUINTA: 4,
+      SEXTA: 5,
+      SABADO: 6,
     };
 
     const horarios = await prisma.horario.findMany({
@@ -53,13 +53,13 @@ export class PrismaHorariosRepository implements HorariosRepository {
       orderBy: [
         {
           // Ordenar por dia da semana usando CASE WHEN
-          dia_semana: 'asc'
+          dia_semana: "asc",
         },
         {
           // Ordenar por código (M1, M2, T1, T2, N1, N2)
-          codigo: 'asc'
-        }
-      ]
+          codigo: "asc",
+        },
+      ],
     });
 
     if (!horarios) {
@@ -71,24 +71,32 @@ export class PrismaHorariosRepository implements HorariosRepository {
       // Primeiro ordenar por dia da semana
       const diaA = ordemDias[a.dia_semana as keyof typeof ordemDias] || 7;
       const diaB = ordemDias[b.dia_semana as keyof typeof ordemDias] || 7;
-      
+
       if (diaA !== diaB) {
         return diaA - diaB;
       }
-      
+
       // Depois ordenar por código (M1, M2, T1, T2, N1, N2)
       const getOrdemCodigo = (codigo: string) => {
         const periodo = codigo.charAt(0); // M, T, N
         const numero = parseInt(codigo.charAt(1)) || 0; // 1, 2, 3...
-        const ordemPeriodo = { 'M': 0, 'T': 1, 'N': 2 };
-        return (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 0) * 10 + numero;
+        const ordemPeriodo = { M: 0, T: 1, N: 2 };
+        return (
+          (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 0) * 10 +
+          numero
+        );
       };
-      
+
       return getOrdemCodigo(a.codigo) - getOrdemCodigo(b.codigo);
     });
   }
 
-  async findManyWithFilters(params: { page: number; limit: number; regime?: 'SUPERIOR' | 'TECNICO'; dia_semana?: string }) {
+  async findManyWithFilters(params: {
+    page: number;
+    limit: number;
+    regime?: RegimeHorario;
+    dia_semana?: string;
+  }) {
     const where: any = {};
     if (params.regime) where.regime = params.regime;
     if (params.dia_semana) where.dia_semana = params.dia_semana;
@@ -99,26 +107,25 @@ export class PrismaHorariosRepository implements HorariosRepository {
       where,
       skip: (params.page - 1) * params.limit,
       take: params.limit,
-      orderBy: [
-        { dia_semana: 'asc' },
-        { codigo: 'asc' }
-      ]
+      orderBy: [{ dia_semana: "asc" }, { codigo: "asc" }],
     });
 
     const ordemDias = {
-      'SEGUNDA': 1,
-      'TERCA': 2,
-      'QUARTA': 3,
-      'QUINTA': 4,
-      'SEXTA': 5,
-      'SABADO': 6
+      SEGUNDA: 1,
+      TERCA: 2,
+      QUARTA: 3,
+      QUINTA: 4,
+      SEXTA: 5,
+      SABADO: 6,
     } as const;
 
     const getOrdemCodigo = (codigo: string) => {
       const periodo = codigo.charAt(0);
       const numero = parseInt(codigo.charAt(1)) || 0;
-      const ordemPeriodo = { 'M': 0, 'T': 1, 'N': 2 } as const;
-      return (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 3) * 10 + numero;
+      const ordemPeriodo = { M: 0, T: 1, N: 2 } as const;
+      return (
+        (ordemPeriodo[periodo as keyof typeof ordemPeriodo] || 3) * 10 + numero
+      );
     };
 
     const horarios = itens.sort((a, b) => {

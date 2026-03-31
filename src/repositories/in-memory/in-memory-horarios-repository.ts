@@ -1,4 +1,4 @@
-import { Prisma, Horario } from "@prisma/client";
+import { Prisma, Horario, RegimeHorario } from "@prisma/client";
 import { HorariosRepository } from "../horarios-repository";
 import { randomUUID } from "node:crypto";
 
@@ -12,6 +12,7 @@ export class InMemoryHorariosRepository implements HorariosRepository {
       dia_semana: data.dia_semana,
       horario_inicio: new Date(data.horario_inicio as Date),
       horario_fim: new Date(data.horario_fim as Date),
+      regime: data.regime ?? RegimeHorario.SUPERIOR,
     };
 
     this.items.push(horario);
@@ -26,7 +27,7 @@ export class InMemoryHorariosRepository implements HorariosRepository {
   async findByDiaEHorario(
     dia_semana: string,
     horario_inicio: Date,
-    horario_fim: Date
+    horario_fim: Date,
   ): Promise<Horario | null> {
     const inicioTime = new Date(horario_inicio).getTime();
     const fimTime = new Date(horario_fim).getTime();
@@ -34,12 +35,12 @@ export class InMemoryHorariosRepository implements HorariosRepository {
       (h) =>
         h.dia_semana === dia_semana &&
         new Date(h.horario_inicio).getTime() === inicioTime &&
-        new Date(h.horario_fim).getTime() === fimTime
+        new Date(h.horario_fim).getTime() === fimTime,
     );
     return horario ?? null;
   }
 
-  async findMany(page?: number): Promise<Horario[]> {
+  async findMany(page?: number, regime?: RegimeHorario): Promise<Horario[]> {
     // Ordem dos dias (SEGUNDA -> SABADO)
     const ordemDias: Record<string, number> = {
       SEGUNDA: 1,
@@ -73,7 +74,12 @@ export class InMemoryHorariosRepository implements HorariosRepository {
     return sorted.slice(startIndex, endIndex);
   }
 
-  async findManyWithFilters(params: { page: number; limit: number; regime?: 'SUPERIOR' | 'TECNICO'; dia_semana?: string }): Promise<{ horarios: Horario[]; total: number }> {
+  async findManyWithFilters(params: {
+    page: number;
+    limit: number;
+    regime?: "SUPERIOR" | "TECNICO";
+    dia_semana?: string;
+  }): Promise<{ horarios: Horario[]; total: number }> {
     const ordemDias: Record<string, number> = {
       SEGUNDA: 1,
       TERCA: 2,
@@ -91,8 +97,10 @@ export class InMemoryHorariosRepository implements HorariosRepository {
     };
 
     let filtered = [...this.items];
-    if (params.dia_semana) filtered = filtered.filter(h => h.dia_semana === params.dia_semana);
-    if (params.regime) filtered = filtered.filter((h: any) => h.regime === params.regime);
+    if (params.dia_semana)
+      filtered = filtered.filter((h) => h.dia_semana === params.dia_semana);
+    if (params.regime)
+      filtered = filtered.filter((h: any) => h.regime === params.regime);
 
     const total = filtered.length;
 

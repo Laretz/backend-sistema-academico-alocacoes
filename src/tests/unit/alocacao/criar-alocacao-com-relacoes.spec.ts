@@ -37,31 +37,79 @@ describe("Criar Alocação com Relações N:N", () => {
       disciplinasRepository,
       turmasRepository,
       cursoDisciplinaRepository,
-      horariosRepository
+      horariosRepository,
     );
     vincularUserCursoUseCase = new VincularUserCursoUseCase(
       userCursoRepository,
       usersRepository,
-      cursosRepository
+      cursosRepository,
     );
   });
 
   it("deve ser possível criar alocação para professor vinculado ao curso", async () => {
-    const curso = await cursosRepository.create({ codigo: "TADS", nome: "Tecnologia em Análise e Desenvolvimento de Sistemas", turno: "MATUTINO", duracao_semestres: 8 });
+    const curso = await cursosRepository.create({
+      codigo: "TADS",
+      nome: "Tecnologia em Análise e Desenvolvimento de Sistemas",
+      turno: "MATUTINO",
+      duracao_semestres: 8,
+    });
 
-    const turma = await turmasRepository.create({ id: "turma-1", nome: "Turma 1", num_alunos: 30, periodo: 1, turno: "MATUTINO", semestre: 1, ativa: true, curso: { connect: { id: curso.id } } } as any);
+    const turma = await turmasRepository.create({
+      id: "turma-1",
+      nome: "Turma 1",
+      num_alunos: 30,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: curso.id } },
+    } as any);
 
-    const professor = await usersRepository.create({ nome: "Professor Teste", email: "professor@teste.com", senha: "123456", role: "PROFESSOR", especializacao: "Programação" });
+    const professor = await usersRepository.create({
+      nome: "Professor Teste",
+      email: "professor@teste.com",
+      senha: "123456",
+      role: "PROFESSOR",
+      especializacao: "Programação",
+    });
 
-    await vincularUserCursoUseCase.execute({ id_user: professor.id, id_curso: curso.id });
+    await vincularUserCursoUseCase.execute({
+      id_user: professor.id,
+      id_curso: curso.id,
+    });
 
-    const disciplina = await disciplinasRepository.create({ id: "disciplina-1", nome: "Programação I", carga_horaria: 60, total_aulas: 30, aulas_ministradas: 0, periodo_letivo: "2024.1", semestre: 1, obrigatoria: true, tipo_de_sala: "Lab", curso: { connect: { id: curso.id } } });
-    const cursoDisciplina = await cursoDisciplinaRepository.create({ id_curso: curso.id, id_disciplina: disciplina.id });
+    const disciplina = await disciplinasRepository.create({
+      id: "disciplina-1",
+      nome: "Programação I",
+      carga_horaria: 60,
+      total_aulas: 30,
+      aulas_ministradas: 0,
+      periodo_letivo: "2024.1",
+      semestre: 1,
+      obrigatoria: true,
+      tipo_de_sala: "Lab",
+      curso: { connect: { id: curso.id } },
+    });
+    const cursoDisciplina = await cursoDisciplinaRepository.create({
+      id_curso: curso.id,
+      id_disciplina: disciplina.id,
+    });
 
-    const { alocacoes } = await sut.execute({ id_user: professor.id, id_curso_disciplina: cursoDisciplina.id, id_turma: turma.id, id_sala: "sala-1", id_horarios: ["horario-1"] });
+    const { alocacoes } = await sut.execute({
+      id_user: professor.id,
+      id_curso_disciplina: cursoDisciplina.id,
+      id_turma: turma.id,
+      id_sala: "sala-1",
+      id_horarios: ["horario-1"],
+    });
 
     expect(alocacoes).toHaveLength(1);
-    expect(alocacoes[0]).toEqual(expect.objectContaining({ id_user: professor.id, id_disciplina: disciplina.id, id_curso_disciplina: cursoDisciplina.id }));
+    expect(alocacoes[0]).toEqual(
+      expect.objectContaining({
+        id_user: professor.id,
+        id_disciplina: disciplina.id,
+        id_curso_disciplina: cursoDisciplina.id,
+      }),
+    );
   });
 
   it("deve verificar se professor está vinculado ao curso da disciplina", async () => {

@@ -25,7 +25,7 @@ describe("Criar Alocação Use Case", () => {
       disciplinasRepository,
       turmasRepository,
       cursoDisciplinaRepository,
-      horariosRepository
+      horariosRepository,
     );
   });
 
@@ -35,7 +35,6 @@ describe("Criar Alocação Use Case", () => {
     const turma = await turmasRepository.create({
       nome: "Turma 1",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
       semestre: 1,
       ativa: true,
@@ -49,7 +48,10 @@ describe("Criar Alocação Use Case", () => {
       carga_horaria: 80,
       curso: { connect: { id: cursoId } },
     });
-    const cursoDisciplina = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-1" });
+    const cursoDisciplina = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-1",
+    });
 
     const { alocacoes } = await sut.execute({
       id_user: "user-1",
@@ -73,7 +75,6 @@ describe("Criar Alocação Use Case", () => {
     const turma = await turmasRepository.create({
       nome: "Turma 1",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
       semestre: 1,
       ativa: true,
@@ -86,7 +87,10 @@ describe("Criar Alocação Use Case", () => {
       carga_horaria: 80,
       curso: { connect: { id: cursoId } },
     });
-    const cursoDisciplina = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-1" });
+    const cursoDisciplina = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-1",
+    });
 
     const { alocacoes } = await sut.execute({
       id_user: "user-1",
@@ -114,8 +118,16 @@ describe("Criar Alocação Use Case", () => {
       curso: { connect: { id: cursoId } },
     } as any);
 
-    await disciplinasRepository.create({ id: "disciplina-2", nome: "Física", carga_horaria: 60, curso: { connect: { id: cursoId } } });
-    const cursoDisciplina2 = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-2" });
+    await disciplinasRepository.create({
+      id: "disciplina-2",
+      nome: "Física",
+      carga_horaria: 60,
+      curso: { connect: { id: cursoId } },
+    });
+    const cursoDisciplina2 = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-2",
+    });
 
     // Criar uma alocação existente
     await alocacoesRepository.createWithCustomData({
@@ -135,15 +147,31 @@ describe("Criar Alocação Use Case", () => {
         id_turma: turma.id,
         id_sala: "sala-2",
         id_horarios: ["horario-1"],
-      })
+      }),
     ).rejects.toThrow("Professor já possui alocação no horário horario-1");
   });
 
   it("não deve ser possível criar alocação quando sala já está ocupada no mesmo horário", async () => {
     const cursoId = "curso-1";
-    const turma = await turmasRepository.create({ nome: "Turma 2", num_alunos: 30, periodo: 1, turno: "MATUTINO", semestre: 1, ativa: true, curso: { connect: { id: cursoId } } } as any);
-    await disciplinasRepository.create({ id: "disciplina-2", nome: "Física", carga_horaria: 60, curso: { connect: { id: cursoId } } });
-    const cursoDisciplina2 = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-2" });
+    const turma = await turmasRepository.create({
+      nome: "Turma 2",
+      num_alunos: 30,
+      periodo: 1,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: cursoId } },
+    } as any);
+    await disciplinasRepository.create({
+      id: "disciplina-2",
+      nome: "Física",
+      carga_horaria: 60,
+      curso: { connect: { id: cursoId } },
+    });
+    const cursoDisciplina2 = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-2",
+    });
 
     await alocacoesRepository.createWithCustomData({
       id: "alocacao-1",
@@ -162,19 +190,43 @@ describe("Criar Alocação Use Case", () => {
         id_turma: turma.id,
         id_sala: "sala-1",
         id_horarios: ["horario-1"],
-      })
+      }),
     ).rejects.toThrow("Sala já está ocupada no horário horario-1");
   });
 
   it("deve ser possível criar alocação com mesmo professor em horários diferentes", async () => {
     const cursoId = "curso-1";
-    const turma = await turmasRepository.create({ nome: "Turma 2", num_alunos: 30, periodo: 1, turno: "MATUTINO", semestre: 1, ativa: true, curso: { connect: { id: cursoId } } } as any);
+    const turma = await turmasRepository.create({
+      nome: "Turma 2",
+      num_alunos: 30,
+      periodo: 1,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: cursoId } },
+    } as any);
 
-    await disciplinasRepository.create({ id: "disciplina-1", nome: "Matemática", carga_horaria: 80, curso: { connect: { id: cursoId } } });
-    await disciplinasRepository.create({ id: "disciplina-2", nome: "Física", carga_horaria: 60, curso: { connect: { id: cursoId } } });
+    await disciplinasRepository.create({
+      id: "disciplina-1",
+      nome: "Matemática",
+      carga_horaria: 80,
+      curso: { connect: { id: cursoId } },
+    });
+    await disciplinasRepository.create({
+      id: "disciplina-2",
+      nome: "Física",
+      carga_horaria: 60,
+      curso: { connect: { id: cursoId } },
+    });
 
-    const cursoDisciplina1 = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-1" });
-    const cursoDisciplina2 = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-2" });
+    const cursoDisciplina1 = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-1",
+    });
+    const cursoDisciplina2 = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-2",
+    });
 
     await alocacoesRepository.createWithCustomData({
       id: "alocacao-1",
@@ -200,11 +252,35 @@ describe("Criar Alocação Use Case", () => {
 
   it("não deve ser possível criar alocação quando turma já tem horário ocupado", async () => {
     const cursoId = "curso-1";
-    const turma1 = await turmasRepository.create({ nome: "Turma 1", num_alunos: 30, periodo: 1, turno: "MATUTINO", semestre: 1, ativa: true, curso: { connect: { id: cursoId } } } as any);
-    const turma2 = await turmasRepository.create({ nome: "Turma 2", num_alunos: 30, periodo: 1, turno: "MATUTINO", semestre: 1, ativa: true, curso: { connect: { id: cursoId } } } as any);
+    const turma1 = await turmasRepository.create({
+      nome: "Turma 1",
+      num_alunos: 30,
+      periodo: 1,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: cursoId } },
+    } as any);
+    const turma2 = await turmasRepository.create({
+      nome: "Turma 2",
+      num_alunos: 30,
+      periodo: 1,
+      turno: "MATUTINO",
+      semestre: 1,
+      ativa: true,
+      curso: { connect: { id: cursoId } },
+    } as any);
 
-    await disciplinasRepository.create({ id: "disciplina-2", nome: "Física", carga_horaria: 60, curso: { connect: { id: cursoId } } });
-    const cursoDisciplina2 = await cursoDisciplinaRepository.create({ id_curso: cursoId, id_disciplina: "disciplina-2" });
+    await disciplinasRepository.create({
+      id: "disciplina-2",
+      nome: "Física",
+      carga_horaria: 60,
+      curso: { connect: { id: cursoId } },
+    });
+    const cursoDisciplina2 = await cursoDisciplinaRepository.create({
+      id_curso: cursoId,
+      id_disciplina: "disciplina-2",
+    });
 
     await alocacoesRepository.createWithCustomData({
       id: "alocacao-1",
@@ -223,7 +299,7 @@ describe("Criar Alocação Use Case", () => {
         id_turma: turma1.id,
         id_sala: "sala-2",
         id_horarios: ["horario-1"],
-      })
+      }),
     ).rejects.toThrow("Turma já possui alocação no horário horario-1");
   });
 });

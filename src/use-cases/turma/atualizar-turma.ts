@@ -5,7 +5,6 @@ interface AtualizarTurmaUseCaseRequest {
   id: string;
   nome?: string;
   num_alunos?: number;
-  periodo?: number;
   turno?: string;
   id_curso?: string;
   semestre?: number;
@@ -19,7 +18,6 @@ export class AtualizarTurmaUseCase {
     id,
     nome,
     num_alunos,
-    periodo,
     turno,
     id_curso,
     semestre,
@@ -35,7 +33,6 @@ export class AtualizarTurmaUseCase {
     const updateData: Partial<{
       nome: string;
       num_alunos: number;
-      periodo: number;
       turno: string;
       id_curso: string;
       semestre: number;
@@ -43,7 +40,6 @@ export class AtualizarTurmaUseCase {
     }> = {};
     if (nome !== undefined) updateData.nome = nome;
     if (num_alunos !== undefined) updateData.num_alunos = num_alunos;
-    if (periodo !== undefined) updateData.periodo = periodo;
     if (turno !== undefined) updateData.turno = turno;
     if (id_curso !== undefined) updateData.id_curso = id_curso;
     if (semestre !== undefined) updateData.semestre = semestre;

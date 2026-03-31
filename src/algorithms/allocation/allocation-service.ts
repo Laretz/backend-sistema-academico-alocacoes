@@ -67,6 +67,9 @@ export class AllocationService {
     this.defaultParams = {
       populationSize: env.GA_POPULATION_SIZE,
       generations: env.GA_GENERATIONS,
+      minGenerations: 100,
+      patience: 50,
+      fitnessTarget: 10000,
       mutationRate: env.GA_MUTATION_RATE,
       crossoverRate: env.GA_CROSSOVER_RATE,
       elitismRate: env.GA_ELITISM_RATE

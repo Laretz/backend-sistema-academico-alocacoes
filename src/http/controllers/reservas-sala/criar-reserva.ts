@@ -29,7 +29,8 @@ function getDiaSemanaKeyUTC(date: Date): string {
     5: "SEXTA",
     6: "SABADO",
   };
-  return map[date.getUTCDay()];
+  const dia = map[date.getUTCDay()];
+  return dia || "";
 }
 
 function buildWeeklyDatesUTC(start: Date, end: Date): Date[] {

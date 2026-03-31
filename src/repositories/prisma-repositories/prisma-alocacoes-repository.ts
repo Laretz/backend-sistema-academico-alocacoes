@@ -20,8 +20,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -63,7 +63,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
-  async findOverlapBySala(id_sala: string, dia_semana: string, inicio: Date, fim: Date) {
+  async findOverlapBySala(
+    id_sala: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_sala,
@@ -78,7 +83,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao || null;
   }
 
-  async findOverlapByUser(id_user: string, dia_semana: string, inicio: Date, fim: Date) {
+  async findOverlapByUser(
+    id_user: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_user,
@@ -93,7 +103,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao || null;
   }
 
-  async findOverlapByTurma(id_turma: string, dia_semana: string, inicio: Date, fim: Date) {
+  async findOverlapByTurma(
+    id_turma: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_turma,
@@ -128,8 +143,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -189,8 +204,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -214,8 +229,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -237,8 +252,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -260,14 +275,42 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
     });
 
-    return alocacoes;
+    // Ordenação natural por dia da semana e horário
+    const daysMap: Record<string, number> = {
+      DOMINGO: 0,
+      SEGUNDA: 1,
+      "SEGUNDA-FEIRA": 1,
+      TERCA: 2,
+      TERÇA: 2,
+      "TERÇA-FEIRA": 2,
+      QUARTA: 3,
+      "QUARTA-FEIRA": 3,
+      QUINTA: 4,
+      "QUINTA-FEIRA": 4,
+      SEXTA: 5,
+      "SEXTA-FEIRA": 5,
+      SABADO: 6,
+      SÁBADO: 6,
+    };
+
+    return alocacoes.sort((a, b) => {
+      const diaA = daysMap[a.horario.dia_semana.toUpperCase()] ?? 99;
+      const diaB = daysMap[b.horario.dia_semana.toUpperCase()] ?? 99;
+
+      if (diaA !== diaB) return diaA - diaB;
+
+      // Se mesmo dia, ordena por horário
+      if (a.horario.horario_inicio < b.horario.horario_inicio) return -1;
+      if (a.horario.horario_inicio > b.horario.horario_inicio) return 1;
+      return 0;
+    });
   }
 
   async findBySalaId(id_sala: string, page: number) {
@@ -284,8 +327,8 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
@@ -321,36 +364,36 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
       orderBy: [
         {
           horario: {
-            dia_semana: 'asc'
-          }
+            dia_semana: "asc",
+          },
         },
         {
           horario: {
-            codigo: 'asc'
-          }
-        }
-      ]
+            codigo: "asc",
+          },
+        },
+      ],
     });
 
     return alocacoes;
   }
 
-  async findByPeriodoManha(page: number) {
+  async findByTurnoManha(page: number) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         horario: {
           codigo: {
-            startsWith: 'M'
-          }
-        }
+            startsWith: "M",
+          },
+        },
       },
       take: 20,
       skip: (page - 1) * 20,
@@ -361,41 +404,41 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
       orderBy: [
         {
           horario: {
-            dia_semana: 'asc'
-          }
+            dia_semana: "asc",
+          },
         },
         {
           horario: {
-            codigo: 'asc'
-          }
-        }
-      ]
+            codigo: "asc",
+          },
+        },
+      ],
     });
 
     return alocacoes;
   }
 
-  async findByTurmaIdWithPeriodo(id_turma: string, periodo: string, page: number) {
+  async findByTurmaIdWithTurno(id_turma: string, turno: string, page: number) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
         turma: { curso: { isDeleted: null } },
         horario: {
           codigo: {
-            startsWith: periodo.toUpperCase()
-          }
-        }
+            startsWith: turno.toUpperCase(),
+          },
+        },
       },
-      take: 20,
-      skip: (page - 1) * 20,
+      take: 100, // AUMENTADO DE 20 PARA 100 PARA EVITAR PAGINAÇÃO NA GRADE
+      skip: (page - 1) * 100,
       include: {
         user: true,
         disciplina: true,
@@ -403,31 +446,41 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
         turma: true,
         sala: {
           include: {
-            predio: true
-          }
+            predio: true,
+          },
         },
         horario: true,
       },
       orderBy: [
         {
           horario: {
-            dia_semana: 'asc'
-          }
+            dia_semana: "asc",
+          },
         },
         {
           horario: {
-            codigo: 'asc'
-          }
-        }
-      ]
+            codigo: "asc",
+          },
+        },
+      ],
     });
 
     return alocacoes;
   }
 
   async deleteAllByTurmaId(id_turma: string) {
+    // Usando deleteMany direto, que é eficiente e deve funcionar se não houver constraints restritivas
     await prisma.alocacao.deleteMany({
       where: { id_turma },
+    });
+  }
+
+  async deleteAllByTurmaAndDisciplina(id_turma: string, id_disciplina: string) {
+    await prisma.alocacao.deleteMany({
+      where: {
+        id_turma,
+        id_disciplina,
+      },
     });
   }
 

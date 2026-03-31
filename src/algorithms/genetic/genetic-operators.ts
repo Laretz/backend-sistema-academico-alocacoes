@@ -56,11 +56,15 @@ export class GeneticOperators {
     population: Cromossomo[],
     tournamentSize: number
   ): Cromossomo {
-    let best = population[Math.floor(Math.random() * population.length)];
+    if (population.length === 0) {
+      throw new Error("Population is empty");
+    }
+
+    let best = population[Math.floor(Math.random() * population.length)]!;
 
     for (let i = 1; i < tournamentSize; i++) {
       const candidate =
-        population[Math.floor(Math.random() * population.length)];
+        population[Math.floor(Math.random() * population.length)]!;
       if (candidate.fitness > best.fitness) {
         best = candidate;
       }

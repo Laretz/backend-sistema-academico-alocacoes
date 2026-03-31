@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
-import { BuscarAlocacoesPeriodoManhaUseCase } from "@/use-cases/alocacao/buscar-alocacoes-periodo-manha";
+import { BuscarAlocacoesTurnoManhaUseCase } from "@/use-cases/alocacao/buscar-alocacoes-turno-manha";
 
-describe("BuscarAlocacoesPeriodoManhaUseCase", () => {
+describe("BuscarAlocacoesTurnoManhaUseCase", () => {
   it("deve retornar apenas alocações com horário de início antes das 12h (paginado)", async () => {
     const repo = new InMemoryAlocacoesRepository();
 
@@ -31,7 +31,7 @@ describe("BuscarAlocacoesPeriodoManhaUseCase", () => {
       } as any);
     }
 
-    const sut = new BuscarAlocacoesPeriodoManhaUseCase(repo);
+    const sut = new BuscarAlocacoesTurnoManhaUseCase(repo);
     const page1 = await sut.execute({ page: 1 });
     const page2 = await sut.execute({ page: 2 });
 

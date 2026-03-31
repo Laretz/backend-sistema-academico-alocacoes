@@ -1,6 +1,6 @@
 import { PrismaDisciplinasRepository } from "@/repositories/prisma-repositories/prisma-disciplinas-repository";
 import { PrismaAlocacoesRepository } from "@/repositories/prisma-repositories/prisma-alocacoes-repository";
-import { BuscarDisciplinasComProgressoUseCase } from "../disciplina/buscar-disciplinas-com-progresso";
+import { BuscarDisciplinasComProgressoUseCase } from "../../disciplina/buscar-disciplinas-com-progresso";
 import { PrismaTurmasRepository } from "@/repositories/prisma-repositories/prisma-turmas-repository";
 import { PrismaCursosRepository } from "@/repositories/prisma-repositories/prisma-cursos-repository";
 
@@ -14,7 +14,7 @@ export function makeBuscarDisciplinasComProgressoUseCase() {
       disciplinasRepository,
       alocacoesRepository,
       turmasRepository,
-      cursosRepository
+      cursosRepository,
     );
 
   return buscarDisciplinasComProgressoUseCase;

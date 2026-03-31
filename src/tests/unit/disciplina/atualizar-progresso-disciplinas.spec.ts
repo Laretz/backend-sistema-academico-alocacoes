@@ -296,7 +296,8 @@ describe('Atualizar Progresso Disciplinas Use Case', () => {
       turma: { connect: { id: 'turma-1' } },
       user: { connect: { id: 'professor-1' } },
       sala: { connect: { id: 'sala-1' } },
-      horario: { connect: { id: 'horario-1' } }
+      horario: { connect: { id: 'horario-1' } },
+      cursoDisciplina: { connect: { id: 'curso-disciplina-1' } },
     });
 
     await alocacoesRepository.create({
@@ -304,7 +305,8 @@ describe('Atualizar Progresso Disciplinas Use Case', () => {
       turma: { connect: { id: 'turma-1' } },
       user: { connect: { id: 'professor-1' } },
       sala: { connect: { id: 'sala-1' } },
-      horario: { connect: { id: 'horario-2' } }
+      horario: { connect: { id: 'horario-2' } },
+      cursoDisciplina: { connect: { id: 'curso-disciplina-1' } },
     });
 
     const result = await sut.execute({

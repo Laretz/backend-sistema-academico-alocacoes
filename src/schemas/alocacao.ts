@@ -2,20 +2,24 @@ import { z } from "zod";
 import { positiveIntegerSchema } from "./common";
 
 // Helper para transformar Date em string
-const dateToStringTransform = z.union([z.date(), z.string()]).transform((val) => {
-  if (val instanceof Date) {
-    return val.toISOString();
-  }
-  return val;
-});
+const dateToStringTransform = z
+  .union([z.date(), z.string()])
+  .transform((val) => {
+    if (val instanceof Date) {
+      return val.toISOString();
+    }
+    return val;
+  });
 
 // Helper para transformar Date nullable em string nullable
-const nullableDateToStringTransform = z.union([z.date(), z.string(), z.null()]).transform((val) => {
-  if (val instanceof Date) {
-    return val.toISOString();
-  }
-  return val;
-});
+const nullableDateToStringTransform = z
+  .union([z.date(), z.string(), z.null()])
+  .transform((val) => {
+    if (val instanceof Date) {
+      return val.toISOString();
+    }
+    return val;
+  });
 
 // ===== SCHEMAS DE REQUISIÇÃO =====
 
@@ -28,11 +32,18 @@ export const alocacaoParamsSchema = z.object({
 export const createAlocacaoSchema = z
   .object({
     id_user: z.string().uuid("ID do usuário deve ser um UUID válido"),
-    id_curso_disciplina: z.string().uuid("ID de cursoDisciplina deve ser um UUID válido"),
+    id_curso_disciplina: z
+      .string()
+      .uuid("ID de cursoDisciplina deve ser um UUID válido"),
     id_turma: z.string().uuid("ID da turma deve ser um UUID válido"),
     id_sala: z.string().uuid("ID da sala deve ser um UUID válido"),
-    id_horario: z.string().uuid("ID do horário deve ser um UUID válido").optional(),
-    id_horarios: z.array(z.string().uuid("ID do horário deve ser um UUID válido")).optional(),
+    id_horario: z
+      .string()
+      .uuid("ID do horário deve ser um UUID válido")
+      .optional(),
+    id_horarios: z
+      .array(z.string().uuid("ID do horário deve ser um UUID válido"))
+      .optional(),
   })
   .refine(
     (data) => {
@@ -43,22 +54,30 @@ export const createAlocacaoSchema = z
       );
     },
     {
-      message: "Deve fornecer exatamente um dos campos: 'id_horario' ou 'id_horarios'",
-    }
+      message:
+        "Deve fornecer exatamente um dos campos: 'id_horario' ou 'id_horarios'",
+    },
   );
 
 // Schema para atualizar alocação
 export const updateAlocacaoSchema = z.object({
   id_user: z.string().uuid("ID do usuário deve ser um UUID válido").optional(),
-  id_curso_disciplina: z.string().uuid("ID de cursoDisciplina deve ser um UUID válido").optional(),
+  id_curso_disciplina: z
+    .string()
+    .uuid("ID de cursoDisciplina deve ser um UUID válido")
+    .optional(),
   id_turma: z.string().uuid("ID da turma deve ser um UUID válido").optional(),
   id_sala: z.string().uuid("ID da sala deve ser um UUID válido").optional(),
-  id_horario: z.string().uuid("ID do horário deve ser um UUID válido").optional(),
+  id_horario: z
+    .string()
+    .uuid("ID do horário deve ser um UUID válido")
+    .optional(),
 });
 
 // Schema para buscar alocações (paginação)
 export const alocacoesQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
+  id_turma: z.string().uuid("ID da turma deve ser um UUID válido").optional(),
 });
 
 // Schema para buscar grade de horários
@@ -73,14 +92,14 @@ export const alocacoesProfessorParamsSchema = z.object({
   id_professor: z.string().uuid("ID do professor deve ser um UUID válido"),
 });
 
-// Schema para buscar alocações por turma e período
-export const alocacoesTurmaPeriodoParamsSchema = z.object({
+// Schema para buscar alocações por turma e turno
+export const alocacoesTurmaTurnoParamsSchema = z.object({
   id_turma: z.string().uuid("ID da turma deve ser um UUID válido"),
 });
 
-// Schema para query de buscar alocações por turma e período
-export const alocacoesTurmaPeriodoQuerySchema = z.object({
-  periodo: z.string().min(1, "Período é obrigatório"),
+// Schema para query de buscar alocações por turma e turno
+export const alocacoesTurmaTurnoQuerySchema = z.object({
+  turno: z.string().min(1, "Turno é obrigatório"),
   page: z.coerce.number().int().positive().default(1),
 });
 
@@ -89,11 +108,15 @@ export const excluirAlocacoesTurmaParamsSchema = z.object({
   id_turma: z.string().uuid("ID da turma deve ser um UUID válido"),
 });
 
+export const excluirAlocacoesDisciplinaTurmaParamsSchema = z.object({
+  id_turma: z.string().uuid("ID da turma deve ser um UUID válido"),
+  id_disciplina: z.string().uuid("ID da disciplina deve ser um UUID válido"),
+});
+
 // ===== SCHEMAS DE RESPOSTA =====
 
-
 // Schema para horário na resposta
-export const horarioResponseSchema = z.object({
+export const horarioAlocacaoResponseSchema = z.object({
   id: z.string(),
   codigo: z.string(),
   dia_semana: z.string(),
@@ -137,7 +160,7 @@ export const turmaAlocacaoResponseSchema = z.object({
   id: z.string(),
   nome: z.string(),
   num_alunos: z.number(),
-  periodo: z.number(),
+  semestre: z.number(),
   turno: z.string(),
   id_curso: z.string(),
   ativa: z.boolean(),
@@ -177,13 +200,16 @@ export const alocacaoResponseSchema = z.object({
   disciplina: disciplinaAlocacaoResponseSchema.optional(),
   turma: turmaAlocacaoResponseSchema.optional(),
   sala: salaAlocacaoResponseSchema.optional(),
-  horario: horarioResponseSchema.optional(),
+  horario: horarioAlocacaoResponseSchema.optional(),
 });
 
 // Resposta para criação de alocação: único ou múltiplos
 export const createAlocacaoResponseSchema = z.union([
   z.object({ alocacao: alocacaoResponseSchema, conflitos: z.any().optional() }),
-  z.object({ alocacoes: z.array(alocacaoResponseSchema), conflitos: z.any().optional() }),
+  z.object({
+    alocacoes: z.array(alocacaoResponseSchema),
+    conflitos: z.any().optional(),
+  }),
 ]);
 
 // Schema simples para alocação (sem relacionamentos)
@@ -266,10 +292,14 @@ export const conflictErrorSchema = z.object({
 // Schema para erro de validação de alocação
 export const alocacaoValidationErrorSchema = z.object({
   message: z.string(),
-  errors: z.array(z.object({
-    field: z.string(),
-    message: z.string(),
-  })).optional(),
+  errors: z
+    .array(
+      z.object({
+        field: z.string(),
+        message: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 // ===== TIPOS TYPESCRIPT =====
@@ -278,16 +308,28 @@ export type AlocacaoParams = z.infer<typeof alocacaoParamsSchema>;
 export type CreateAlocacaoRequest = z.infer<typeof createAlocacaoSchema>;
 export type UpdateAlocacaoRequest = z.infer<typeof updateAlocacaoSchema>;
 export type AlocacoesQueryRequest = z.infer<typeof alocacoesQuerySchema>;
-export type GradeHorariosQueryRequest = z.infer<typeof gradeHorariosQuerySchema>;
-export type AlocacoesProfessorParams = z.infer<typeof alocacoesProfessorParamsSchema>;
-export type AlocacoesTurmaPeriodoParams = z.infer<typeof alocacoesTurmaPeriodoParamsSchema>;
-export type ExcluirAlocacoesTurmaParams = z.infer<typeof excluirAlocacoesTurmaParamsSchema>;
+export type GradeHorariosQueryRequest = z.infer<
+  typeof gradeHorariosQuerySchema
+>;
+export type AlocacoesProfessorParams = z.infer<
+  typeof alocacoesProfessorParamsSchema
+>;
+export type AlocacoesTurmaTurnoParams = z.infer<
+  typeof alocacoesTurmaTurnoParamsSchema
+>;
+export type ExcluirAlocacoesTurmaParams = z.infer<
+  typeof excluirAlocacoesTurmaParamsSchema
+>;
 
 export type AlocacaoResponse = z.infer<typeof alocacaoResponseSchema>;
 export type AlocacoesListResponse = z.infer<typeof alocacoesListResponseSchema>;
 export type GradeHorariosResponse = z.infer<typeof gradeHorariosResponseSchema>;
-export type QuantidadeAulasProfessorResponse = z.infer<typeof quantidadeAulasProfessorResponseSchema>;
+export type QuantidadeAulasProfessorResponse = z.infer<
+  typeof quantidadeAulasProfessorResponseSchema
+>;
 
 export type AlocacaoNotFoundError = z.infer<typeof alocacaoNotFoundErrorSchema>;
 export type ConflictError = z.infer<typeof conflictErrorSchema>;
-export type AlocacaoValidationError = z.infer<typeof alocacaoValidationErrorSchema>;
+export type AlocacaoValidationError = z.infer<
+  typeof alocacaoValidationErrorSchema
+>;

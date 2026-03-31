@@ -2,7 +2,7 @@ import { FastifyTypedInstance } from "@/@types/fastify-instances";
 import { verifyJWT } from "@/http/middlewares/verify-jwt";
 import { statsResponseSchema } from "@/schemas/stats";
 import { internalServerErrorResponseSchema } from "@/schemas/curso";
-import { getStatsUseCase } from "@/use-cases/stats/get-stats";
+import { makeGetStatsUseCase } from "@/use-cases/@factories/stats/make-get-stats-use-case";
 
 export async function routesStats(app: FastifyTypedInstance) {
   // GET /stats - Estatísticas gerais para o Dashboard
@@ -23,7 +23,8 @@ export async function routesStats(app: FastifyTypedInstance) {
     },
     async (request, reply) => {
       try {
-        const data = await getStatsUseCase();
+        const getStatsUseCase = makeGetStatsUseCase();
+        const data = await getStatsUseCase.execute();
         return reply.status(200).send(data);
       } catch (err) {
         request.log.error({ err }, "Erro ao gerar estatísticas do dashboard");

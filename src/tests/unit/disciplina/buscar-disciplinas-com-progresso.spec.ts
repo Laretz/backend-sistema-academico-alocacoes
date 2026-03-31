@@ -13,7 +13,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
     alocacoesRepository = new InMemoryAlocacoesRepository();
     sut = new BuscarDisciplinasComProgressoUseCase(
       disciplinasRepository,
-      alocacoesRepository
+      alocacoesRepository,
     );
   });
 
@@ -93,6 +93,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       user: { connect: { id: professor.id } },
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario1.id } },
+      cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
     });
 
     await alocacoesRepository.create({
@@ -101,6 +102,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       user: { connect: { id: professor.id } },
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario2.id } },
+      cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
     });
 
     const result = await sut.execute({
@@ -119,7 +121,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
         progresso_temporal: expect.any(Number),
         total_aulas: expect.any(Number),
         carga_horaria_atual: expect.any(Number),
-      })
+      }),
     );
 
     expect(result.disciplinas[1]).toEqual(
@@ -132,7 +134,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
         progresso_temporal: expect.any(Number),
         total_aulas: expect.any(Number),
         carga_horaria_atual: expect.any(Number),
-      })
+      }),
     );
   });
 
@@ -207,6 +209,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       user: { connect: { id: professor.id } },
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario.id } },
+      cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
     });
 
     const result = await sut.execute({
@@ -226,7 +229,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
         progresso_temporal: expect.any(Number),
         total_aulas: expect.any(Number),
         carga_horaria_atual: expect.any(Number),
-      })
+      }),
     );
   });
 
@@ -301,6 +304,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       user: { connect: { id: professor.id } },
       sala: { connect: { id: sala1.id } },
       horario: { connect: { id: horario1.id } },
+      cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
     });
 
     await alocacoesRepository.create({
@@ -309,6 +313,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       user: { connect: { id: professor.id } },
       sala: { connect: { id: sala2.id } },
       horario: { connect: { id: horario2.id } },
+      cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
     });
 
     const result = await sut.execute({
@@ -322,7 +327,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
         id: disciplina.id,
         nome: "Programação",
         codigo: "PROG001",
-      })
+      }),
     );
   });
 });

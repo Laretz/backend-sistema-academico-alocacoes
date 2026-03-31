@@ -138,7 +138,7 @@ describe("BuscarGradeHorariosUseCase", () => {
     // remove o horario intencionalmente
     const idx = repo.items.findIndex((i) => i.id === broken.id);
     // ts-expect-error: simulando registro inválido
-    repo.items[idx].horario = undefined;
+    (repo.items[idx] as any).horario = undefined;
 
     const { gradeHorarios } = await sut.execute({ id_turma: turmaA });
 

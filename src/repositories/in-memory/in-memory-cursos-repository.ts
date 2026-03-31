@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
-import { Prisma, TurnoCurso } from "@prisma/client";
+import { Prisma, TurnoCurso, Curso } from "@prisma/client";
 import { CursosRepository } from "../cursos-repository";
 
-interface Curso {
-  id: string;
-  codigo: string;
-  nome: string;
-  turno: TurnoCurso;
-  duracao_semestres: number;
-  ativo: boolean;
-  isDeleted: Date | null;
-  created_at: Date;
-  updated_at: Date;
-}
+// interface Curso {
+//   id: string;
+//   codigo: string;
+//   nome: string;
+//   turno: TurnoCurso;
+//   duracao_semestres: number;
+//   ativo: boolean;
+//   isDeleted: Date | null;
+//   created_at: Date;
+//   updated_at: Date;
+// }
 
 export class InMemoryCursosRepository implements CursosRepository {
   public items: Curso[] = [];

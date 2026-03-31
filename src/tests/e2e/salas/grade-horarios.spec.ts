@@ -24,7 +24,7 @@ describe("Salas - Grade de horários (e2e)", () => {
     });
     const cd = await prisma.cursoDisciplina.create({ data: { id_curso: curso.id, id_disciplina: disciplina.id } });
     const turma = await prisma.turma.create({
-      data: { nome: "2025.1", num_alunos: 25, periodo: 1, turno: "MATUTINO", id_curso: curso.id, semestre: 1 },
+      data: { nome: "2025.1", num_alunos: 25, turno: "MATUTINO", id_curso: curso.id, semestre: 1 },
     });
     const sala = await prisma.sala.create({ data: { nome: "Sala GH", capacidade: 25, tipo: "Sala" } });
     const horario = await prisma.horario.create({

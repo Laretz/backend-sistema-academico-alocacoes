@@ -77,7 +77,6 @@ model Turma {
   id         String     @id @default(uuid())
   nome       String
   num_alunos Int
-  periodo    Int
   turno      String
   id_curso   String
   semestre   Int        @default(1)

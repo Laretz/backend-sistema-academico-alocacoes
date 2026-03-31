@@ -28,9 +28,8 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
 
     const turma = await prisma.turma.create({
       data: {
-        nome: "2024.1",
+        nome: "Turma 1",
         num_alunos: 30,
-        periodo: 1,
         turno: "MATUTINO",
         id_curso: curso.id,
         semestre: 1,
@@ -108,7 +107,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
         total_aulas: expect.any(Number),
         aulas_ministradas: expect.any(Number),
         tipo_de_sala: "Lab",
-      })
+      }),
     );
   });
 
@@ -128,7 +127,6 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       data: {
         nome: "2024.1",
         num_alunos: 35,
-        periodo: 1,
         turno: "MATUTINO",
         id_curso: curso.id,
         semestre: 1,
@@ -139,7 +137,6 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       data: {
         nome: "2024.2",
         num_alunos: 40,
-        periodo: 2,
         turno: "VESPERTINO",
         id_curso: curso.id,
         semestre: 2,
@@ -266,7 +263,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
         nome: "Banco de Dados",
         codigo: "BD001",
         carga_horaria: 60,
-        id_curso: curso1.id,
+        id_curso: curso.id,
         horario_consolidado: "SEX 08:00-10:00",
         tipo_de_sala: "Lab",
       },
@@ -284,7 +281,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
     });
 
     const response = await request(app.server)
-      .get(`/disciplinas/com-progresso?cursoId=${curso1.id}`)
+      .get(`/disciplinas/com-progresso?cursoId=${curso.id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
     const user = await prisma.user.create({
@@ -310,14 +307,13 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       data: {
         nome: "2024.1",
         num_alunos: 25,
-        periodo: 1,
         turno: "MATUTINO",
-        id_curso: curso1.id,
+        id_curso: curso.id,
         semestre: 1,
       },
     });
     const cd = await prisma.cursoDisciplina.create({
-      data: { id_curso: curso1.id, id_disciplina: disciplina1.id },
+      data: { id_curso: curso.id, id_disciplina: disciplina1.id },
     });
     await prisma.alocacao.create({
       data: {
@@ -343,7 +339,9 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
     const { token } = await createAndAuthenticateUser(app);
 
     const response = await request(app.server)
-      .get("/disciplinas/com-progresso?turmaId=00000000-0000-0000-0000-000000000000")
+      .get(
+        "/disciplinas/com-progresso?turmaId=00000000-0000-0000-0000-000000000000",
+      )
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
 

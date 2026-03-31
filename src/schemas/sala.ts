@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { 
-  uuidSchema, 
-  searchSchema, 
+import {
+  uuidSchema,
+  searchSchema,
   sortSchema,
   nonEmptyStringSchema,
   positiveIntegerSchema,
-  nomeSchema
+  nomeSchema,
 } from "./common";
 
 // ===== SCHEMAS DE REQUEST =====
@@ -22,7 +22,12 @@ export const createSalaSchema = z.object({
   predioId: uuidSchema,
   capacidade: positiveIntegerSchema,
   tipo: z.string(),
-  computadores: z.number().int("Deve ser um número inteiro").min(0, "Deve ser um número inteiro não negativo").optional().default(0),
+  computadores: z
+    .number()
+    .int("Deve ser um número inteiro")
+    .min(0, "Deve ser um número inteiro não negativo")
+    .optional()
+    .default(0),
 });
 
 // Schema para atualização de sala (campos opcionais)
@@ -32,7 +37,11 @@ export const updateSalaSchema = z.object({
   predioId: uuidSchema.optional(),
   capacidade: positiveIntegerSchema.optional(),
   tipo: z.string().optional(),
-  computadores: z.number().int("Deve ser um número inteiro").min(0, "Deve ser um número inteiro não negativo").optional(),
+  computadores: z
+    .number()
+    .int("Deve ser um número inteiro")
+    .min(0, "Deve ser um número inteiro não negativo")
+    .optional(),
 });
 
 // Schema para query de busca de salas
@@ -58,21 +67,23 @@ export const salaSchema = z.object({
 
 // Schema da sala com prédio incluído
 export const salaComPredioSchema = salaSchema.extend({
-  predio: z.object({
-    id: uuidSchema,
-    codigo: z.string(),
-    nome: z.string(),
-  }).nullable(),
+  predio: z
+    .object({
+      id: uuidSchema,
+      codigo: z.string(),
+      nome: z.string(),
+    })
+    .nullable(),
 });
 
 // Schema de resposta para criação/atualização
 export const salaResponseSchema = z.object({
-  sala: salaSchema
+  sala: salaSchema,
 });
 
 // Schema de resposta para listagem
 export const salasListResponseSchema = z.object({
-  salas: z.array(salaComPredioSchema)
+  salas: z.array(salaComPredioSchema),
 });
 
 // ===== TIPOS TYPESCRIPT =====
@@ -81,3 +92,11 @@ export type SalaParams = z.infer<typeof salaParamsSchema>;
 export type CreateSalaData = z.infer<typeof createSalaSchema>;
 export type UpdateSalaData = z.infer<typeof updateSalaSchema>;
 export type SalaQueryData = z.infer<typeof salaQuerySchema>;
+
+export const buscarSalasPorPredioParamsSchema = z.object({
+  predioId: uuidSchema,
+});
+
+export type BuscarSalasPorPredioParams = z.infer<
+  typeof buscarSalasPorPredioParamsSchema
+>;

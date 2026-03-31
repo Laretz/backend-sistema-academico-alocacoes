@@ -460,7 +460,10 @@ export class GeneticAlgorithm {
 
         for (let i = 0; i < quantidade && i * intervalo < totalHorarios; i++) {
           const index = Math.min(i * intervalo, totalHorarios - 1);
-          selecionados.push(horariosOrdenados[index]);
+          const selecionado = horariosOrdenados[index];
+          if (selecionado) {
+            selecionados.push(selecionado);
+          }
         }
 
         // Se não conseguiu selecionar todos com intervalo, completar com os restantes

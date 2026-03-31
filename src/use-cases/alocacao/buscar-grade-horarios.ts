@@ -60,7 +60,7 @@ export class BuscarGradeHorariosUseCase {
 
     // Busca alocações baseado no filtro fornecido
     if (id_turma) {
-      alocacoes = await this.alocacoesRepository.findByTurmaId(id_turma, 1);
+      alocacoes = await this.alocacoesRepository.findAllByTurmaId(id_turma);
     } else if (id_user) {
       alocacoes = await this.alocacoesRepository.findByUserId(id_user, 1);
     } else if (id_sala) {

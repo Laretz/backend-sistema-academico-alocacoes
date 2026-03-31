@@ -1,5 +1,5 @@
-import { CursosRepository } from "../../repositories/cursos-repository";
-import { CodigoJaExisteError } from "../errors/codigo-ja-existe";
+import { CursosRepository } from "@/repositories/cursos-repository";
+import { CodigoJaExisteError } from "@/use-cases/errors/codigo-ja-existe";
 
 interface CriarCursoUseCaseRequest {
     codigo: string;

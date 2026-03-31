@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { getStatsUseCase } from "@/use-cases/stats/get-stats";
+import { GetStatsUseCase } from "@/use-cases/stats/get-stats";
 
 vi.mock("@/lib/prisma", () => {
   return {
@@ -16,11 +16,12 @@ vi.mock("@/lib/prisma", () => {
   };
 });
 
-describe("getStatsUseCase — variações de dia da semana", () => {
+describe("GetStatsUseCase — variações de dia da semana", () => {
   it("SEGUNDA", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-01T10:00:00Z"));
-    const res = await getStatsUseCase();
+    const sut = new GetStatsUseCase();
+    const res = await sut.execute();
     expect(res.hoje.dia_semana).toBe("SEGUNDA");
     vi.useRealTimers();
   });
@@ -28,7 +29,8 @@ describe("getStatsUseCase — variações de dia da semana", () => {
   it("SABADO", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-06T10:00:00Z"));
-    const res = await getStatsUseCase();
+    const sut = new GetStatsUseCase();
+    const res = await sut.execute();
     expect(res.hoje.dia_semana).toBe("SABADO");
     vi.useRealTimers();
   });

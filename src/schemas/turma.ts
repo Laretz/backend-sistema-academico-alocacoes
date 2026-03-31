@@ -22,10 +22,9 @@ export const turmaParamsSchema = z.object({
 export const createTurmaSchema = z.object({
   nome: nomeSchema,
   num_alunos: z.number().int().positive({ message: 'Número de alunos deve ser positivo' }),
-  periodo: z.number().int().positive({ message: 'Período deve ser positivo' }),
   turno: turnoEnum,
   id_curso: uuidSchema,
-  semestre: z.number().int().positive({ message: 'Semestre deve ser positivo' }).optional(),
+  semestre: z.number().int().positive({ message: 'Semestre deve ser positivo' }),
   ativa: z.boolean().optional()
 });
 
@@ -35,7 +34,6 @@ export const createTurmaSchema = z.object({
 export const updateTurmaSchema = z.object({
   nome: nomeSchema.optional(),
   num_alunos: z.number().int().positive({ message: 'Número de alunos deve ser positivo' }).optional(),
-  periodo: z.number().int().positive({ message: 'Período deve ser positivo' }).optional(),
   turno: turnoEnum.optional(),
   id_curso: uuidSchema.optional(),
   semestre: z.number().int().positive({ message: 'Semestre deve ser positivo' }).optional(),
@@ -50,7 +48,6 @@ export const turmaQuerySchema = z.object({
   ...searchSchema.shape,
   ...sortSchema.shape,
   turno: turnoEnum.optional(),
-  periodo: z.string().transform(val => parseInt(val)).pipe(z.number().int().positive()).optional(),
   semestre: z.string().transform(val => parseInt(val)).pipe(z.number().int().positive()).optional(),
   ativa: z.string().transform(val => val === 'true').pipe(z.boolean()).optional(),
   id_curso: uuidSchema.optional()
@@ -63,7 +60,6 @@ export const turmaSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
   num_alunos: z.number(),
-  periodo: z.number(),
   turno: z.string(),
   id_curso: z.string(),
   semestre: z.number(),

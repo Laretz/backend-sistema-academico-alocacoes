@@ -14,6 +14,7 @@ interface AlocacaoInfo {
     nome: string;
     codigo: string;
     cargaHoraria: number;
+    horario_consolidado: string;
   };
   professor: {
     id: string;
@@ -87,6 +88,8 @@ export class BuscarGradeHorariosTurmaUseCase {
       "N2",
       "N3",
       "N4",
+      "N5",
+      "N6",
     ];
 
     const grade: GradeHorarios = {};
@@ -101,25 +104,24 @@ export class BuscarGradeHorariosTurmaUseCase {
 
     // Preencher grade com alocações
     alocacoes.forEach((alocacao) => {
-      // Verificar se os relacionamentos existem
-      if (
-        !alocacao.horario ||
-        !alocacao.disciplina ||
-        !alocacao.user ||
-        !alocacao.sala
-      ) {
-        return; // Pular alocação com dados incompletos
+      // Verificar se os relacionamentos essenciais existem
+      if (!alocacao.horario || !alocacao.disciplina) {
+        return; // Pular alocação sem horário ou disciplina
       }
 
       const dia_semana = alocacao.horario?.dia_semana || "";
       const codigoHorario = alocacao.horario?.codigo || "";
 
-      // Verificar se o dia e código do horário existem na grade
-      if (
-        !grade[dia_semana] ||
-        grade[dia_semana][codigoHorario] === undefined
-      ) {
-        return; // Pular se não existe na grade
+      // Verificar se o dia existe na grade
+      if (!grade[dia_semana]) {
+        // Se o dia não existe (ex: DOMINGO), podemos ignorar ou adicionar dinamicamente.
+        // Vamos ignorar por enquanto para manter consistência com diasSemana
+        return;
+      }
+
+      // Se o código não existe na grade inicializada (ex: código novo), inicializa
+      if (grade[dia_semana][codigoHorario] === undefined) {
+        grade[dia_semana][codigoHorario] = null;
       }
 
       grade[dia_semana]![codigoHorario] = {
@@ -133,12 +135,12 @@ export class BuscarGradeHorariosTurmaUseCase {
         },
         professor: {
           id: alocacao.user?.id || "",
-          nome: alocacao.user?.nome || "",
+          nome: alocacao.user?.nome || "Sem Professor",
           email: alocacao.user?.email || "",
         },
         sala: {
           id: alocacao.sala?.id || "",
-          nome: alocacao.sala?.nome || "",
+          nome: alocacao.sala?.nome || "Sem Sala",
           predio: alocacao.sala?.predio?.nome || "",
           capacidade: alocacao.sala?.capacidade || 0,
         },
@@ -154,10 +156,10 @@ export class BuscarGradeHorariosTurmaUseCase {
 
     // Calcular resumo
     const disciplinasUnicas = new Set(
-      alocacoes.filter((a) => a.disciplina?.id).map((a) => a.disciplina!.id)
+      alocacoes.filter((a) => a.disciplina?.id).map((a) => a.disciplina!.id),
     ).size;
     const professoresUnicos = new Set(
-      alocacoes.filter((a) => a.user?.id).map((a) => a.user!.id)
+      alocacoes.filter((a) => a.user?.id).map((a) => a.user!.id),
     ).size;
 
     return {

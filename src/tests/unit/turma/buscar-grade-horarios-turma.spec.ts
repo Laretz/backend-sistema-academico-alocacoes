@@ -28,9 +28,9 @@ describe("Buscar Grade Horários Turma Use Case", () => {
     expect(resumo.professoresUnicos).toEqual(0);
 
     // Verificar se a grade está inicializada com valores null
-    expect(grade.SEGUNDA.M1).toBeNull();
-    expect(grade.TERCA.T1).toBeNull();
-    expect(grade.QUARTA.N1).toBeNull();
+    expect(grade.SEGUNDA?.M1).toBeNull();
+    expect(grade.TERCA?.T1).toBeNull();
+    expect(grade.QUARTA?.N1).toBeNull();
   });
 
   it("deve retornar grade com alocações quando turma possui alocações", async () => {
@@ -52,14 +52,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. João Silva",
         email: "joao@teste.com",
         especializacao: "Matemática",
-      },
+      } as any,
       disciplina: {
         id: disciplinaId,
         nome: "Cálculo I",
         codigo: "CALC001",
         carga_horaria: 80,
-        carga_horaria: 80,
-      },
+      } as any,
       sala: {
         id: salaId,
         nome: "Sala 101",
@@ -72,7 +71,7 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         predio: {
           id: "predio-01",
           nome: "Bloco A",
-        },
+        } as any,
       },
       horario: {
         id: horarioId,
@@ -97,7 +96,7 @@ describe("Buscar Grade Horários Turma Use Case", () => {
     expect(resumo.professoresUnicos).toEqual(1);
 
     // Verificar se a alocação está na posição correta da grade
-    const alocacao = grade.SEGUNDA.M1;
+    const alocacao = grade.SEGUNDA?.M1;
     expect(alocacao).not.toBeNull();
     expect(alocacao?.disciplina.nome).toEqual("Cálculo I");
     expect(alocacao?.professor.nome).toEqual("Prof. João Silva");
@@ -120,14 +119,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. João",
         email: "joao@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: "disciplina-1",
         nome: "Matemática",
         codigo: "MAT001",
         carga_horaria: 60,
-        carga_horaria: 60,
-      },
+      } as any,
       horario: {
         id: "horario-1",
         codigo: "M1",
@@ -149,14 +147,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. Maria",
         email: "maria@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: "disciplina-2",
         nome: "Física",
         codigo: "FIS001",
         carga_horaria: 80,
-        carga_horaria: 80,
-      },
+      } as any,
       horario: {
         id: "horario-2",
         codigo: "T2",
@@ -173,16 +170,16 @@ describe("Buscar Grade Horários Turma Use Case", () => {
     expect(resumo.professoresUnicos).toEqual(2);
 
     // Verificar primeira alocação
-    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual("Matemática");
-    expect(grade.SEGUNDA.M1?.professor.nome).toEqual("Prof. João");
+    expect(grade.SEGUNDA?.M1?.disciplina.nome).toEqual("Matemática");
+    expect(grade.SEGUNDA?.M1?.professor.nome).toEqual("Prof. João");
 
     // Verificar segunda alocação
-    expect(grade.TERCA.T2?.disciplina.nome).toEqual("Física");
-    expect(grade.TERCA.T2?.professor.nome).toEqual("Prof. Maria");
+    expect(grade.TERCA?.T2?.disciplina.nome).toEqual("Física");
+    expect(grade.TERCA?.T2?.professor.nome).toEqual("Prof. Maria");
 
     // Verificar que outros horários estão vazios
-    expect(grade.SEGUNDA.M2).toBeNull();
-    expect(grade.TERCA.T1).toBeNull();
+    expect(grade.SEGUNDA?.M2).toBeNull();
+    expect(grade.TERCA?.T1).toBeNull();
   });
 
   it("deve calcular corretamente o resumo com múltiplas alocações do mesmo professor", async () => {
@@ -199,14 +196,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. João",
         email: "joao@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: "disciplina-1",
         nome: "Matemática",
         codigo: "MAT001",
         carga_horaria: 60,
-        carga_horaria: 60,
-      },
+      } as any,
       horario: {
         id: "horario-1",
         codigo: "M1",
@@ -225,13 +221,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. João",
         email: "joao@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: "disciplina-2",
         nome: "Física",
         codigo: "FIS001",
         carga_horaria: 80,
-      },
+      } as any,
       horario: {
         id: "horario-2",
         codigo: "M2",
@@ -262,13 +258,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. João",
         email: "joao@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: disciplinaId,
         nome: "Matemática",
         codigo: "MAT001",
         carga_horaria: 60,
-      },
+      } as any,
       horario: {
         id: "horario-1",
         codigo: "M1",
@@ -287,13 +283,13 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Prof. Maria",
         email: "maria@teste.com",
         especializacao: null,
-      },
+      } as any,
       disciplina: {
         id: disciplinaId,
         nome: "Matemática",
         codigo: "MAT001",
         carga_horaria: 60,
-      },
+      } as any,
       horario: {
         id: "horario-2",
         codigo: "M2",
@@ -322,8 +318,7 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Matemática",
         codigo: "MAT001",
         carga_horaria: 60,
-        carga_horaria: 60,
-      },
+      } as any,
       horario: {
         id: "horario-1",
         codigo: "M1",
@@ -341,8 +336,7 @@ describe("Buscar Grade Horários Turma Use Case", () => {
         nome: "Física",
         codigo: "FIS001",
         carga_horaria: 80,
-        carga_horaria: 80,
-      },
+      } as any,
       horario: {
         id: "horario-2",
         codigo: "M2",
@@ -355,7 +349,7 @@ describe("Buscar Grade Horários Turma Use Case", () => {
     const { grade, resumo } = await sut.execute({ turmaId });
 
     expect(resumo.totalAlocacoes).toEqual(1);
-    expect(grade.SEGUNDA.M1?.disciplina.nome).toEqual("Matemática");
-    expect(grade.SEGUNDA.M2).toBeNull(); // Não deve incluir alocação de outra turma
+    expect(grade.SEGUNDA?.M1?.disciplina.nome).toEqual("Matemática");
+    expect(grade.SEGUNDA?.M2).toBeNull(); // Não deve incluir alocação de outra turma
   });
 });

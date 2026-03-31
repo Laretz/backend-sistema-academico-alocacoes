@@ -5,7 +5,7 @@ import { makeAtualizarTurmaUseCase } from "@/use-cases/@factories/turma/make-atu
 
 export async function atualizarTurma(request: FastifyRequest, reply: FastifyReply) {
     const { id } = turmaParamsSchema.parse(request.params);
-    const { nome, num_alunos, periodo, turno, id_curso, semestre, ativa } = updateTurmaSchema.parse(request.body);
+    const { nome, num_alunos, turno, id_curso, semestre, ativa } = updateTurmaSchema.parse(request.body);
 
     try {
         const atualizarTurmaUseCase = makeAtualizarTurmaUseCase();
@@ -14,7 +14,6 @@ export async function atualizarTurma(request: FastifyRequest, reply: FastifyRepl
             id,
             ...(nome !== undefined && { nome }),
             ...(num_alunos !== undefined && { num_alunos }),
-            ...(periodo !== undefined && { periodo }),
             ...(turno !== undefined && { turno }),
             ...(id_curso !== undefined && { id_curso }),
             ...(semestre !== undefined && { semestre }),

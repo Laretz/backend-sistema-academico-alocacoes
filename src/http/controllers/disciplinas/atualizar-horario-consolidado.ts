@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { makeAtualizarHorarioConsolidadoUseCase } from '../../../use-cases/factories/make-atualizar-horario-consolidado-use-case';
+import { makeAtualizarHorarioConsolidadoUseCase } from '@/use-cases/@factories/turma/make-atualizar-horario-consolidado-use-case';
 import { RecursoNaoEncontradoError } from '../../../use-cases/errors/recurso-nao-encontrado';
 
 export async function atualizarHorarioConsolidado(request: FastifyRequest, reply: FastifyReply) {

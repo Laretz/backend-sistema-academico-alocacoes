@@ -1,0 +1,14 @@
+
+> backend@1.0.0 build
+> tsup src/server.ts --out-dir build
+
+[34mCLI[39m Building entry: src/server.ts
+[34mCLI[39m Using tsconfig: tsconfig.json
+[34mCLI[39m tsup v8.5.0
+[34mCLI[39m Using tsup config: C:\Users\LareTz\Dev\1tcc\backend\tsup.config.ts
+[34mCLI[39m Target: es2020
+[34mCLI[39m Cleaning output folder
+[34mCJS[39m Build start
+[32mCJS[39m [1mbuild\server.js     [22m[32m393.74 KB[39m
+[32mCJS[39m [1mbuild\server.js.map [22m[32m826.45 KB[39m
+[32mCJS[39m ÔÜí´©Å Build success in 120ms

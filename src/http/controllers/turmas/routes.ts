@@ -21,6 +21,7 @@ import {
 import { criarTurma } from "./criar-turma";
 import { buscarTurma } from "./buscar-turma";
 import { buscarTurmas } from "./buscar-turmas";
+import { listarTodasTurmas } from "./listar-todas-turmas";
 import { atualizarTurma } from "./atualizar-turma";
 import { excluirTurma } from "./excluir-turma";
 import { buscarGradeHorariosTurma } from "./buscar-grade-horarios-turma";
@@ -42,7 +43,7 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarTurma
+    criarTurma,
   );
 
   // GET /turmas - Buscar turmas
@@ -61,7 +62,38 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarTurmas
+    buscarTurmas,
+  );
+
+  // GET /turmas/todas - Listar todas as turmas sem paginação
+  app.get(
+    "/turmas/todas",
+    {
+      schema: {
+        description: "Listar todas as turmas para dropdowns",
+        tags: ["Turmas 👥"],
+        response: {
+          200: z.object({
+            turmas: z.array(
+              z.object({
+                id: z.string(),
+                nome: z.string(),
+                semestre: z.number().optional(),
+                turno: z.string().optional(),
+                curso: z
+                  .object({
+                    id: z.string(),
+                    nome: z.string(),
+                    codigo: z.string(),
+                  })
+                  .optional(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    listarTodasTurmas,
   );
 
   // GET /turmas/:id - Buscar turma por ID
@@ -80,7 +112,7 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarTurma
+    buscarTurma,
   );
 
   // PUT /turmas/:id - Atualizar turma
@@ -101,7 +133,7 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    atualizarTurma
+    atualizarTurma,
   );
 
   // DELETE /turmas/:id - Excluir turma
@@ -121,30 +153,33 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    excluirTurma
+    excluirTurma,
   );
 
-    // GET /turmas/:id/grade-horarios - Buscar grade de horários da turma
-    app.get(
-      "/turmas/:id/grade-horarios",
-      {
-        //TODOonRequest: [verifyJWT],
-        schema: {
-          description: "Essa rota serve para buscar a grade de horários de uma turma",
-          tags: ["Turmas 👥"],
-          params: turmaParamsSchema,
-          response: {
-            200: z.object({
+  // GET /turmas/:id/grade-horarios - Buscar grade de horários da turma
+  app.get(
+    "/turmas/:id/grade-horarios",
+    {
+      //TODOonRequest: [verifyJWT],
+      schema: {
+        description:
+          "Essa rota serve para buscar a grade de horários de uma turma",
+        tags: ["Turmas 👥"],
+        params: turmaParamsSchema,
+        response: {
+          200: z
+            .object({
               turmaId: z.string().uuid(),
               grade: z.record(z.string(), z.any()), //TODO AJUSTAR E REMOVER ANY
               resumo: z.any(),
-            }).describe("Grade de horários da turma"),
-            400: validationErrorResponseSchema,
-            404: notFoundResponseSchema,
-            500: internalServerErrorResponseSchema,
-          },
+            })
+            .describe("Grade de horários da turma"),
+          400: validationErrorResponseSchema,
+          404: notFoundResponseSchema,
+          500: internalServerErrorResponseSchema,
         },
       },
-      buscarGradeHorariosTurma
-    );
-  };
+    },
+    buscarGradeHorariosTurma,
+  );
+};

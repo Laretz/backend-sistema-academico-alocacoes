@@ -1,4 +1,4 @@
-import { SalasRepository } from "../../repositories/salas-repository";
+import { SalasRepository } from "@/repositories/salas-repository";
 
 interface CriarSalaUseCaseRequest {
   nome: string;

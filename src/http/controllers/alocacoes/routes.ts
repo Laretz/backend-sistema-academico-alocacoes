@@ -11,11 +11,13 @@ import { atualizarAlocacao } from "./atualizar-alocacao";
 import { excluirAlocacao } from "./excluir-alocacao";
 import { buscarGradeHorarios } from "./buscar-grade-horarios";
 import { buscarGradeHorarios as buscarGradeHorariosGeral } from "./buscar-grade-horarios-geral";
-import { buscarAlocacoesPeriodoManha } from "./buscar-alocacoes-periodo-manha";
-import { buscarAlocacoesTurmaPeriodo } from "./buscar-alocacoes-turma-periodo";
+import { buscarAlocacoesTurnoManha } from "./buscar-alocacoes-turno-manha";
+import { buscarAlocacoesTurmaTurno } from "./buscar-alocacoes-turma-turno";
+import { buscarAlocacoesPorTurma } from "./buscar-alocacoes-por-turma";
 import { excluirTodasAlocacoesTurma } from "./excluir-todas-alocacoes-turma";
 import { buscarAlocacoesProfessor } from "./buscar-alocacoes-professor";
 import { buscarQuantidadeAulasPorProfessor } from "./buscar-quantidade-aulas-professores";
+import { excluirAlocacoesDisciplinaTurma } from "./excluir-alocacoes-disciplina-turma-controller";
 
 // Importação dos schemas
 import {
@@ -25,8 +27,9 @@ import {
   alocacoesQuerySchema,
   gradeHorariosQuerySchema,
   alocacoesProfessorParamsSchema,
-  alocacoesTurmaPeriodoParamsSchema,
+  alocacoesTurmaTurnoParamsSchema,
   excluirAlocacoesTurmaParamsSchema,
+  excluirAlocacoesDisciplinaTurmaParamsSchema,
   alocacaoResponseSchema,
   createAlocacaoResponseSchema,
   alocacoesListResponseSchema,
@@ -54,7 +57,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         body: createAlocacaoSchema,
       },
     },
-    criarAlocacao
+    criarAlocacao,
   );
 
   // Buscar todas as alocações
@@ -74,18 +77,18 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarAlocacoes
+    buscarAlocacoes,
   );
 
-  // Buscar alocações do período da manhã
+  // Buscar alocações do turno da manhã
   app.get(
-    "/alocacoes/periodo/manha",
+    "/alocacoes/turno/manha",
     {
       onRequest: [verifyJWT],
       schema: {
         tags: ["Alocações"],
-        summary: "Buscar alocações do período da manhã",
-        description: "Lista todas as alocações do período da manhã",
+        summary: "Buscar alocações do turno da manhã",
+        description: "Lista todas as alocações do turno da manhã",
         response: {
           200: alocacoesListResponseSchema,
           401: invalidTokenErrorSchema,
@@ -93,19 +96,19 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarAlocacoesPeriodoManha
+    buscarAlocacoesTurnoManha,
   );
 
-  // Buscar alocações por turma e período
+  // Buscar alocações por turma e turno
   app.get(
-    "/alocacoes/turma/:id_turma/periodo",
+    "/alocacoes/turma/:id_turma/turno",
     {
       onRequest: [verifyJWT],
       schema: {
         tags: ["Alocações"],
-        summary: "Buscar alocações por turma e período",
-        description: "Lista alocações de uma turma específica em um período",
-        params: alocacoesTurmaPeriodoParamsSchema,
+        summary: "Buscar alocações por turma e turno",
+        description: "Lista alocações de uma turma específica em um turno",
+        params: alocacoesTurmaTurnoParamsSchema,
         response: {
           200: alocacoesListResponseSchema,
           401: invalidTokenErrorSchema,
@@ -114,7 +117,31 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarAlocacoesTurmaPeriodo
+    buscarAlocacoesTurmaTurno,
+  );
+
+  // Buscar todas as alocações de uma turma (sem paginação)
+  app.get(
+    "/alocacoes/turma/:id_turma/completa",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        tags: ["Alocações"],
+        summary: "Buscar todas as alocações de uma turma",
+        description:
+          "Lista todas as alocações de uma turma específica sem paginação",
+        params: z.object({
+          id_turma: z.string().uuid(),
+        }),
+        response: {
+          200: alocacoesListResponseSchema,
+          401: invalidTokenErrorSchema,
+          404: alocacaoNotFoundErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarAlocacoesPorTurma,
   );
 
   // Buscar alocações por professor
@@ -135,7 +162,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarAlocacoesProfessor
+    buscarAlocacoesProfessor,
   );
 
   // Buscar quantidade de aulas por professor
@@ -155,7 +182,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarQuantidadeAulasPorProfessor
+    buscarQuantidadeAulasPorProfessor,
   );
 
   // Buscar alocação por ID
@@ -176,7 +203,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarAlocacao
+    buscarAlocacao,
   );
 
   // Atualizar alocação
@@ -201,7 +228,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    atualizarAlocacao
+    atualizarAlocacao,
   );
 
   // Excluir alocação
@@ -223,7 +250,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    excluirAlocacao
+    excluirAlocacao,
   );
 
   // Excluir todas as alocações de uma turma
@@ -245,7 +272,32 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    excluirTodasAlocacoesTurma
+    excluirTodasAlocacoesTurma,
+  );
+
+  // Excluir todas as alocações de uma disciplina em uma turma
+  app.delete(
+    "/alocacoes/turma/:id_turma/disciplina/:id_disciplina",
+    {
+      onRequest: [verifyJWT, verifyUseRole("ADMIN")],
+      schema: {
+        tags: ["Alocações"],
+        summary: "Excluir alocações por turma e disciplina",
+        description:
+          "Remove todas as alocações de uma disciplina específica em uma turma",
+        params: excluirAlocacoesDisciplinaTurmaParamsSchema,
+        response: {
+          204: z
+            .void()
+            .describe("Alocações da disciplina na turma excluídas com sucesso"),
+          401: invalidTokenErrorSchema,
+          403: invalidTokenErrorSchema,
+          404: alocacaoNotFoundErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    excluirAlocacoesDisciplinaTurma,
   );
 
   // Buscar grade de horários
@@ -266,7 +318,7 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarGradeHorarios
+    buscarGradeHorarios,
   );
 
   // Buscar grade de horários geral
@@ -288,6 +340,6 @@ export async function routesAlocacoes(app: FastifyInstance) {
         },
       },
     },
-    buscarGradeHorariosGeral
+    buscarGradeHorariosGeral,
   );
 }

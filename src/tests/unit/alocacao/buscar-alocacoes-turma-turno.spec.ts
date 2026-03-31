@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
-import { BuscarAlocacoesTurmaPeriodoUseCase } from "@/use-cases/alocacao/buscar-alocacoes-turma-periodo";
+import { BuscarAlocacoesTurmaTurnoUseCase } from "@/use-cases/alocacao/buscar-alocacoes-turma-turno";
 
-describe("BuscarAlocacoesTurmaPeriodoUseCase", () => {
-  it("deve filtrar por turma e período (manhã/tarde/noite) com paginação", async () => {
+describe("BuscarAlocacoesTurmaTurnoUseCase", () => {
+  it("deve filtrar por turma e turno (manhã/tarde/noite) com paginação", async () => {
     const repo = new InMemoryAlocacoesRepository();
     const turmaId = "turma-1";
 
@@ -47,22 +47,22 @@ describe("BuscarAlocacoesTurmaPeriodoUseCase", () => {
       } as any);
     }
 
-    const sut = new BuscarAlocacoesTurmaPeriodoUseCase(repo);
+    const sut = new BuscarAlocacoesTurmaTurnoUseCase(repo);
 
-    const manha = await sut.execute({ id_turma: turmaId, periodo: "manha", page: 1 });
+    const manha = await sut.execute({ id_turma: turmaId, turno: "manha", page: 1 });
     expect(manha.alocacoes).toHaveLength(15);
 
-    const tarde = await sut.execute({ id_turma: turmaId, periodo: "tarde", page: 1 });
+    const tarde = await sut.execute({ id_turma: turmaId, turno: "tarde", page: 1 });
     expect(tarde.alocacoes).toHaveLength(10);
 
-    const noite = await sut.execute({ id_turma: turmaId, periodo: "noite", page: 1 });
+    const noite = await sut.execute({ id_turma: turmaId, turno: "noite", page: 1 });
     expect(noite.alocacoes).toHaveLength(7);
   });
 
-  it("deve retornar vazio quando turma não possuir alocações no período", async () => {
+  it("deve retornar vazio quando turma não possuir alocações no turno", async () => {
     const repo = new InMemoryAlocacoesRepository();
-    const sut = new BuscarAlocacoesTurmaPeriodoUseCase(repo);
-    const { alocacoes } = await sut.execute({ id_turma: "turma-x", periodo: "manha", page: 1 });
+    const sut = new BuscarAlocacoesTurmaTurnoUseCase(repo);
+    const { alocacoes } = await sut.execute({ id_turma: "turma-x", turno: "manha", page: 1 });
     expect(alocacoes).toHaveLength(0);
   });
 });

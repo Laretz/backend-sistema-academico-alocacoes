@@ -39,7 +39,7 @@ export class AtualizarProgressoDisciplinasUseCase {
     const dataAtual = new Date();
 
     for (const disciplina of disciplinas) {
-      const horarios = parseHorarioConsolidado(disciplina.horario_consolidado);
+      const horarios = parseHorarioConsolidado(disciplina.horario_consolidado || "");
 
       if (horarios.length === 0) {
         continue;
