@@ -308,10 +308,37 @@ async function popularBancoCompleto() {
           tipo_de_sala: 'Lab',
           id_curso: cursos[1].id
         }
+      }),
+      prisma.disciplina.create({
+        data: {
+          codigo: 'TSI202',
+          nome: 'Programacao Web I',
+          carga_horaria: 80,
+          semestre: 2,
+          tipo_de_sala: 'Lab',
+          id_curso: cursos[1].id
+        }
       })
     ]);
 
-    // 6. TURMAS
+    // 6. CURSO-DISCIPLINA
+    console.log('🔗 Criando vinculos curso-disciplina...');
+    const cursosDisciplinas = await Promise.all(
+      disciplinas.map((disciplina) =>
+        prisma.cursoDisciplina.create({
+          data: {
+            id_curso: disciplina.id_curso,
+            id_disciplina: disciplina.id
+          }
+        })
+      )
+    );
+
+    const cursoDisciplinaByKey = new Map(
+      cursosDisciplinas.map((cd) => [`${cd.id_curso}_${cd.id_disciplina}`, cd.id])
+    );
+
+    // 7. TURMAS
     console.log('👥 Criando turmas...');
     const turmas = await Promise.all([
       prisma.turma.create({
@@ -356,23 +383,62 @@ async function popularBancoCompleto() {
       })
     ]);
 
-    // 7. HORÁRIOS (usando horários já existentes no sistema)
-    console.log('⏰ Usando horários existentes do sistema...');
-    // IDs dos horários já cadastrados no sistema
-    const horariosExistentes = [
-      'd11ee0aa-e9ca-4a1d-8ba0-c39cc089aebc', // M1 SEGUNDA
-      'dad74cff-7ef2-4ea6-9ed3-aceb17b55ff8', // M2 SEGUNDA
-      '7dea2a04-2c4d-4d0c-9578-36a0dddf1297', // N1 SEGUNDA
-      'a8dd9610-339a-4557-9e1d-c0a6359c81e6', // N2 SEGUNDA
-      '19ff9784-4965-4214-a2d1-b21fed8eb0a8', // M1 TERCA
-      'ecf3fead-fa67-44d4-9251-53842a13c228', // N1 TERCA
-      'b6b55c35-bfa3-48c5-829a-a4426777b341', // N2 TERCA
-      'a7d5d110-089a-4f3b-8fab-1edf59302e00', // T1 SEGUNDA
-      '22de303e-62aa-4b0b-91fc-df1470c94ee4', // T1 TERCA
-      'f65f130c-b43b-40cd-98a7-0987e2a43331'  // T1 QUARTA
+    // 8. HORÁRIOS (buscando ids atuais no banco)
+    console.log('⏰ Buscando horarios existentes do sistema...');
+    const horariosRequeridos = [
+      { dia_semana: 'SEGUNDA', codigo: 'M1' },
+      { dia_semana: 'SEGUNDA', codigo: 'M2' },
+      { dia_semana: 'SEGUNDA', codigo: 'N1' },
+      { dia_semana: 'SEGUNDA', codigo: 'N2' },
+      { dia_semana: 'TERCA', codigo: 'M1' },
+      { dia_semana: 'TERCA', codigo: 'N1' },
+      { dia_semana: 'TERCA', codigo: 'N2' },
+      { dia_semana: 'SEGUNDA', codigo: 'T1' },
+      { dia_semana: 'TERCA', codigo: 'T1' },
+      { dia_semana: 'QUARTA', codigo: 'T1' }
     ];
 
-    // 8. RELACIONAMENTOS PROFESSOR-DISCIPLINA
+    const horariosEncontrados = await prisma.horario.findMany({
+      where: {
+        OR: horariosRequeridos
+      },
+      select: {
+        id: true,
+        dia_semana: true,
+        codigo: true
+      }
+    });
+
+    const horarioIdByKey = new Map(
+      horariosEncontrados.map((h) => [`${h.dia_semana}_${h.codigo}`, h.id])
+    );
+
+    const horariosFaltando = horariosRequeridos.filter(
+      (h) => !horarioIdByKey.has(`${h.dia_semana}_${h.codigo}`)
+    );
+
+    if (horariosFaltando.length > 0) {
+      throw new Error(
+        `horarios nao encontrados no banco: ${horariosFaltando
+          .map((h) => `${h.dia_semana}_${h.codigo}`)
+          .join(', ')}. rode primeiro: npm run setup:horarios`
+      );
+    }
+
+    const horariosExistentes = horariosRequeridos.map(
+      (h) => horarioIdByKey.get(`${h.dia_semana}_${h.codigo}`)!
+    );
+
+    const getCursoDisciplinaId = (turmaIndex: number, disciplinaIndex: number) => {
+      const key = `${turmas[turmaIndex].id_curso}_${disciplinas[disciplinaIndex].id}`;
+      const id = cursoDisciplinaByKey.get(key);
+      if (!id) {
+        throw new Error(`curso-disciplina nao encontrado para chave: ${key}`);
+      }
+      return id;
+    };
+
+    // 9. RELACIONAMENTOS PROFESSOR-DISCIPLINA
     console.log('🔗 Criando relacionamentos professor-disciplina...');
     await Promise.all([
       prisma.professorDisciplina.create({
@@ -419,7 +485,7 @@ async function popularBancoCompleto() {
       })
     ]);
 
-    // 9. ALOCAÇÕES EXEMPLO
+    // 10. ALOCAÇÕES EXEMPLO
     console.log('📅 Criando alocações exemplo...');
     await Promise.all([
       prisma.alocacao.create({
@@ -429,6 +495,7 @@ async function popularBancoCompleto() {
           id_turma: turmas[0].id,
           id_sala: salas[0].id,
           id_horario: horariosExistentes[0],
+          id_curso_disciplina: getCursoDisciplinaId(0, 0),
           is_modulo_principal: true
         }
       }),
@@ -439,6 +506,7 @@ async function popularBancoCompleto() {
           id_turma: turmas[1].id,
           id_sala: salas[5].id,
           id_horario: horariosExistentes[2],
+          id_curso_disciplina: getCursoDisciplinaId(1, 2),
           is_modulo_principal: true
         }
       }),
@@ -449,6 +517,7 @@ async function popularBancoCompleto() {
           id_turma: turmas[1].id,
           id_sala: salas[4].id,
           id_horario: horariosExistentes[4],
+          id_curso_disciplina: getCursoDisciplinaId(1, 5),
           is_modulo_principal: true
         }
       }),
@@ -459,6 +528,7 @@ async function popularBancoCompleto() {
           id_turma: turmas[3].id,
           id_sala: salas[4].id,
           id_horario: horariosExistentes[7],
+          id_curso_disciplina: getCursoDisciplinaId(3, 7),
           is_modulo_principal: true
         }
       })

@@ -10,8 +10,16 @@ export async function listarTodasTurmas(
 
     const { turmas } = await listarTodasTurmasUseCase.execute();
 
-  
-    return reply.status(200).send({ turmas });
+    const turmasPayload = turmas.map((turma: any) => ({
+      id: turma.id,
+      nome: turma.nome,
+      semestre: turma.semestre,
+      turno: turma.turno,
+      id_curso: turma.id_curso ?? turma.curso?.id,
+      curso: turma.curso,
+    }));
+
+    return reply.status(200).send({ turmas: turmasPayload });
   } catch (error) {
     throw error;
   }

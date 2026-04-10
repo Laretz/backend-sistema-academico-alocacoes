@@ -21,7 +21,7 @@ Content-Type: application/json
 ###
 
 # @name GetAllTurmas
-GET {{baseURL}}/turmas
+GET {{baseURL}}/turmas/todas
 Content-Type: application/json
 Authorization: Bearer {{Login.response.body.token}}
 

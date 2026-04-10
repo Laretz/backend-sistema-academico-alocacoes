@@ -2,7 +2,7 @@ export interface Gene {
   disciplinaId: string;
   professorId: string;
   salaId: string;
-  horarios: string[]; // ["SEGUNDA_M1", "SEGUNDA_M2", "QUARTA_M1"]
+  horarios: string[];
 }
 
 export interface Cromossomo {
@@ -52,7 +52,7 @@ export interface HorarioInput {
 export interface TurmaInput {
   id: string;
   num_alunos: number;
-  turno: string; // 'MATUTINO', 'VESPERTINO', 'NOTURNO'
+  turno: string;
   disciplinas: DisciplinaInput[];
 }
 
@@ -64,7 +64,7 @@ export class GeneticAlgorithm {
   private horarios: HorarioInput[];
   private population: Cromossomo[];
 
-  // Métricas para seleção adaptativa
+  // metricas e taxas adaptativas dos operadores
   private operatorMetrics: {
     crossover: { successes: number; attempts: number };
     mutation: { successes: number; attempts: number };
@@ -88,7 +88,6 @@ export class GeneticAlgorithm {
     this.horarios = horarios;
     this.population = [];
 
-    // Inicializar métricas adaptativas
     this.operatorMetrics = {
       crossover: { successes: 0, attempts: 0 },
       mutation: { successes: 0, attempts: 0 },
@@ -99,6 +98,7 @@ export class GeneticAlgorithm {
     this.stagnationCount = 0;
   }
 
+  // executa o algoritmo genetico e retorna o melhor cromossomo encontrado
   public async execute(): Promise<Cromossomo> {
     this.initializePopulation();
 
@@ -115,12 +115,10 @@ export class GeneticAlgorithm {
       this.evaluatePopulation();
       const currentBest = this.getBestChromosome();
 
-      // Atualiza best global
       if (!best || currentBest.fitness > best.fitness) {
         best = currentBest;
       }
 
-      // Estagnação
       if (currentBest.fitness <= lastBestFitness) {
         stagnationCount++;
       } else {
@@ -129,7 +127,6 @@ export class GeneticAlgorithm {
 
       lastBestFitness = currentBest.fitness;
 
-      // ----- CRITÉRIO DE PARADA INTELIGENTE -----
       const reachedTarget = best.fitness >= fitnessTarget;
       const passedMinimum = gen >= minGenerations;
       const stagnated = stagnationCount >= patience;
@@ -139,12 +136,10 @@ export class GeneticAlgorithm {
         break;
       }
 
-      // Log a cada 50 gerações
       if (gen % 50 === 0) {
         console.log(`Geração ${gen}: Best Fitness = ${best.fitness}`);
       }
 
-      // Evolução da população
       if (gen < maxGenerations - 1) {
         this.adaptOperatorRates(currentBest.fitness);
         this.evolveGeneration();
@@ -155,6 +150,7 @@ export class GeneticAlgorithm {
     return this.getBestChromosome();
   }
 
+  // cria a populacao inicial usando heuristicas e etapa de reparo
   private initializePopulation(): void {
     this.population = [];
 
@@ -165,22 +161,20 @@ export class GeneticAlgorithm {
     }
   }
 
+  // monta um cromossomo selecionando professor, sala e horarios por disciplina
   private createRandomChromosome(): Cromossomo {
     const genes: Gene[] = [];
     const usedProfessorHorarios = new Map<string, Set<string>>();
     const usedSalaHorarios = new Map<string, Set<string>>();
 
     for (const disciplina of this.turma.disciplinas) {
-      // Selecionar professor com base em disponibilidade e preferências
       const professor = this.selectBestProfessor(
         disciplina,
         usedProfessorHorarios
       );
 
-      // Selecionar sala compatível com prioridade para capacidade adequada
       const sala = this.selectBestSala(disciplina, usedSalaHorarios);
 
-      // Calcular distribuição de aulas baseada na carga horária
       const distribuicaoAulas = this.calculateClassDistribution(
         disciplina.cargaHoraria
       );
@@ -190,7 +184,6 @@ export class GeneticAlgorithm {
         usedSalaHorarios.get(sala.id) || new Set()
       );
 
-      // Registrar horários utilizados
       if (!usedProfessorHorarios.has(professor.id)) {
         usedProfessorHorarios.set(professor.id, new Set());
       }
@@ -217,9 +210,7 @@ export class GeneticAlgorithm {
     };
   }
 
-  /**
-   * Calcula a distribuição ideal de aulas baseada na carga horária
-   */
+  // calcula a distribuicao semanal preferida a partir da carga horaria
   private calculateClassDistribution(cargaHoraria: number): {
     aulasSemanais: number;
     preferirConsecutivas: boolean;
@@ -231,11 +222,9 @@ export class GeneticAlgorithm {
       | "6-dois-dias"
       | "padrao";
   } {
-    // Converter carga horária para total de aulas (assumindo 50min por aula)
     const totalAulas = Math.ceil(cargaHoraria * 1.2);
 
     if (cargaHoraria === 90) {
-      // 90h: 6 aulas por semana, 3 em um dia + 3 em outro dia
       return {
         aulasSemanais: 6,
         preferirConsecutivas: true,
@@ -243,7 +232,6 @@ export class GeneticAlgorithm {
         distribuicaoTipo: "6-dois-dias",
       };
     } else if (cargaHoraria === 60) {
-      // 60h: 4 aulas por semana em dois dias diferentes, 2+2
       return {
         aulasSemanais: 4,
         preferirConsecutivas: false,
@@ -251,7 +239,6 @@ export class GeneticAlgorithm {
         distribuicaoTipo: "4-dois-dias",
       };
     } else if (cargaHoraria === 45) {
-      // 45h: 3 aulas por semana no mesmo dia
       return {
         aulasSemanais: 3,
         preferirConsecutivas: true,
@@ -259,7 +246,6 @@ export class GeneticAlgorithm {
         distribuicaoTipo: "3-mesmo-dia",
       };
     } else if (cargaHoraria === 30) {
-      // 30h: 2 aulas por semana no mesmo dia
       return {
         aulasSemanais: 2,
         preferirConsecutivas: true,
@@ -267,7 +253,6 @@ export class GeneticAlgorithm {
         distribuicaoTipo: "2-mesmo-dia",
       };
     } else {
-      // Outras cargas horárias: usar distribuição padrão
       return {
         aulasSemanais: Math.min(4, Math.ceil(cargaHoraria / 15)),
         preferirConsecutivas: false,
@@ -277,9 +262,7 @@ export class GeneticAlgorithm {
     }
   }
 
-  /**
-   * Seleciona horários otimizados baseados na distribuição de aulas
-   */
+  // seleciona horarios com base no tipo de distribuicao e disponibilidade
   private selectOptimalHorariosWithDistribution(
     distribuicao: {
       aulasSemanais: number;
@@ -302,10 +285,8 @@ export class GeneticAlgorithm {
       return this.selectRandomHorarios(distribuicao.aulasSemanais);
     }
 
-    // Implementar regras específicas baseadas no tipo de distribuição
     switch (distribuicao.distribuicaoTipo) {
       case "2-mesmo-dia": {
-        // 30h: 2 aulas consecutivas no mesmo dia
         const horarios2Consecutivos = this.findConsecutiveHorarios(
           horariosDisponiveis,
           2
@@ -313,7 +294,6 @@ export class GeneticAlgorithm {
         if (horarios2Consecutivos.length === 2) {
           return horarios2Consecutivos;
         }
-        // Fallback: tentar qualquer 2 horários no mesmo dia
         const sameDayHorarios = this.findSameDayHorarios(
           horariosDisponiveis,
           2
@@ -325,7 +305,6 @@ export class GeneticAlgorithm {
       }
 
       case "3-mesmo-dia": {
-        // 45h: 3 aulas consecutivas no mesmo dia
         const horarios3Consecutivos = this.findConsecutiveHorarios(
           horariosDisponiveis,
           3
@@ -333,7 +312,6 @@ export class GeneticAlgorithm {
         if (horarios3Consecutivos.length === 3) {
           return horarios3Consecutivos;
         }
-        // Fallback: tentar qualquer 3 horários no mesmo dia
         const sameDayHorarios = this.findSameDayHorarios(
           horariosDisponiveis,
           3
@@ -345,13 +323,11 @@ export class GeneticAlgorithm {
       }
 
       case "4-dois-dias": {
-        // 60h: 4 aulas em dois dias diferentes (2+2)
         const distribuicao2x2 =
           this.findTwoByTwoDistribution(horariosDisponiveis);
         if (distribuicao2x2.length === 4) {
           return distribuicao2x2;
         }
-        // Fallback: distribuir em dias diferentes
         const distributedHorarios = this.findDistributedHorarios(
           horariosDisponiveis,
           4,
@@ -364,13 +340,11 @@ export class GeneticAlgorithm {
       }
 
       case "6-dois-dias": {
-        // 90h: 6 aulas em dois dias diferentes (3+3)
         const distribuicao3x3 =
           this.findThreeByThreeDistribution(horariosDisponiveis);
         if (distribuicao3x3.length === 6) {
           return distribuicao3x3;
         }
-        // Fallback: distribuir em dias diferentes
         const distributedHorarios = this.findDistributedHorarios(
           horariosDisponiveis,
           6,
@@ -383,7 +357,6 @@ export class GeneticAlgorithm {
       }
     }
 
-    // Fallback: usar distribuição equilibrada para evitar concentração nos primeiros horários
     const horariosDistribuidos = this.selectDistributedHorarios(
       horariosDisponiveis,
       distribuicao.aulasSemanais
@@ -392,13 +365,10 @@ export class GeneticAlgorithm {
       return horariosDistribuidos;
     }
 
-    // Último fallback: seleção aleatória respeitando a quantidade de aulas semanais
     return this.selectRandomHorarios(distribuicao.aulasSemanais);
   }
 
-  /**
-   * Encontra horários consecutivos no mesmo dia
-   */
+  // encontra horarios consecutivos no mesmo dia
   private findConsecutiveHorarios(
     horarios: HorarioInput[],
     quantidade: number
@@ -411,7 +381,6 @@ export class GeneticAlgorithm {
         .sort((a, b) => a.codigo.localeCompare(b.codigo));
 
       if (horariosDoDia.length >= quantidade) {
-        // Verificar se existem horários consecutivos
         for (let i = 0; i <= horariosDoDia.length - quantidade; i++) {
           const consecutivos = horariosDoDia.slice(i, i + quantidade);
           const saoConsecutivos = this.areHorariosConsecutive(consecutivos);
@@ -426,9 +395,7 @@ export class GeneticAlgorithm {
     return [];
   }
 
-  /**
-   * Encontra horários no mesmo dia (não necessariamente consecutivos)
-   */
+  // encontra horarios no mesmo dia, priorizando consecutivos quando possivel
   private findSameDayHorarios(
     horarios: HorarioInput[],
     quantidade: number
@@ -439,12 +406,10 @@ export class GeneticAlgorithm {
       const horariosDoDia = horarios.filter((h) => h.dia_semana === dia);
 
       if (horariosDoDia.length >= quantidade) {
-        // Ordenar horários por código
         const horariosOrdenados = horariosDoDia.sort((a, b) =>
           a.codigo.localeCompare(b.codigo)
         );
 
-        // Tentar encontrar horários consecutivos primeiro
         for (let i = 0; i <= horariosOrdenados.length - quantidade; i++) {
           const consecutivos = horariosOrdenados.slice(i, i + quantidade);
           if (this.areHorariosConsecutive(consecutivos)) {
@@ -452,8 +417,6 @@ export class GeneticAlgorithm {
           }
         }
 
-        // Se não encontrou consecutivos, distribuir melhor os horários
-        // Evitar sempre pegar os primeiros horários (M1, M2, M3...)
         const totalHorarios = horariosOrdenados.length;
         const intervalo = Math.max(1, Math.floor(totalHorarios / quantidade));
         const selecionados: HorarioInput[] = [];
@@ -466,7 +429,6 @@ export class GeneticAlgorithm {
           }
         }
 
-        // Se não conseguiu selecionar todos com intervalo, completar com os restantes
         while (
           selecionados.length < quantidade &&
           selecionados.length < totalHorarios
@@ -486,9 +448,7 @@ export class GeneticAlgorithm {
     return [];
   }
 
-  /**
-   * Distribui horários em dias diferentes
-   */
+  // distribui horarios em dias diferentes
   private findDistributedHorarios(
     horarios: HorarioInput[],
     totalAulas: number,
@@ -523,9 +483,7 @@ export class GeneticAlgorithm {
     return resultado;
   }
 
-  /**
-   * Encontra distribuição 2+2 (2 aulas em um dia + 2 em outro)
-   */
+  // encontra distribuicao 2+2 para quatro aulas semanais
   private findTwoByTwoDistribution(horarios: HorarioInput[]): string[] {
     const diasDisponiveis = [...new Set(horarios.map((h) => h.dia_semana))];
 
@@ -538,7 +496,6 @@ export class GeneticAlgorithm {
         const horariosDia2 = horarios.filter((h) => h.dia_semana === dia2);
 
         if (horariosDia1.length >= 2 && horariosDia2.length >= 2) {
-          // Tentar encontrar 2 horários consecutivos em cada dia
           const consecutivosDia1 = this.findConsecutiveHorarios(
             horariosDia1,
             2
@@ -558,9 +515,7 @@ export class GeneticAlgorithm {
     return [];
   }
 
-  /**
-   * Encontra distribuição 3+3 (3 aulas em um dia + 3 em outro) para disciplinas de 90h
-   */
+  // encontra distribuicao 3+3 para seis aulas semanais
   private findThreeByThreeDistribution(horarios: HorarioInput[]): string[] {
     const diasDisponiveis = [...new Set(horarios.map((h) => h.dia_semana))];
 
@@ -573,7 +528,6 @@ export class GeneticAlgorithm {
         const horariosDia2 = horarios.filter((h) => h.dia_semana === dia2);
 
         if (horariosDia1.length >= 3 && horariosDia2.length >= 3) {
-          // Tentar encontrar 3 horários consecutivos em cada dia
           const consecutivosDia1 = this.findConsecutiveHorarios(
             horariosDia1,
             3
@@ -593,9 +547,7 @@ export class GeneticAlgorithm {
     return [];
   }
 
-  /**
-   * Verifica se os horários são consecutivos
-   */
+  // valida se uma lista de horarios e consecutiva pela ordem do codigo
   private areHorariosConsecutive(horarios: HorarioInput[]): boolean {
     if (horarios.length < 2) return true;
 
@@ -613,19 +565,17 @@ export class GeneticAlgorithm {
     return true;
   }
 
-  /**
-   * Extrai o número do código do horário (M1 -> 1, T2 -> 2, etc.)
-   */
+  // extrai a parte numerica do codigo do horario
   private getHorarioNumber(codigo: string): number {
     const match = codigo.match(/\d+/);
     return match ? parseInt(match[0]) : 0;
   }
 
+  // seleciona horarios aleatorios aplicando filtro de turno quando possivel
   private selectRandomHorarios(quantidade: number): string[] {
     const horariosDisponiveis = [...this.horarios];
     const selecionados: string[] = [];
 
-    // Aplicar filtro de turno para evitar horários inadequados
     const horariosFiltrados = this.filterByTurnoPreference(horariosDisponiveis);
     const horariosParaUsar =
       horariosFiltrados.length >= quantidade
@@ -641,9 +591,7 @@ export class GeneticAlgorithm {
     return selecionados;
   }
 
-  /**
-   * Seleciona horários com distribuição equilibrada para evitar concentração nos primeiros horários
-   */
+  // seleciona horarios com distribuicao equilibrada entre dias
   private selectDistributedHorarios(
     horariosDisponiveis: HorarioInput[],
     quantidade: number
@@ -652,7 +600,6 @@ export class GeneticAlgorithm {
       return [];
     }
 
-    // Agrupar horários por dia
     const horariosPorDia = new Map<string, HorarioInput[]>();
     for (const horario of horariosDisponiveis) {
       if (!horariosPorDia.has(horario.dia_semana)) {
@@ -664,27 +611,23 @@ export class GeneticAlgorithm {
     const selecionados: string[] = [];
     const dias = Array.from(horariosPorDia.keys());
 
-    // Distribuir horários entre diferentes dias quando possível
     for (let i = 0; i < quantidade && selecionados.length < quantidade; i++) {
       const diaIndex = i % dias.length;
       const dia = dias[diaIndex];
       const horariosNoDia = horariosPorDia.get(dia) || [];
 
       if (horariosNoDia.length > 0) {
-        // Selecionar horário do meio do dia para evitar sempre os primeiros
         const middleIndex = Math.floor(horariosNoDia.length / 2);
         const horarioEscolhido = horariosNoDia[middleIndex];
 
         const horarioKey = `${horarioEscolhido.dia_semana}_${horarioEscolhido.codigo}`;
         if (!selecionados.includes(horarioKey)) {
           selecionados.push(horarioKey);
-          // Remover o horário selecionado para não repetir
           horariosNoDia.splice(middleIndex, 1);
         }
       }
     }
 
-    // Se ainda precisar de mais horários, completar aleatoriamente
     while (selecionados.length < quantidade) {
       const horariosRestantes = horariosDisponiveis.filter((h) => {
         const key = `${h.dia_semana}_${h.codigo}`;
@@ -701,18 +644,12 @@ export class GeneticAlgorithm {
     return selecionados;
   }
 
-  /**
-   * Seleciona o melhor professor baseado em disponibilidade e preferências
-   */
+  // seleciona professor considerando carga e heuristica simples de especializacao
   private selectBestProfessor(
     disciplina: DisciplinaInput,
     usedProfessorHorarios: Map<string, Set<string>>
   ): ProfessorInput {
-    // Primeiro, filtrar professores que podem lecionar esta disciplina
-    // TODO: Implementar busca na tabela ProfessorDisciplina
-    // Por enquanto, usar lógica baseada em especialização
     const professoresHabilitados = this.professores.filter((prof) => {
-      // Lógica temporária baseada em nomes conhecidos
       if (
         disciplina.nome.toLowerCase().includes("banco") ||
         disciplina.nome.toLowerCase().includes("bd")
@@ -743,18 +680,15 @@ export class GeneticAlgorithm {
       if (disciplina.nome.toLowerCase().includes("redes")) {
         return prof.nome.toLowerCase().includes("antonino");
       }
-      // Se não encontrar especialização específica, permitir qualquer professor
       return true;
     });
 
-    // Filtrar professores habilitados com carga horária disponível
     const professoresDisponiveis = professoresHabilitados.filter((prof) => {
       const horariosUsados = usedProfessorHorarios.get(prof.id)?.size || 0;
       return horariosUsados < prof.carga_horaria_max;
     });
 
     if (professoresDisponiveis.length === 0) {
-      // Se nenhum professor habilitado disponível, usar qualquer professor disponível
       const todosDisponiveis = this.professores.filter((prof) => {
         const horariosUsados = usedProfessorHorarios.get(prof.id)?.size || 0;
         return horariosUsados < prof.carga_horaria_max;
@@ -771,14 +705,12 @@ export class GeneticAlgorithm {
       ];
     }
 
-    // Priorizar professores com menos horários já alocados
     professoresDisponiveis.sort((a, b) => {
       const horariosA = usedProfessorHorarios.get(a.id)?.size || 0;
       const horariosB = usedProfessorHorarios.get(b.id)?.size || 0;
       return horariosA - horariosB;
     });
 
-    // Retornar um dos 3 melhores (introduz aleatoriedade)
     const topCandidates = professoresDisponiveis.slice(
       0,
       Math.min(3, professoresDisponiveis.length)
@@ -786,14 +718,11 @@ export class GeneticAlgorithm {
     return topCandidates[Math.floor(Math.random() * topCandidates.length)];
   }
 
-  /**
-   * Seleciona a melhor sala baseada em compatibilidade e disponibilidade
-   */
+  // seleciona sala considerando compatibilidade, disponibilidade e capacidade
   private selectBestSala(
     disciplina: DisciplinaInput,
     usedSalaHorarios: Map<string, Set<string>>
   ): SalaInput {
-    // Filtrar salas compatíveis
     const salasCompativeis = this.salas.filter(
       (sala) =>
         sala.capacidade >= this.turma.num_alunos &&
@@ -801,27 +730,22 @@ export class GeneticAlgorithm {
     );
 
     if (salasCompativeis.length === 0) {
-      // Se nenhuma sala compatível, retornar qualquer uma
       return this.salas[Math.floor(Math.random() * this.salas.length)];
     }
 
-    // Priorizar salas com menos conflitos e capacidade adequada
     salasCompativeis.sort((a, b) => {
       const horariosA = usedSalaHorarios.get(a.id)?.size || 0;
       const horariosB = usedSalaHorarios.get(b.id)?.size || 0;
 
-      // Primeiro critério: menos horários ocupados
       if (horariosA !== horariosB) {
         return horariosA - horariosB;
       }
 
-      // Segundo critério: capacidade mais próxima do necessário
       const excessoA = a.capacidade - this.turma.num_alunos;
       const excessoB = b.capacidade - this.turma.num_alunos;
       return excessoA - excessoB;
     });
 
-    // Retornar uma das 2 melhores salas
     const topCandidates = salasCompativeis.slice(
       0,
       Math.min(2, salasCompativeis.length)
@@ -829,15 +753,12 @@ export class GeneticAlgorithm {
     return topCandidates[Math.floor(Math.random() * topCandidates.length)];
   }
 
-  /**
-   * Seleciona horários otimizados baseados no turno da turma e evita sábados
-   */
+  // seleciona horarios preferindo o turno da turma e evitando sabado quando possivel
   private selectOptimalHorarios(
     quantidade: number,
     professorHorariosUsados: Set<string>,
     salaHorariosUsados: Set<string>
   ): string[] {
-    // Filtrar horários disponíveis (sem conflitos)
     const horariosDisponiveis = this.horarios.filter((horario) => {
       const horarioKey = `${horario.dia_semana}_${horario.codigo}`;
       return (
@@ -846,14 +767,12 @@ export class GeneticAlgorithm {
       );
     });
 
-    // Aplicar preferências baseadas no turno da turma
     const horariosPreferidos =
       this.filterByTurnoPreference(horariosDisponiveis);
     const horariosSemSabado = horariosPreferidos.filter(
       (h) => h.dia_semana !== "SABADO"
     );
 
-    // Priorizar horários sem sábado
     const horariosParaUsar =
       horariosSemSabado.length >= quantidade
         ? horariosSemSabado
@@ -862,16 +781,12 @@ export class GeneticAlgorithm {
     const selecionados: string[] = [];
     const horariosRestantes = [...horariosParaUsar];
 
-    // Implementar estratégia de distribuição mais inteligente
     if (quantidade === 1) {
-      // Para uma única aula, selecionar aleatoriamente para evitar concentração
       const index = Math.floor(Math.random() * horariosRestantes.length);
       const horario = horariosRestantes[index];
       return [`${horario.dia_semana}_${horario.codigo}`];
     }
 
-    // Para múltiplas aulas, tentar distribuir melhor
-    // Primeiro, tentar encontrar horários consecutivos
     const consecutivos = this.findConsecutiveHorarios(
       horariosParaUsar,
       quantidade
@@ -880,19 +795,15 @@ export class GeneticAlgorithm {
       return consecutivos;
     }
 
-    // Se não encontrou consecutivos, usar distribuição inteligente
     const distribuidos = this.findSameDayHorarios(horariosParaUsar, quantidade);
     if (distribuidos.length === quantidade) {
       return distribuidos;
     }
 
-    // Fallback: selecionar com distribuição equilibrada
-    // Selecionar horários priorizando sequência no mesmo dia
     for (let i = 0; i < quantidade && horariosRestantes.length > 0; i++) {
       let horarioEscolhido;
 
       if (selecionados.length > 0) {
-        // Tentar encontrar horário sequencial no mesmo dia
         const ultimoHorario = selecionados[selecionados.length - 1];
         const [ultimoDia, ultimoCodigo] = ultimoHorario.split("_");
 
@@ -904,7 +815,6 @@ export class GeneticAlgorithm {
       }
 
       if (!horarioEscolhido) {
-        // Se não encontrou sequencial, escolher aleatório
         const index = Math.floor(Math.random() * horariosRestantes.length);
         horarioEscolhido = horariosRestantes[index];
       }
@@ -912,7 +822,6 @@ export class GeneticAlgorithm {
       const horarioKey = `${horarioEscolhido.dia_semana}_${horarioEscolhido.codigo}`;
       selecionados.push(horarioKey);
 
-      // Remover horário selecionado da lista
       const indexToRemove = horariosRestantes.findIndex(
         (h) =>
           h.dia_semana === horarioEscolhido.dia_semana &&
@@ -926,13 +835,10 @@ export class GeneticAlgorithm {
     return selecionados;
   }
 
-  /**
-   * Filtra horários baseado na preferência do turno da turma
-   */
+  // filtra horarios pelo turno da turma com fallback para slots proximos
   private filterByTurnoPreference(horarios: HorarioInput[]): HorarioInput[] {
     const turnoPreferido = this.turma.turno.toUpperCase();
 
-    // Mapear turnos para códigos de horário
     const codigosPorTurno = {
       MATUTINO: ["M1", "M2", "M3", "M4", "M5", "M6"],
       VESPERTINO: ["T1", "T2", "T3", "T4", "T5", "T6"],
@@ -942,7 +848,6 @@ export class GeneticAlgorithm {
     const codigosPreferidos =
       codigosPorTurno[turnoPreferido as keyof typeof codigosPorTurno] || [];
 
-    // Primeiro, tentar horários do turno preferido
     const horariosPreferidos = horarios.filter((h) =>
       codigosPreferidos.includes(h.codigo)
     );
@@ -951,34 +856,27 @@ export class GeneticAlgorithm {
       return horariosPreferidos;
     }
 
-    // Se não há horários do turno preferido, usar horários próximos
     if (turnoPreferido === "MATUTINO") {
-      // Para matutino, preferir tarde próxima (T1, T2)
       const horariosProximos = horarios.filter((h) =>
         ["T1", "T2"].includes(h.codigo)
       );
       if (horariosProximos.length > 0) return horariosProximos;
     } else if (turnoPreferido === "VESPERTINO") {
-      // Para vespertino, preferir manhã tardia (M5, M6) ou noite inicial (N1)
       const horariosProximos = horarios.filter((h) =>
         ["M5", "M6", "N1"].includes(h.codigo)
       );
       if (horariosProximos.length > 0) return horariosProximos;
     }
 
-    // Se nada funcionar, retornar todos os horários
     return horarios;
   }
 
-  /**
-   * Encontra horário sequencial no mesmo dia
-   */
+  // encontra o proximo codigo sequencial no mesmo dia
   private findSequentialHorario(
     horarios: HorarioInput[],
     dia: string,
     ultimoCodigo: string
   ): HorarioInput | null {
-    // Mapear códigos para números sequenciais
     const sequenciaMap: { [key: string]: number } = {
       M1: 1,
       M2: 2,
@@ -1026,14 +924,15 @@ export class GeneticAlgorithm {
     return null;
   }
 
+  // calcula o fitness de cada cromossomo na populacao
   private evaluatePopulation(): void {
     for (const cromossomo of this.population) {
       cromossomo.fitness = this.calculateFitness(cromossomo);
     }
   }
 
+  // calcula fitness usando hard constraints como factibilidade e soft como qualidade
   private calculateFitness(cromossomo: Cromossomo): number {
-    // Importar ConstraintManager
     const { constraintManager } = require("./constraints");
 
     let totalFitness = 0;
@@ -1046,10 +945,8 @@ export class GeneticAlgorithm {
       allGenes: cromossomo.genes,
     };
 
-    let invalidHardCount = 0; // rastrear violações hard no cromossomo
-    // Avaliar cada gene individualmente
+    let invalidHardCount = 0;
     for (const gene of cromossomo.genes) {
-      // Se violar qualquer hard constraint, o gene não contribui para o fitness
       const hardValidation = constraintManager.validateHardConstraints(
         gene,
         context
@@ -1059,77 +956,60 @@ export class GeneticAlgorithm {
         continue;
       }
 
-      let geneFitness = 100; // Score base por gene
+      let geneFitness = 100;
 
-      // Penalidades (não devem superar os soft a ponto de tornar inválidos elegíveis)
       const hardPenalty = constraintManager.getHardConstraintPenalty(
         gene,
         context
       );
       geneFitness -= hardPenalty;
 
-      // Bonificações por restrições soft
       const softScore = constraintManager.calculateSoftScore(gene, context);
       geneFitness += softScore;
 
       totalFitness += Math.max(0, geneFitness);
     }
 
-    // Se houver qualquer violação hard no cromossomo, torná-lo inelegível
     if (invalidHardCount > 0) {
       return 0;
     }
 
-    // Bonificações globais do cromossomo
     totalFitness += this.calculateGlobalBonuses(cromossomo);
 
     return Math.max(0, totalFitness);
   }
 
-  /**
-   * Calcula bonificações globais que se aplicam ao cromossomo inteiro
-   */
+  // calcula bonus globais do cromossomo
   private calculateGlobalBonuses(cromossomo: Cromossomo): number {
     let bonus = 0;
 
-    // Bonificar ausência de conflitos globais
     const conflicts = this.checkConflicts(cromossomo);
     if (conflicts.professorConflicts === 0) bonus += 50;
     if (conflicts.salaConflicts === 0) bonus += 50;
 
-    // Bonificar distribuição equilibrada de disciplinas
     bonus += this.calculateDistributionBonus(cromossomo);
 
-    // Bonificar preferência por evitar sábados
     bonus += this.calculateSaturdayAvoidanceBonus(cromossomo);
 
-    // Bonificar alinhamento com turno da turma
     bonus += this.calculateTurnoAlignmentBonus(cromossomo);
 
-    // NOVA: Penalizar dias consecutivos e bonificar dias alternados
     bonus += this.calculateDayDistributionBonus(cromossomo);
 
-    // NOVA: Bonificar aulas sequenciais sem brechas
     bonus += this.calculateSequentialClassBonus(cromossomo);
 
-    // NOVA: Penalizar concentração excessiva nos primeiros horários
     bonus += this.calculateTimeDistributionBonus(cromossomo);
 
     return bonus;
   }
 
-  /**
-   * Calcula bônus para distribuição equilibrada ao longo do dia
-   * Penaliza concentração excessiva nos primeiros horários (M1, M2)
-   */
+  // calcula bonus de distribuicao equilibrada ao longo do dia
   private calculateTimeDistributionBonus(cromossomo: Cromossomo): number {
     let bonus = 0;
     const horariosCount = new Map<string, number>();
 
-    // Contar quantas aulas há em cada horário
     cromossomo.genes.forEach((gene) => {
       gene.horarios.forEach((horario) => {
-        const horarioCode = horario.split("_")[1]; // Ex: "M1", "M2", etc.
+        const horarioCode = horario.split("_")[1];
         horariosCount.set(
           horarioCode,
           (horariosCount.get(horarioCode) || 0) + 1
@@ -1137,7 +1017,6 @@ export class GeneticAlgorithm {
       });
     });
 
-    // Penalizar concentração excessiva nos primeiros horários
     const primeirosPeriodos = ["M1", "M2", "T1", "T2", "N1", "N2"];
     const ultimosPeriodos = ["M5", "M6", "T5", "T6", "N5", "N6"];
 
@@ -1157,7 +1036,6 @@ export class GeneticAlgorithm {
       totalAulas += count;
     });
 
-    // Contar aulas nos períodos do meio
     const periodosMeio = ["M3", "M4", "T3", "T4", "N3", "N4"];
     let aulasMeio = 0;
     periodosMeio.forEach((periodo) => {
@@ -1167,17 +1045,13 @@ export class GeneticAlgorithm {
     });
 
     if (totalAulas > 0) {
-      // Bonificar distribuição equilibrada
       const proporcaoPrimeiros = aulasPrimeiros / totalAulas;
       const proporcaoMeio = aulasMeio / totalAulas;
       const proporcaoUltimos = aulasUltimos / totalAulas;
 
-      // Ideal: mais aulas no meio, menos nos extremos
-      if (proporcaoMeio > 0.4) bonus += 30; // Bônus por usar períodos do meio
-      if (proporcaoPrimeiros < 0.3) bonus += 20; // Bônus por não concentrar no início
-      if (proporcaoUltimos < 0.3) bonus += 10; // Bônus por não concentrar no final
-
-      // Penalizar concentração excessiva nos primeiros horários
+      if (proporcaoMeio > 0.4) bonus += 30;
+      if (proporcaoPrimeiros < 0.3) bonus += 20;
+      if (proporcaoUltimos < 0.3) bonus += 10;
       if (proporcaoPrimeiros > 0.5) bonus -= 40;
       if (proporcaoPrimeiros > 0.7) bonus -= 60;
     }
@@ -1185,9 +1059,7 @@ export class GeneticAlgorithm {
     return bonus;
   }
 
-  /**
-   * Bonifica distribuição equilibrada de aulas ao longo da semana
-   */
+  // bonifica distribuicao equilibrada de aulas ao longo da semana
   private calculateDistributionBonus(cromossomo: Cromossomo): number {
     const diasUsados = new Set<string>();
 
@@ -1198,13 +1070,10 @@ export class GeneticAlgorithm {
       }
     }
 
-    // Bonificar uso de mais dias (melhor distribuição)
     return diasUsados.size * 10;
   }
 
-  /**
-   * Bonifica evitar aulas aos sábados
-   */
+  // penaliza aulas aos sabados
   private calculateSaturdayAvoidanceBonus(cromossomo: Cromossomo): number {
     let saturdayClasses = 0;
 
@@ -1217,13 +1086,10 @@ export class GeneticAlgorithm {
       }
     }
 
-    // Penalizar aulas aos sábados
     return -saturdayClasses * 30;
   }
 
-  /**
-   * Bonifica alinhamento com o turno preferido da turma
-   */
+  // bonifica alinhamento com o turno da turma
   private calculateTurnoAlignmentBonus(cromossomo: Cromossomo): number {
     const turnoPreferido = this.turma.turno.toUpperCase();
     let alignedClasses = 0;
@@ -1249,18 +1115,14 @@ export class GeneticAlgorithm {
       }
     }
 
-    // Bonificar proporção de aulas no turno preferido
     const alignmentRatio = totalClasses > 0 ? alignedClasses / totalClasses : 0;
     return alignmentRatio * 100;
   }
 
-  /**
-   * Penaliza dias consecutivos e bonifica dias alternados
-   */
+  // bonifica dias alternados e penaliza dias consecutivos por disciplina
   private calculateDayDistributionBonus(cromossomo: Cromossomo): number {
     let bonus = 0;
 
-    // Mapear dias da semana para números para facilitar cálculos
     const dayNumbers: { [key: string]: number } = {
       SEGUNDA: 1,
       TERCA: 2,
@@ -1273,7 +1135,6 @@ export class GeneticAlgorithm {
     for (const gene of cromossomo.genes) {
       const diasUsados = new Set<number>();
 
-      // Coletar todos os dias usados por esta disciplina
       for (const horario of gene.horarios) {
         const dia = horario.split("_")[0];
         const dayNumber = dayNumbers[dia];
@@ -1284,7 +1145,6 @@ export class GeneticAlgorithm {
 
       const diasArray = Array.from(diasUsados).sort();
 
-      // Encontrar a disciplina para verificar carga horária
       const disciplina = this.turma.disciplinas.find(
         (d) => d.id === gene.disciplinaId
       );
@@ -1292,67 +1152,59 @@ export class GeneticAlgorithm {
 
       const cargaHoraria = disciplina.cargaHoraria;
 
-      // Aplicar regras específicas baseadas na carga horária com penalidades mais severas
       if (cargaHoraria === 30) {
-        // 30h: deve ter 2 aulas no mesmo dia
         if (diasArray.length === 1) {
-          bonus += 100; // Bonificação alta por estar no mesmo dia
+          bonus += 100;
         } else {
-          bonus -= 200; // Penalidade muito severa por estar em dias diferentes
+          bonus -= 200;
         }
       } else if (cargaHoraria === 45) {
-        // 45h: deve ter 3 aulas no mesmo dia
         if (diasArray.length === 1) {
-          bonus += 100; // Bonificação alta por estar no mesmo dia
+          bonus += 100;
         } else {
-          bonus -= 250; // Penalidade extremamente severa por estar em dias diferentes
+          bonus -= 250;
         }
       } else if (cargaHoraria === 60) {
-        // 60h: deve ter 4 aulas em exatamente 2 dias diferentes (2+2)
         if (diasArray.length === 2) {
-          // Verificar se há dias consecutivos (não desejado para 60h)
           const [dia1, dia2] = diasArray;
           if (dia2 - dia1 === 1) {
-            bonus -= 100; // Penalidade severa por dias consecutivos
+            bonus -= 100;
           } else if (dia2 - dia1 === 2) {
-            bonus += 80; // Bonificação alta por um dia de intervalo
+            bonus += 80;
           } else {
-            bonus += 60; // Bonificação moderada por mais intervalo
+            bonus += 60;
           }
         } else if (diasArray.length === 1) {
-          bonus -= 300; // Penalidade extremamente severa por estar tudo no mesmo dia
+          bonus -= 300;
         } else {
-          bonus -= 150; // Penalidade severa por estar em muitos dias
+          bonus -= 150;
         }
       } else if (cargaHoraria === 90) {
-        // 90h: deve ter 6 aulas em exatamente 2 dias diferentes (3+3)
         if (diasArray.length === 2) {
-          // Verificar se há dias consecutivos (não desejado para 90h)
           const [dia1, dia2] = diasArray;
           if (dia2 - dia1 === 1) {
-            bonus -= 120; // Penalidade severa por dias consecutivos
+            bonus -= 120;
           } else if (dia2 - dia1 === 2) {
-            bonus += 100; // Bonificação alta por um dia de intervalo
+            bonus += 100;
           } else {
-            bonus += 80; // Bonificação moderada por mais intervalo
+            bonus += 80;
           }
         } else if (diasArray.length === 1) {
-          bonus -= 400; // Penalidade extremamente severa por estar tudo no mesmo dia
+          bonus -= 400;
         } else {
-          bonus -= 200; // Penalidade severa por estar em muitos dias
+          bonus -= 200;
         }
       } else {
-        // Para outras cargas horárias, aplicar lógica geral com penalidades aumentadas
         for (let i = 0; i < diasArray.length - 1; i++) {
           const diaAtual = diasArray[i];
           const proximoDia = diasArray[i + 1];
 
           if (proximoDia - diaAtual === 1) {
-            bonus -= 50; // Penalidade aumentada por dias consecutivos
+            bonus -= 50;
           } else if (proximoDia - diaAtual === 2) {
-            bonus += 30; // Bonificação por um dia de intervalo
+            bonus += 30;
           } else {
-            bonus += 20; // Bonificação por mais intervalo
+            bonus += 20;
           }
         }
       }
@@ -1361,14 +1213,11 @@ export class GeneticAlgorithm {
     return bonus;
   }
 
-  /**
-   * Bonifica aulas sequenciais sem brechas no mesmo dia
-   */
+  // bonifica sequencia e penaliza brechas no mesmo dia por disciplina
   private calculateSequentialClassBonus(cromossomo: Cromossomo): number {
     let bonus = 0;
 
     for (const gene of cromossomo.genes) {
-      // Agrupar horários por dia
       const horariosPorDia: { [dia: string]: string[] } = {};
 
       for (const horario of gene.horarios) {
@@ -1379,12 +1228,10 @@ export class GeneticAlgorithm {
         horariosPorDia[dia].push(codigo);
       }
 
-      // Verificar sequencialidade em cada dia
       for (const dia in horariosPorDia) {
         const codigos = horariosPorDia[dia].sort();
 
         if (codigos.length >= 2) {
-          // Verificar se os horários são consecutivos
           let consecutivos = 0;
           let sequenciaAtual = 1;
 
@@ -1395,7 +1242,6 @@ export class GeneticAlgorithm {
             if (numeroAtual === numeroAnterior + 1) {
               sequenciaAtual++;
             } else {
-              // Fim da sequência, aplicar bônus se houver
               if (sequenciaAtual >= 2) {
                 consecutivos += sequenciaAtual;
               }
@@ -1403,20 +1249,17 @@ export class GeneticAlgorithm {
             }
           }
 
-          // Verificar a última sequência
           if (sequenciaAtual >= 2) {
             consecutivos += sequenciaAtual;
           }
 
-          // Bonificar aulas consecutivas
           if (consecutivos >= 2) {
-            bonus += consecutivos * 15; // 15 pontos por aula consecutiva
+            bonus += consecutivos * 15;
           }
 
-          // Penalizar brechas (horários não consecutivos no mesmo dia)
           if (codigos.length >= 2 && consecutivos < codigos.length) {
             const brechas = codigos.length - consecutivos;
-            bonus -= brechas * 10; // Penalizar cada brecha
+            bonus -= brechas * 10;
           }
         }
       }
@@ -1425,10 +1268,7 @@ export class GeneticAlgorithm {
     return bonus;
   }
 
-  /**
-   * Extrai o número do horário do código (ex: M1 -> 1, T3 -> 3)
-   */
-
+  // conta conflitos de professor e sala no cromossomo
   private checkConflicts(cromossomo: Cromossomo): {
     professorConflicts: number;
     salaConflicts: number;
@@ -1439,7 +1279,6 @@ export class GeneticAlgorithm {
     let salaConflicts = 0;
 
     for (const gene of cromossomo.genes) {
-      // Verificar conflitos de professor
       if (!professorHorarios.has(gene.professorId)) {
         professorHorarios.set(gene.professorId, new Set());
       }
@@ -1452,7 +1291,6 @@ export class GeneticAlgorithm {
         profHorarios.add(horario);
       }
 
-      // Verificar conflitos de sala
       if (!salaHorarios.has(gene.salaId)) {
         salaHorarios.set(gene.salaId, new Set());
       }
@@ -1469,53 +1307,10 @@ export class GeneticAlgorithm {
     return { professorConflicts, salaConflicts };
   }
 
-  private checkCapacityViolations(cromossomo: Cromossomo): number {
-    let violations = 0;
-
-    for (const gene of cromossomo.genes) {
-      const sala = this.salas.find((s) => s.id === gene.salaId);
-      if (sala && sala.capacidade < this.turma.num_alunos) {
-        violations++;
-      }
-    }
-
-    return violations;
-  }
-
-  private checkDistribution(cromossomo: Cromossomo): number {
-    const diasUtilizados = new Set<string>();
-
-    for (const gene of cromossomo.genes) {
-      for (const horario of gene.horarios) {
-        const dia = horario.split("_")[0];
-        diasUtilizados.add(dia);
-      }
-    }
-
-    return diasUtilizados.size; // Mais dias = melhor distribuição
-  }
-
-  private checkPreferences(cromossomo: Cromossomo): number {
-    let score = 0;
-
-    for (const gene of cromossomo.genes) {
-      const professor = this.professores.find((p) => p.id === gene.professorId);
-      if (professor?.preferencias) {
-        for (const horario of gene.horarios) {
-          if (professor.preferencias.includes(horario)) {
-            score++;
-          }
-        }
-      }
-    }
-
-    return score;
-  }
-
+  // evolui uma geracao com elitismo e operadores adaptativos
   private evolveGeneration(): void {
     const newPopulation: Cromossomo[] = [];
 
-    // Elitismo - manter os melhores
     const eliteCount = Math.floor(
       this.params.populationSize * this.params.elitismRate
     );
@@ -1524,7 +1319,6 @@ export class GeneticAlgorithm {
     );
     newPopulation.push(...sortedPopulation.slice(0, eliteCount));
 
-    // Gerar resto da população através de crossover e mutação adaptivos
     while (newPopulation.length < this.params.populationSize) {
       const parent1 = this.selectParent();
       const parent2 = this.selectParent();
@@ -1538,8 +1332,8 @@ export class GeneticAlgorithm {
     this.population = newPopulation;
   }
 
+  // seleciona um pai por torneio (k=3)
   private selectParent(): Cromossomo {
-    // Seleção por torneio
     const tournamentSize = 3;
     let best =
       this.population[Math.floor(Math.random() * this.population.length)];
@@ -1555,77 +1349,15 @@ export class GeneticAlgorithm {
     return best;
   }
 
-  private crossover(parent1: Cromossomo, parent2: Cromossomo): Cromossomo {
-    if (Math.random() > this.params.crossoverRate) {
-      return { ...parent1, fitness: 0 };
-    }
-
-    const genes: Gene[] = [];
-    const crossoverPoint = Math.floor(Math.random() * parent1.genes.length);
-
-    for (let i = 0; i < parent1.genes.length; i++) {
-      if (i < crossoverPoint) {
-        genes.push({ ...parent1.genes[i] });
-      } else {
-        genes.push({ ...parent2.genes[i] });
-      }
-    }
-
-    return { genes, fitness: 0 };
-  }
-
-  private mutate(cromossomo: Cromossomo): Cromossomo {
-    const mutatedGenes = cromossomo.genes.map((gene) => {
-      if (Math.random() < this.params.mutationRate) {
-        // Mutar professor
-        if (Math.random() < 0.33) {
-          const newProfessor =
-            this.professores[
-              Math.floor(Math.random() * this.professores.length)
-            ];
-          return { ...gene, professorId: newProfessor.id };
-        }
-        // Mutar sala
-        else if (Math.random() < 0.66) {
-          const disciplina = this.turma.disciplinas.find(
-            (d) => d.id === gene.disciplinaId
-          )!;
-          const salasCompativeis = this.salas.filter(
-            (sala) =>
-              sala.capacidade >= this.turma.num_alunos &&
-              (disciplina.tipoSala === "Lab" ? sala.computadores > 0 : true)
-          );
-          if (salasCompativeis.length > 0) {
-            const newSala =
-              salasCompativeis[
-                Math.floor(Math.random() * salasCompativeis.length)
-              ];
-            return { ...gene, salaId: newSala.id };
-          }
-        }
-        // Mutar horários
-        else {
-          const newHorarios = this.selectRandomHorarios(gene.horarios.length);
-          return { ...gene, horarios: newHorarios };
-        }
-      }
-      return gene;
-    });
-
-    return { genes: mutatedGenes, fitness: 0 };
-  }
-
+  // retorna o melhor cromossomo atual da populacao
   private getBestChromosome(): Cromossomo {
     return this.population.reduce((best, current) =>
       current.fitness > best.fitness ? current : best
     );
   }
 
-  /**
-   * Adapta as taxas de crossover e mutação baseado na performance
-   */
+  // ajusta taxas adaptativas de crossover e mutacao usando estagnacao e sucesso
   private adaptOperatorRates(currentBestFitness: number): void {
-    // Verificar se houve melhoria
     const improvement = currentBestFitness - this.lastBestFitness;
 
     if (improvement <= 0) {
@@ -1634,7 +1366,6 @@ export class GeneticAlgorithm {
       this.stagnationCount = 0;
     }
 
-    // Calcular taxas de sucesso dos operadores
     const crossoverSuccessRate =
       this.operatorMetrics.crossover.attempts > 0
         ? this.operatorMetrics.crossover.successes /
@@ -1647,9 +1378,7 @@ export class GeneticAlgorithm {
           this.operatorMetrics.mutation.attempts
         : 0.5;
 
-    // Ajustar taxas baseado na performance e estagnação
     if (this.stagnationCount > 5) {
-      // Aumentar exploração quando estagnado
       this.adaptiveMutationRate = Math.min(
         0.3,
         this.adaptiveMutationRate * 1.2
@@ -1659,7 +1388,6 @@ export class GeneticAlgorithm {
         this.adaptiveCrossoverRate * 0.9
       );
     } else {
-      // Ajustar baseado nas taxas de sucesso
       if (crossoverSuccessRate > 0.6) {
         this.adaptiveCrossoverRate = Math.min(
           0.9,
@@ -1685,14 +1413,11 @@ export class GeneticAlgorithm {
       }
     }
 
-    // Reset das métricas
     this.operatorMetrics.crossover = { successes: 0, attempts: 0 };
     this.operatorMetrics.mutation = { successes: 0, attempts: 0 };
   }
 
-  /**
-   * Crossover adaptativo que monitora performance
-   */
+  // crossover de um ponto com taxa adaptativa e coleta de metricas
   private adaptiveCrossover(
     parent1: Cromossomo,
     parent2: Cromossomo
@@ -1716,8 +1441,6 @@ export class GeneticAlgorithm {
 
     const offspring = { genes, fitness: 0 };
 
-    // Avaliar se o crossover foi bem-sucedido (será verificado após avaliação)
-    // Por simplicidade, consideramos sucesso se o offspring não é idêntico aos pais
     const isDifferentFromParents =
       !this.areChromosomesEqual(offspring, parent1) &&
       !this.areChromosomesEqual(offspring, parent2);
@@ -1729,9 +1452,7 @@ export class GeneticAlgorithm {
     return offspring;
   }
 
-  /**
-   * Mutação adaptativa que monitora performance
-   */
+  // mutacao por gene com taxa adaptativa e coleta de metricas
   private adaptiveMutate(cromossomo: Cromossomo): Cromossomo {
     this.operatorMetrics.mutation.attempts++;
 
@@ -1742,7 +1463,6 @@ export class GeneticAlgorithm {
       if (Math.random() < this.adaptiveMutationRate) {
         mutationOccurred = true;
 
-        // Mutar professor
         if (Math.random() < 0.33) {
           const newProfessor =
             this.professores[
@@ -1750,7 +1470,6 @@ export class GeneticAlgorithm {
             ];
           return { ...gene, professorId: newProfessor.id };
         }
-        // Mutar sala
         else if (Math.random() < 0.66) {
           const disciplina = this.turma.disciplinas.find(
             (d) => d.id === gene.disciplinaId
@@ -1768,7 +1487,6 @@ export class GeneticAlgorithm {
             return { ...gene, salaId: newSala.id };
           }
         }
-        // Mutar horários
         else {
           const newHorarios = this.selectRandomHorarios(gene.horarios.length);
           return { ...gene, horarios: newHorarios };
@@ -1784,9 +1502,7 @@ export class GeneticAlgorithm {
     return { genes: mutatedGenes, fitness: 0 };
   }
 
-  /**
-   * Verifica se dois cromossomos são iguais
-   */
+  // verifica se dois cromossomos sao iguais
   private areChromosomesEqual(
     chromo1: Cromossomo,
     chromo2: Cromossomo
@@ -1811,23 +1527,18 @@ export class GeneticAlgorithm {
     return true;
   }
 
-  /**
-   * Operador de reparo que corrige violações básicas em cromossomos
-   */
+  // repara um cromossomo corrigindo conflitos basicos
   private repairChromosome(cromossomo: Cromossomo): Cromossomo {
     const repairedGenes = cromossomo.genes.map((gene) => {
       let repairedGene = { ...gene };
 
-      // Reparar conflitos de horário do professor
       repairedGene = this.repairProfessorConflicts(
         repairedGene,
         cromossomo.genes
       );
 
-      // Reparar conflitos de sala
       repairedGene = this.repairRoomConflicts(repairedGene, cromossomo.genes);
 
-      // Reparar violações de capacidade
       repairedGene = this.repairCapacityViolations(repairedGene);
 
       return repairedGene;
@@ -1836,9 +1547,7 @@ export class GeneticAlgorithm {
     return { genes: repairedGenes, fitness: 0 };
   }
 
-  /**
-   * Repara conflitos de horário do professor
-   */
+  // repara conflitos de professor ajustando horarios quando possivel
   private repairProfessorConflicts(gene: Gene, allGenes: Gene[]): Gene {
     const conflictingGenes = allGenes.filter(
       (g) =>
@@ -1849,7 +1558,6 @@ export class GeneticAlgorithm {
 
     if (conflictingGenes.length === 0) return gene;
 
-    // Encontrar horários alternativos para este gene
     const usedHorarios = new Set<string>();
     allGenes.forEach((g) => {
       if (g !== gene && g.professorId === gene.professorId) {
@@ -1876,9 +1584,7 @@ export class GeneticAlgorithm {
     return gene;
   }
 
-  /**
-   * Repara conflitos de sala
-   */
+  // repara conflitos de sala trocando por sala compativel sem choque
   private repairRoomConflicts(gene: Gene, allGenes: Gene[]): Gene {
     const conflictingGenes = allGenes.filter(
       (g) =>
@@ -1889,7 +1595,6 @@ export class GeneticAlgorithm {
 
     if (conflictingGenes.length === 0) return gene;
 
-    // Encontrar sala alternativa
     const disciplina = this.turma.disciplinas.find(
       (d) => d.id === gene.disciplinaId
     )!;
@@ -1900,7 +1605,6 @@ export class GeneticAlgorithm {
         (disciplina.tipoSala === "Lab" ? sala.computadores > 0 : true)
     );
 
-    // Verificar se alguma sala compatível está disponível nos horários necessários
     for (const sala of salasCompativeis) {
       const salaConflicts = allGenes.filter(
         (g) =>
@@ -1916,16 +1620,13 @@ export class GeneticAlgorithm {
     return gene;
   }
 
-  /**
-   * Repara violações de capacidade de sala
-   */
+  // repara violacoes de capacidade de sala trocando por sala adequada
   private repairCapacityViolations(gene: Gene): Gene {
     const sala = this.salas.find((s) => s.id === gene.salaId);
     if (!sala || sala.capacidade >= this.turma.num_alunos) {
       return gene;
     }
 
-    // Encontrar sala com capacidade adequada
     const disciplina = this.turma.disciplinas.find(
       (d) => d.id === gene.disciplinaId
     )!;
@@ -1936,7 +1637,6 @@ export class GeneticAlgorithm {
     );
 
     if (salasAdequadas.length > 0) {
-      // Escolher a sala com menor capacidade que ainda atende aos requisitos
       const melhorSala = salasAdequadas.reduce((best, current) =>
         current.capacidade < best.capacidade ? current : best
       );
@@ -1945,5 +1645,104 @@ export class GeneticAlgorithm {
     }
 
     return gene;
+  }
+
+  // metodos nao utilizados no fluxo principal atual
+  private checkCapacityViolations(cromossomo: Cromossomo): number {
+    let violations = 0;
+
+    for (const gene of cromossomo.genes) {
+      const sala = this.salas.find((s) => s.id === gene.salaId);
+      if (sala && sala.capacidade < this.turma.num_alunos) {
+        violations++;
+      }
+    }
+
+    return violations;
+  }
+
+  private checkDistribution(cromossomo: Cromossomo): number {
+    const diasUtilizados = new Set<string>();
+
+    for (const gene of cromossomo.genes) {
+      for (const horario of gene.horarios) {
+        const dia = horario.split("_")[0];
+        diasUtilizados.add(dia);
+      }
+    }
+
+    return diasUtilizados.size;
+  }
+
+  private checkPreferences(cromossomo: Cromossomo): number {
+    let score = 0;
+
+    for (const gene of cromossomo.genes) {
+      const professor = this.professores.find((p) => p.id === gene.professorId);
+      if (professor?.preferencias) {
+        for (const horario of gene.horarios) {
+          if (professor.preferencias.includes(horario)) {
+            score++;
+          }
+        }
+      }
+    }
+
+    return score;
+  }
+
+  private crossover(parent1: Cromossomo, parent2: Cromossomo): Cromossomo {
+    if (Math.random() > this.params.crossoverRate) {
+      return { ...parent1, fitness: 0 };
+    }
+
+    const genes: Gene[] = [];
+    const crossoverPoint = Math.floor(Math.random() * parent1.genes.length);
+
+    for (let i = 0; i < parent1.genes.length; i++) {
+      if (i < crossoverPoint) {
+        genes.push({ ...parent1.genes[i] });
+      } else {
+        genes.push({ ...parent2.genes[i] });
+      }
+    }
+
+    return { genes, fitness: 0 };
+  }
+
+  private mutate(cromossomo: Cromossomo): Cromossomo {
+    const mutatedGenes = cromossomo.genes.map((gene) => {
+      if (Math.random() < this.params.mutationRate) {
+        if (Math.random() < 0.33) {
+          const newProfessor =
+            this.professores[
+              Math.floor(Math.random() * this.professores.length)
+            ];
+          return { ...gene, professorId: newProfessor.id };
+        } else if (Math.random() < 0.66) {
+          const disciplina = this.turma.disciplinas.find(
+            (d) => d.id === gene.disciplinaId
+          )!;
+          const salasCompativeis = this.salas.filter(
+            (sala) =>
+              sala.capacidade >= this.turma.num_alunos &&
+              (disciplina.tipoSala === "Lab" ? sala.computadores > 0 : true)
+          );
+          if (salasCompativeis.length > 0) {
+            const newSala =
+              salasCompativeis[
+                Math.floor(Math.random() * salasCompativeis.length)
+              ];
+            return { ...gene, salaId: newSala.id };
+          }
+        } else {
+          const newHorarios = this.selectRandomHorarios(gene.horarios.length);
+          return { ...gene, horarios: newHorarios };
+        }
+      }
+      return gene;
+    });
+
+    return { genes: mutatedGenes, fitness: 0 };
   }
 }

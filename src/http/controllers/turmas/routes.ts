@@ -80,6 +80,7 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
                 nome: z.string(),
                 semestre: z.number().optional(),
                 turno: z.string().optional(),
+                id_curso: z.string(),
                 curso: z
                   .object({
                     id: z.string(),
@@ -170,7 +171,7 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
           200: z
             .object({
               turmaId: z.string().uuid(),
-              grade: z.record(z.string(), z.any()), //TODO AJUSTAR E REMOVER ANY
+              grade: z.record(z.string(), z.any()),
               resumo: z.any(),
             })
             .describe("Grade de horários da turma"),

@@ -21,7 +21,6 @@ const envSchema = z.object({
   GA_WEIGHT_TURMA_AVAILABILITY: z.coerce.number().default(1000),
   // Pesos de soft constraints já existentes
   GA_WEIGHT_DAY_INTERVAL_QUALITY: z.coerce.number().default(20),
-  // Novos pesos conforme solicitação do usuário
   GA_WEIGHT_CONSECUTIVE_CLASSES: z.coerce.number().default(30),
   GA_WEIGHT_AVOID_INTRA_DAY_GAPS: z.coerce.number().default(80),
   GA_WEIGHT_AVOID_SATURDAY: z.coerce.number().default(30),
