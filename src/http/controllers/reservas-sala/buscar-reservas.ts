@@ -1,7 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { reservasQuerySchema } from "@/schemas/reserva-sala";
+import { makeBuscarReservasUseCase } from "@/use-cases/@factories/reservas-sala/make-buscar-reservas-use-case";
 
 export async function buscarReservasSala(
   request: FastifyRequest,
@@ -11,25 +10,18 @@ export async function buscarReservasSala(
     request.query
   );
 
-  const where: any = { status: "ATIVA" };
-  if (salaId) where.salaId = salaId;
-  if (horarioId) where.horarioId = horarioId;
-  if (dateFrom || dateTo) {
-    where.date = {};
-    if (dateFrom) where.date.gte = new Date(dateFrom);
-    if (dateTo) where.date.lte = new Date(dateTo);
-  }
+  const buscarReservasUseCase = makeBuscarReservasUseCase();
+  
+  const executeParams: any = { page };
+  if (salaId !== undefined) executeParams.salaId = salaId;
+  if (horarioId !== undefined) executeParams.horarioId = horarioId;
+  if (dateFrom !== undefined) executeParams.dateFrom = dateFrom;
+  if (dateTo !== undefined) executeParams.dateTo = dateTo;
 
-  const reservas = await prisma.reservaSala.findMany({
-    where,
-    orderBy: { date: "asc" },
-    take: 50,
-    skip: (page - 1) * 50,
-    include: { criadoPor: { select: { id: true, nome: true } } },
-  });
+  const { reservas } = await buscarReservasUseCase.execute(executeParams);
 
   // Serializar datas para strings conforme schema de resposta
-  const reservasSerialized = reservas.map((r) => ({
+  const reservasSerialized = reservas.map((r: any) => ({
     id: String(r.id),
     salaId: String(r.salaId),
     horarioId: String(r.horarioId),

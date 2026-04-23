@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { makeBuscarDisciplinasCursoVinculosUseCase } from "@/use-cases/@factories/curso-disciplina/make-buscar-disciplinas-curso-vinculos-use-case";
 
 const paramsSchema = z.object({ id: z.string().uuid() });
 
@@ -10,18 +10,8 @@ export async function buscarDisciplinasCursoVinculos(
 ) {
   const { id } = paramsSchema.parse(request.params);
 
-  const links = await prisma.cursoDisciplina.findMany({
-    where: { id_curso: id },
-    include: { disciplina: true },
-    orderBy: { disciplina: { semestre: "asc" } },
-  });
-
-  const vinculos = links.map((l) => ({
-    id: l.id,
-    id_curso: l.id_curso,
-    id_disciplina: l.id_disciplina,
-    disciplina: l.disciplina,
-  }));
+  const useCase = makeBuscarDisciplinasCursoVinculosUseCase();
+  const { vinculos } = await useCase.execute({ id_curso: id });
 
   return reply.status(200).send({ vinculos });
 }

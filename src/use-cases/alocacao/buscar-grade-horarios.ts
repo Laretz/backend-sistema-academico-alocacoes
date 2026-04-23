@@ -56,18 +56,41 @@ export class BuscarGradeHorariosUseCase {
     id_user,
     id_sala,
   }: BuscarGradeHorariosUseCaseRequest) {
-    let alocacoes;
+    const fetchAllPages = async <T>(
+      fetcher: (page: number) => Promise<T[]>,
+      opts?: { pageSize?: number; maxPages?: number },
+    ): Promise<T[]> => {
+      const pageSize = opts?.pageSize ?? 20;
+      const maxPages = opts?.maxPages ?? 50;
+      const all: T[] = [];
+
+      for (let page = 1; page <= maxPages; page++) {
+        const chunk = await fetcher(page);
+        all.push(...chunk);
+        if (chunk.length < pageSize) break;
+      }
+
+      return all;
+    };
+
+    let alocacoes: any[] = [];
 
     // Busca alocações baseado no filtro fornecido
     if (id_turma) {
       alocacoes = await this.alocacoesRepository.findAllByTurmaId(id_turma);
     } else if (id_user) {
-      alocacoes = await this.alocacoesRepository.findByUserId(id_user, 1);
+      alocacoes = await fetchAllPages((page) =>
+        this.alocacoesRepository.findByUserId(id_user, page),
+      );
     } else if (id_sala) {
-      alocacoes = await this.alocacoesRepository.findBySalaId(id_sala, 1);
+      alocacoes = await fetchAllPages((page) =>
+        this.alocacoesRepository.findBySalaId(id_sala, page),
+      );
     } else {
       // Se nenhum filtro for fornecido, busca todas as alocações
-      alocacoes = await this.alocacoesRepository.findMany(1);
+      alocacoes = await fetchAllPages((page) =>
+        this.alocacoesRepository.findMany(page),
+      );
     }
 
     // Organiza as alocações por dia da semana

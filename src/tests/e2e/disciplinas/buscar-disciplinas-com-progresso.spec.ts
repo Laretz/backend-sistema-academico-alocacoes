@@ -263,7 +263,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
         nome: "Banco de Dados",
         codigo: "BD001",
         carga_horaria: 60,
-        id_curso: curso.id,
+        id_curso: curso1.id,
         horario_consolidado: "SEX 08:00-10:00",
         tipo_de_sala: "Lab",
       },
@@ -281,7 +281,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
     });
 
     const response = await request(app.server)
-      .get(`/disciplinas/com-progresso?cursoId=${curso.id}`)
+      .get(`/disciplinas/com-progresso?cursoId=${curso1.id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
     const user = await prisma.user.create({
@@ -308,12 +308,12 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
         nome: "2024.1",
         num_alunos: 25,
         turno: "MATUTINO",
-        id_curso: curso.id,
+        id_curso: curso1.id,
         semestre: 1,
       },
     });
     const cd = await prisma.cursoDisciplina.create({
-      data: { id_curso: curso.id, id_disciplina: disciplina1.id },
+      data: { id_curso: curso1.id, id_disciplina: disciplina1.id },
     });
     await prisma.alocacao.create({
       data: {

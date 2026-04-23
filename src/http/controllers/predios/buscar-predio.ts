@@ -1,35 +1,24 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { PrismaClient } from "@prisma/client";
 import { predioParamsSchema } from "@/schemas/predio";
-
-const prisma = new PrismaClient();
+import { makeBuscarPredioUseCase } from "@/use-cases/@factories/predio/make-buscar-predio-use-case";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
 export async function buscarPredio(request: FastifyRequest, reply: FastifyReply) {
-    const { id } = predioParamsSchema.parse(request.params);
+  const { id } = predioParamsSchema.parse(request.params);
 
-    try {
-        const predio = await prisma.predio.findUnique({
-            where: { id },
-            include: {
-                salas: {
-                    select: {
-                        id: true,
-                        nome: true,
-                        capacidade: true,
-                        tipo: true,
-                        computadores: true
-                    }
-                }
-            }
-        });
+  try {
+    const buscarPredioUseCase = makeBuscarPredioUseCase();
 
-        if (!predio) {
-            return reply.status(404).send({ message: "Prédio não encontrado" });
-        }
+    const { predio } = await buscarPredioUseCase.execute({
+      id,
+    });
 
-        return reply.status(200).send({ predio });
-    } catch (error) {
-        console.error("Erro ao buscar prédio:", error);
-        return reply.status(500).send({ message: "Erro interno do servidor" });
+    return reply.status(200).send({ predio });
+  } catch (error) {
+    if (error instanceof RecursoNaoEncontradoError) {
+      return reply.status(404).send({ message: error.message });
     }
+
+    throw error;
+  }
 }

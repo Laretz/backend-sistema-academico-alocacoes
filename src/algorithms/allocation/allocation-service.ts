@@ -28,6 +28,16 @@ interface AllocationResult {
     conflictsResolved: number;
   };
   error?: string;
+  details?: unknown;
+  turmaId?: string;
+  fitness?: number;
+  conflitos?: unknown;
+  relatorio?: unknown;
+  geracoes?: number;
+  tempoExecucao?: number;
+  melhorFitness?: number;
+  convergencia?: boolean;
+  gradeHorarios?: Record<string, AlocacaoData[]>;
 }
 
 interface AllocationMetrics {

@@ -6,6 +6,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "node build/server.js",
     "build": "tsup src/server.ts --out-dir build",
+    "seed": "tsx src/scripts/popular-banco-completo.ts",
     "test": "npm run test:unit",
     "test:unit": "npx prisma generate && vitest run --project unit --config vitest.config.mts",
     "test:unit:watch": "vitest --project unit --config vitest.config.mts",

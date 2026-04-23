@@ -38,7 +38,11 @@ export const updatePredioSchema = z.object({
 // Schema para query parameters de busca
 export const predioQuerySchema = z.object({
   ...searchSchema.shape,
-  ...sortSchema.shape
+  sortBy: z
+    .enum(["nome", "codigo", "created_at", "updated_at", "descricao"])
+    .optional()
+    .default("nome"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });
 
 // ===== SCHEMAS DE RESPOSTA =====

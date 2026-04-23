@@ -109,8 +109,26 @@ export class BuscarGradeHorariosTurmaUseCase {
         return; // Pular alocação sem horário ou disciplina
       }
 
-      const dia_semana = alocacao.horario?.dia_semana || "";
-      const codigoHorario = alocacao.horario?.codigo || "";
+      const diaRaw = String(alocacao.horario?.dia_semana || "");
+      const codigoRaw = String(alocacao.horario?.codigo || "");
+
+      const dia_semana = diaRaw
+        .trim()
+        .toUpperCase()
+        .replace(/-FEIRA$/i, "")
+        .replace("Ç", "C")
+        .replace("Á", "A")
+        .replace("Ã", "A")
+        .replace("Â", "A")
+        .replace("É", "E")
+        .replace("Ê", "E")
+        .replace("Í", "I")
+        .replace("Ó", "O")
+        .replace("Ô", "O")
+        .replace("Õ", "O")
+        .replace("Ú", "U");
+
+      const codigoHorario = codigoRaw.trim().toUpperCase();
 
       // Verificar se o dia existe na grade
       if (!grade[dia_semana]) {

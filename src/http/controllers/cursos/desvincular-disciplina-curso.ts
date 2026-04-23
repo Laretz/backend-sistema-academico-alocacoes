@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { makeDesvincularDisciplinaCursoUseCase } from "@/use-cases/@factories/curso-disciplina/make-desvincular-disciplina-curso-use-case";
+import { VinculoNaoEncontradoError } from "@/use-cases/errors/vinculo-nao-encontrado";
 
 const paramsSchema = z.object({ id: z.string().uuid(), idDisciplina: z.string().uuid() });
 
@@ -10,16 +11,18 @@ export async function desvincularDisciplinaCurso(
 ) {
   const { id, idDisciplina } = paramsSchema.parse(request.params);
 
-  const vinculo = await prisma.cursoDisciplina.findFirst({
-    where: { id_curso: id, id_disciplina: idDisciplina },
-    select: { id: true },
-  });
+  try {
+    const useCase = makeDesvincularDisciplinaCursoUseCase();
+    await useCase.execute({
+      id_curso: id,
+      id_disciplina: idDisciplina,
+    });
 
-  if (!vinculo) {
-    return reply.status(404).send({ message: "Vínculo não encontrado" });
+    return reply.status(204).send();
+  } catch (error) {
+    if (error instanceof VinculoNaoEncontradoError) {
+      return reply.status(404).send({ message: error.message });
+    }
+    throw error;
   }
-
-  await prisma.cursoDisciplina.delete({ where: { id: vinculo.id } });
-
-  return reply.status(204).send();
 }

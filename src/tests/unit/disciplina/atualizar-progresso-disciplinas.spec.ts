@@ -110,6 +110,9 @@ describe('Atualizar Progresso Disciplinas Use Case', () => {
   });
 
   it('deve definir aulas_ministradas como 0 se a disciplina ainda não começou', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-01T03:00:00.000Z'));
+
     // Data de início no futuro
     const dataInicioFuturo = new Date('2026-01-01T03:00:00.000Z');
     

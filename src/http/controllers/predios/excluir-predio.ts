@@ -1,39 +1,27 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { PrismaClient } from "@prisma/client";
 import { predioParamsSchema } from "@/schemas/predio";
-
-const prisma = new PrismaClient();
+import { makeExcluirPredioUseCase } from "@/use-cases/@factories/predio/make-excluir-predio-use-case";
+import { PossuiDependenciasError } from "@/use-cases/errors/possui-dependencias";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
 export async function excluirPredio(request: FastifyRequest, reply: FastifyReply) {
-    const { id } = predioParamsSchema.parse(request.params);
+  const { id } = predioParamsSchema.parse(request.params);
 
-    try {
-        // Verificar se o prédio existe
-        const predioExistente = await prisma.predio.findUnique({
-            where: { id },
-            include: {
-                salas: true
-            }
-        });
+  try {
+    const excluirPredioUseCase = makeExcluirPredioUseCase();
 
-        if (!predioExistente) {
-            return reply.status(404).send({ message: "Prédio não encontrado" });
-        }
+    await excluirPredioUseCase.execute({ id });
 
-        // Verificar se o prédio possui salas associadas
-        if (predioExistente.salas.length > 0) {
-            return reply.status(400).send({ 
-                message: "Não é possível excluir um prédio que possui salas associadas" 
-            });
-        }
-
-        await prisma.predio.delete({
-            where: { id }
-        });
-
-        return reply.status(204).send();
-    } catch (error) {
-        console.error("Erro ao excluir prédio:", error);
-        return reply.status(500).send({ message: "Erro interno do servidor" });
+    return reply.status(204).send();
+  } catch (error) {
+    if (error instanceof RecursoNaoEncontradoError) {
+      return reply.status(404).send({ message: error.message });
     }
+
+    if (error instanceof PossuiDependenciasError) {
+      return reply.status(400).send({ message: error.message });
+    }
+
+    throw error;
+  }
 }

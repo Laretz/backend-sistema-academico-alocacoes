@@ -1,58 +1,38 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { PrismaClient } from "@prisma/client";
 import { predioParamsSchema, updatePredioSchema } from "@/schemas/predio";
-
-const prisma = new PrismaClient();
+import { makeAtualizarPredioUseCase } from "@/use-cases/@factories/predio/make-atualizar-predio-use-case";
+import { CodigoJaExisteError } from "@/use-cases/errors/codigo-ja-existe";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
 export async function atualizarPredio(request: FastifyRequest, reply: FastifyReply) {
-    const { id } = predioParamsSchema.parse(request.params);
-    const { codigo, nome, descricao } = updatePredioSchema.parse(request.body);
+  const { id } = predioParamsSchema.parse(request.params);
+  const { codigo, nome, descricao } = updatePredioSchema.parse(request.body);
 
-    try {
-        // Verificar se o prédio existe
-        const predioExistente = await prisma.predio.findUnique({
-            where: { id }
-        });
+  try {
+    const atualizarPredioUseCase = makeAtualizarPredioUseCase();
 
-        if (!predioExistente) {
-            return reply.status(404).send({ message: "Prédio não encontrado" });
-        }
+    const payload: {
+      id: string;
+      codigo?: string;
+      nome?: string;
+      descricao?: string;
+    } = { id };
+    if (codigo !== undefined) payload.codigo = codigo;
+    if (nome !== undefined) payload.nome = nome;
+    if (descricao !== undefined) payload.descricao = descricao;
 
-        // Se está tentando alterar o código, verificar se não existe outro prédio com o mesmo código
-        if (codigo && codigo !== predioExistente.codigo) {
-            const predioComMesmoCodigo = await prisma.predio.findUnique({
-                where: { codigo }
-            });
+    const { predio } = await atualizarPredioUseCase.execute(payload);
 
-            if (predioComMesmoCodigo) {
-                return reply.status(400).send({ 
-                    message: "Já existe um prédio com este código" 
-                });
-            }
-        }
-
-        const predio = await prisma.predio.update({
-            where: { id },
-            data: {
-                ...(codigo && { codigo }),
-                ...(nome && { nome }),
-                ...(descricao !== undefined && { descricao: descricao ?? null }),
-            },
-            include: {
-                salas: {
-                    select: {
-                        id: true,
-                        nome: true,
-                        capacidade: true,
-                        tipo: true
-                    }
-                }
-            }
-        });
-
-        return reply.status(200).send({ predio });
-    } catch (error) {
-        console.error("Erro ao atualizar prédio:", error);
-        return reply.status(500).send({ message: "Erro interno do servidor" });
+    return reply.status(200).send({ predio });
+  } catch (error) {
+    if (error instanceof RecursoNaoEncontradoError) {
+      return reply.status(404).send({ message: error.message });
     }
+
+    if (error instanceof CodigoJaExisteError) {
+      return reply.status(400).send({ message: error.message });
+    }
+
+    throw error;
+  }
 }

@@ -99,7 +99,7 @@ export class InMemoryCursosRepository implements CursosRepository {
       throw new Error("Curso not found");
     }
 
-    const curso = this.items[cursoIndex];
-    this.items[cursoIndex] = { ...curso, isDeleted: new Date() };
+    const curso = this.items[cursoIndex] as Curso;
+    this.items[cursoIndex] = { ...curso, isDeleted: new Date() } as Curso;
   }
 }

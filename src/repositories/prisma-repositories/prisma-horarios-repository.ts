@@ -45,22 +45,17 @@ export class PrismaHorariosRepository implements HorariosRepository {
       SABADO: 6,
     };
 
-    const horarios = await prisma.horario.findMany({
-      where: regime ? { regime } : undefined,
-      // Remover limitação de 20 registros para buscar todos
-      // take: 20,
-      // skip: (page - 1) * 20,
+    const queryParams: any = {
       orderBy: [
-        {
-          // Ordenar por dia da semana usando CASE WHEN
-          dia_semana: "asc",
-        },
-        {
-          // Ordenar por código (M1, M2, T1, T2, N1, N2)
-          codigo: "asc",
-        },
+        { dia_semana: "asc" },
+        { codigo: "asc" },
       ],
-    });
+    };
+    if (regime) {
+      queryParams.where = { regime };
+    }
+
+    const horarios = await prisma.horario.findMany(queryParams);
 
     if (!horarios) {
       return [];

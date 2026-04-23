@@ -17,4 +17,12 @@ export class InMemoryCursoDisciplinaRepository implements CursoDisciplinaReposit
     this.items.push(item);
     return item;
   }
+
+  async findManyByCursoId(id_curso: string): Promise<CursoDisciplina[]> {
+    return this.items.filter((i) => i.id_curso === id_curso);
+  }
+
+  async deleteById(id: string): Promise<void> {
+    this.items = this.items.filter((i) => i.id !== id);
+  }
 }
