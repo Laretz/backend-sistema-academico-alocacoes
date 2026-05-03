@@ -1,25 +1,10 @@
 import { ProfessorDisciplinaRepository } from "@/repositories/professor-disciplina-repository";
 import { DisciplinasRepository } from "@/repositories/disciplinas-repository";
+import type { ProfessoresDisciplinaResponse } from "@/schemas/professor-disciplina";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface BuscarProfessoresDisciplinaUseCaseRequest {
   id_disciplina: string;
-}
-
-interface BuscarProfessoresDisciplinaUseCaseResponse {
-  professores: Array<{
-    id: string;
-    nome: string;
-    email: string;
-    especializacao: string | null;
-    carga_horaria_max: number | null;
-    preferencia: string | null;
-    vinculo: {
-      id: string;
-      ativo: boolean;
-      created_at: Date;
-    };
-  }>;
 }
 
 export class BuscarProfessoresDisciplinaUseCase {
@@ -30,7 +15,7 @@ export class BuscarProfessoresDisciplinaUseCase {
 
   async execute({
     id_disciplina,
-  }: BuscarProfessoresDisciplinaUseCaseRequest): Promise<BuscarProfessoresDisciplinaUseCaseResponse> {
+  }: BuscarProfessoresDisciplinaUseCaseRequest): Promise<ProfessoresDisciplinaResponse> {
     // Verificar se a disciplina existe
     const disciplina = await this.disciplinasRepository.findById(id_disciplina);
     if (!disciplina) {
@@ -43,6 +28,26 @@ export class BuscarProfessoresDisciplinaUseCase {
         id_disciplina
       );
 
-    return { professores };
+    return {
+      professores: professores.map((p: any) => ({
+        id: String(p.id),
+        nome: String(p.nome),
+        email: String(p.email),
+        especializacao: p.especializacao ?? null,
+        carga_horaria_max:
+          p.carga_horaria_max === null || p.carga_horaria_max === undefined
+            ? null
+            : Number(p.carga_horaria_max),
+        preferencia: p.preferencia ?? null,
+        vinculo: {
+          id: String(p.vinculo?.id || ""),
+          ativo: Boolean(p.vinculo?.ativo ?? true),
+          created_at:
+            p.vinculo?.created_at instanceof Date
+              ? p.vinculo.created_at.toISOString()
+              : String(p.vinculo?.created_at || ""),
+        },
+      })),
+    };
   }
 }

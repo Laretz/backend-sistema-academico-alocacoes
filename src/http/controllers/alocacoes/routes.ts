@@ -18,6 +18,9 @@ import { excluirTodasAlocacoesTurma } from "./excluir-todas-alocacoes-turma";
 import { buscarAlocacoesProfessor } from "./buscar-alocacoes-professor";
 import { buscarQuantidadeAulasPorProfessor } from "./buscar-quantidade-aulas-professores";
 import { excluirAlocacoesDisciplinaTurma } from "./excluir-alocacoes-disciplina-turma-controller";
+import { buscarHorariosConflitos } from "./buscar-horarios-conflitos";
+import { buscarGradeHorariosBootstrap } from "./buscar-grade-horarios-bootstrap";
+import { buscarAlocacoesBootstrap } from "./buscar-alocacoes-bootstrap";
 
 // Importação dos schemas
 import {
@@ -26,6 +29,9 @@ import {
   updateAlocacaoSchema,
   alocacoesQuerySchema,
   gradeHorariosQuerySchema,
+  horariosConflitosQuerySchema,
+  gradeHorariosBootstrapQuerySchema,
+  alocacoesBootstrapQuerySchema,
   alocacoesProfessorParamsSchema,
   alocacoesTurmaTurnoParamsSchema,
   excluirAlocacoesTurmaParamsSchema,
@@ -34,6 +40,9 @@ import {
   createAlocacaoResponseSchema,
   alocacoesListResponseSchema,
   gradeHorariosResponseSchema,
+  horariosConflitosResponseSchema,
+  gradeHorariosBootstrapResponseSchema,
+  alocacoesBootstrapResponseSchema,
   quantidadeAulasProfessorResponseSchema,
   alocacaoNotFoundErrorSchema,
   conflictErrorSchema,
@@ -319,6 +328,67 @@ export async function routesAlocacoes(app: FastifyInstance) {
       },
     },
     buscarGradeHorarios,
+  );
+
+  app.get(
+    "/alocacoes/bootstrap",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        tags: ["Alocações"],
+        summary: "Bootstrap de alocações",
+        description:
+          "Carrega turmas, salas, professores, disciplinas e horários para reduzir chamadas do front",
+        querystring: alocacoesBootstrapQuerySchema,
+        response: {
+          200: alocacoesBootstrapResponseSchema,
+          401: invalidTokenErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarAlocacoesBootstrap,
+  );
+
+  app.get(
+    "/grade-horarios/bootstrap",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        tags: ["Grade de Horários"],
+        summary: "Bootstrap da grade de horários",
+        description:
+          "Carrega turmas, salas, professores, períodos e a configuração (dias/códigos) da grade para reduzir chamadas do front",
+        querystring: gradeHorariosBootstrapQuerySchema,
+        response: {
+          200: gradeHorariosBootstrapResponseSchema,
+          401: invalidTokenErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarGradeHorariosBootstrap,
+  );
+
+  // Buscar conflitos de horários (professor/sala/turma) para um regime
+  app.get(
+    "/alocacoes/horarios-conflitos",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        tags: ["Alocações"],
+        summary: "Buscar conflitos de horários",
+        description:
+          "Retorna um mapa de horárioId -> tipo de conflito (professor/sala/turma) considerando o período ativo (ou periodoId) e o regime",
+        querystring: horariosConflitosQuerySchema,
+        response: {
+          200: horariosConflitosResponseSchema,
+          401: invalidTokenErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarHorariosConflitos,
   );
 
   // Buscar grade de horários geral

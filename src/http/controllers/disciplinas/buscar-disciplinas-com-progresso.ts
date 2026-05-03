@@ -4,6 +4,7 @@ import {
   buscarDisciplinasComProgressoQuerySchema,
   buscarDisciplinasComProgressoResponseSchema,
 } from "@/schemas";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
 export async function buscarDisciplinasComProgresso(
   request: FastifyRequest,
@@ -29,6 +30,11 @@ export async function buscarDisciplinasComProgresso(
       disciplinas,
     });
   } catch (error) {
+    if (error instanceof RecursoNaoEncontradoError) {
+      return reply.status(404).send({
+        message: error.message,
+      });
+    }
     console.error("Erro ao buscar disciplinas com progresso:", {
       turmaId: (request.query as any)?.turmaId,
       cursoId: (request.query as any)?.cursoId,

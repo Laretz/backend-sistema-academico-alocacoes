@@ -1,7 +1,9 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface BuscarGradeHorariosSalaUseCaseRequest {
   salaId: string;
+  periodoId?: string;
 }
 
 interface AlocacaoInfo {
@@ -50,13 +52,33 @@ interface BuscarGradeHorariosSalaUseCaseResponse {
 }
 
 export class BuscarGradeHorariosSalaUseCase {
-  constructor(private alocacoesRepository: AlocacoesRepository) {}
+  constructor(
+    private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
+  ) {}
 
   async execute({
     salaId,
+    periodoId,
   }: BuscarGradeHorariosSalaUseCaseRequest): Promise<BuscarGradeHorariosSalaUseCaseResponse> {
+    const periodo = periodoId
+      ? await this.periodosRepository.findById(periodoId)
+      : await this.periodosRepository.findActive();
+
+    if (!periodo) {
+      throw new Error(
+        periodoId
+          ? "Periodo not found"
+          : "Nenhum período letivo ativo encontrado",
+      );
+    }
+
     // Buscar todas as alocações da sala com relacionamentos
-    const alocacoes = await this.alocacoesRepository.findBySalaId(salaId, 1);
+    const alocacoes = await this.alocacoesRepository.findBySalaId(
+      salaId,
+      1,
+      periodo.id,
+    );
 
     // Inicializar grade vazia
     const diasSemana = [
@@ -84,6 +106,8 @@ export class BuscarGradeHorariosSalaUseCase {
       "N2",
       "N3",
       "N4",
+      "N5",
+      "N6",
     ];
 
     const grade: GradeHorarios = {};
@@ -100,38 +124,68 @@ export class BuscarGradeHorariosSalaUseCase {
 
     // Preencher grade com alocações
     alocacoes.forEach((alocacao: any) => {
-      const dia_semana = alocacao.horario.dia_semana;
-      const codigoHorario = alocacao.horario.codigo;
+      if (!alocacao?.horario) return;
 
-      if (grade[dia_semana]) {
-        grade[dia_semana][codigoHorario] = {
-          id: alocacao.id,
-          disciplina: {
-            id: alocacao.disciplina.id,
-            nome: alocacao.disciplina.nome,
-            cargaHorariaTotal: alocacao.disciplina.cargaHorariaTotal,
-          },
-          professor: {
-            id: alocacao.user.id,
-            nome: alocacao.user.nome,
-            email: alocacao.user.email,
-          },
-          turma: {
-            id: alocacao.turma.id,
-            nome: alocacao.turma.nome,
-            num_alunos: alocacao.turma.num_alunos,
-            semestre: alocacao.turma.semestre,
-            turno: alocacao.turma.turno,
-          },
-          horario: {
-            id: alocacao.horario.id,
-            codigo: alocacao.horario.codigo,
-            dia_semana: alocacao.horario.dia_semana,
-            horario_inicio: alocacao.horario.horario_inicio,
-            horario_fim: alocacao.horario.horario_fim,
-          },
-        };
+      const diaRaw = String(alocacao.horario?.dia_semana || "");
+      const codigoRaw = String(alocacao.horario?.codigo || "");
+
+      const dia_semana = diaRaw
+        .trim()
+        .toUpperCase()
+        .replace(/-FEIRA$/i, "")
+        .replace("Ç", "C")
+        .replace("Á", "A")
+        .replace("Ã", "A")
+        .replace("Â", "A")
+        .replace("É", "E")
+        .replace("Ê", "E")
+        .replace("Í", "I")
+        .replace("Ó", "O")
+        .replace("Ô", "O")
+        .replace("Õ", "O")
+        .replace("Ú", "U");
+
+      const codigoHorario = codigoRaw.trim().toUpperCase();
+
+      if (!grade[dia_semana]) {
+        return;
       }
+
+      if (grade[dia_semana][codigoHorario] === undefined) {
+        grade[dia_semana][codigoHorario] = null;
+      }
+
+      grade[dia_semana][codigoHorario] = {
+        id: String(alocacao.id || ""),
+        disciplina: {
+          id: String(alocacao.disciplina?.id || ""),
+          nome: String(alocacao.disciplina?.nome || ""),
+          cargaHorariaTotal: Number(
+            alocacao.disciplina?.cargaHorariaTotal ??
+              alocacao.disciplina?.carga_horaria ??
+              0,
+          ),
+        },
+        professor: {
+          id: String(alocacao.user?.id || ""),
+          nome: String(alocacao.user?.nome || "Sem Professor"),
+          email: String(alocacao.user?.email || ""),
+        },
+        turma: {
+          id: String(alocacao.turma?.id || ""),
+          nome: String(alocacao.turma?.nome || "Sem Turma"),
+          num_alunos: Number(alocacao.turma?.num_alunos || 0),
+          semestre: Number(alocacao.turma?.semestre || 0),
+          turno: String(alocacao.turma?.turno || ""),
+        },
+        horario: {
+          id: String(alocacao.horario?.id || ""),
+          codigo: String(alocacao.horario?.codigo || ""),
+          dia_semana: String(alocacao.horario?.dia_semana || ""),
+          horario_inicio: alocacao.horario?.horario_inicio || new Date(),
+          horario_fim: alocacao.horario?.horario_fim || new Date(),
+        },
+      };
     });
 
     // Calcular resumo

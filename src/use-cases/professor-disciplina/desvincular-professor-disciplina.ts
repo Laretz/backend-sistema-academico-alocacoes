@@ -1,13 +1,10 @@
 import { ProfessorDisciplinaRepository } from "@/repositories/professor-disciplina-repository";
+import type { SuccessResponse } from "@/schemas/professor-disciplina";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface DesvincularProfessorDisciplinaUseCaseRequest {
   id_user: string;
   id_disciplina: string;
-}
-
-interface DesvincularProfessorDisciplinaUseCaseResponse {
-  success: boolean;
 }
 
 export class DesvincularProfessorDisciplinaUseCase {
@@ -18,7 +15,7 @@ export class DesvincularProfessorDisciplinaUseCase {
   async execute({
     id_user,
     id_disciplina,
-  }: DesvincularProfessorDisciplinaUseCaseRequest): Promise<DesvincularProfessorDisciplinaUseCaseResponse> {
+  }: DesvincularProfessorDisciplinaUseCaseRequest): Promise<SuccessResponse> {
     // Verificar se o vínculo existe e está ativo
     const vinculo =
       await this.professorDisciplinaRepository.findByUserAndDisciplina(

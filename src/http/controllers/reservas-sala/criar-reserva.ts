@@ -68,10 +68,8 @@ export async function criarReservaSala(
   reply: FastifyReply
 ) {
   const body = createReservaSalaSchema.parse(request.body);
-  console.log("[POST /reservas-sala] body:", body);
 
   const userId = request.user?.sub;
-  console.log("[POST /reservas-sala] userId:", userId);
   if (!userId) {
     return reply.status(401).send({ message: "Usuário não autenticado" });
   }

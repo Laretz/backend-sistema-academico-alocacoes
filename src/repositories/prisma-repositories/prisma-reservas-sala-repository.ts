@@ -25,6 +25,7 @@ export class PrismaReservasSalaRepository implements ReservasSalaRepository {
     horarioId,
     dateFrom,
     dateTo,
+    periodoId,
     page,
     limit = 20,
   }: {
@@ -32,12 +33,14 @@ export class PrismaReservasSalaRepository implements ReservasSalaRepository {
     horarioId?: string;
     dateFrom?: Date;
     dateTo?: Date;
+    periodoId: string;
     page: number;
     limit?: number;
   }): Promise<{ reservas: ReservaSala[]; total: number }> {
     const where: any = {};
     if (salaId) where.salaId = salaId;
     if (horarioId) where.horarioId = horarioId;
+    where.periodoId = periodoId;
 
     if (dateFrom || dateTo) {
       where.date = {};
@@ -66,7 +69,8 @@ export class PrismaReservasSalaRepository implements ReservasSalaRepository {
   async findConflicts(
     salaId: string,
     horarioId: string,
-    dates: Date[]
+    dates: Date[],
+    periodoId: string,
   ): Promise<ReservaSala[]> {
     return prisma.reservaSala.findMany({
       where: {
@@ -74,6 +78,7 @@ export class PrismaReservasSalaRepository implements ReservasSalaRepository {
         horarioId,
         status: "ATIVA",
         date: { in: dates },
+        periodoId,
       },
     });
   }
@@ -102,6 +107,7 @@ export class PrismaReservasSalaRepository implements ReservasSalaRepository {
         salaId: firstData.salaId,
         horarioId: firstData.horarioId,
         date: { in: createdDates },
+        periodoId: firstData.periodoId,
       },
       include: { criadoPor: { select: { id: true, nome: true } } },
     });

@@ -4,6 +4,7 @@ import { PrismaUsersRepository } from "../../../repositories/prisma-repositories
 import { AuthenticateUseCase } from "../../../use-cases/users/authenticate";
 import { CredenciaisInvalidas } from "../../../use-cases/errors/credenciais-invalidas";
 import { makeAuthenticateUseCase } from "@/use-cases/@factories/usuario/make-authenticate-use-case";
+import { env } from "@/env";
     
 export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
 
@@ -39,7 +40,7 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
         )
 
         return reply
-        .setCookie('refreshToken', refreshToken, {path: '/', secure: true, httpOnly: true, sameSite: true})
+        .setCookie('refreshToken', refreshToken, {path: '/', secure: env.NODE_ENV === 'prod', httpOnly: true, sameSite: true})
         .status(200)
         .send({ 
             token,

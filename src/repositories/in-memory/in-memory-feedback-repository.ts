@@ -1,4 +1,4 @@
-import { Feedback, Prisma } from "@prisma/client";
+import type { Feedback, Prisma } from "@prisma/client";
 import {
   CreateFeedbackData,
   FeedbackMetricsResult,

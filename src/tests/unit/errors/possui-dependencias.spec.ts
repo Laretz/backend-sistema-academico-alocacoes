@@ -3,14 +3,11 @@ import { PossuiDependenciasError } from '@/use-cases/errors/possui-dependencias'
 
 describe('Erros — PossuiDependenciasError (teste direto)', () => {
   it('deve instanciar e lançar PossuiDependenciasError corretamente', async () => {
-    // TODO remover logs após validação
-    console.log('[LOG TEST] Instanciando PossuiDependenciasError');
     const error = new PossuiDependenciasError('disciplina');
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toBe('Error');
     expect(typeof error.message).toBe('string');
 
-    console.log('[LOG TEST] Lançando e capturando PossuiDependenciasError');
     try {
       throw error;
     } catch (e: any) {

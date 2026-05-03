@@ -1,6 +1,4 @@
-// Exportações centralizadas de todos os schemas
-
-// Re-exportar Zod para facilitar// Exportações centralizadas de schemas
+/* exportacoes centralizadas de schemas */
 export { z } from "zod";
 
 // Schemas comuns
@@ -18,6 +16,7 @@ export * from "./reserva-sala";
 export * from "./horarios";
 export * from "./feedback";
 export * from "./notificacao";
+export * from "./periodo-letivo";
 export * from "./stats";
 export * from "./user-curso";
 export * from "./professor-disciplina";

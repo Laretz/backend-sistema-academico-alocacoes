@@ -5,12 +5,14 @@ import { InMemoryDisciplinasRepository } from "@/repositories/in-memory/in-memor
 import { InMemoryTurmasRepository } from "@/repositories/in-memory/in-memory-turmas-repository";
 import { InMemoryCursoDisciplinaRepository } from "@/repositories/in-memory/in-memory-curso-disciplina-repository";
 import { InMemoryHorariosRepository } from "@/repositories/in-memory/in-memory-horarios-repository";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
 let disciplinasRepository: InMemoryDisciplinasRepository;
 let turmasRepository: InMemoryTurmasRepository;
 let cursoDisciplinaRepository: InMemoryCursoDisciplinaRepository;
 let horariosRepository: InMemoryHorariosRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: CriarAlocacaoUseCase;
 
 describe("Criar Alocação Use Case", () => {
@@ -20,12 +22,23 @@ describe("Criar Alocação Use Case", () => {
     turmasRepository = new InMemoryTurmasRepository();
     cursoDisciplinaRepository = new InMemoryCursoDisciplinaRepository();
     horariosRepository = new InMemoryHorariosRepository();
+    periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
     sut = new CriarAlocacaoUseCase(
       alocacoesRepository,
       disciplinasRepository,
       turmasRepository,
       cursoDisciplinaRepository,
       horariosRepository,
+      periodosRepository,
     );
   });
 

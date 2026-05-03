@@ -2,9 +2,11 @@ import {
   AlocacoesRepository,
   AlocacaoWithRelations,
 } from "../../repositories/alocacoes-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface BuscarGradeHorariosTurmaUseCaseRequest {
   turmaId: string;
+  periodoId?: string;
 }
 
 interface AlocacaoInfo {
@@ -53,14 +55,30 @@ interface BuscarGradeHorariosTurmaUseCaseResponse {
 }
 
 export class BuscarGradeHorariosTurmaUseCase {
-  constructor(private alocacoesRepository: AlocacoesRepository) {}
+  constructor(
+    private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
+  ) {}
 
   async execute({
     turmaId,
+    periodoId,
   }: BuscarGradeHorariosTurmaUseCaseRequest): Promise<BuscarGradeHorariosTurmaUseCaseResponse> {
+    const periodo = periodoId
+      ? await this.periodosRepository.findById(periodoId)
+      : await this.periodosRepository.findActive();
+
+    if (!periodo) {
+      throw new Error(
+        periodoId
+          ? "Periodo not found"
+          : "Nenhum período letivo ativo encontrado",
+      );
+    }
+
     // Buscar todas as alocações da turma com relacionamentos
     const alocacoes: AlocacaoWithRelations[] =
-      await this.alocacoesRepository.findAllByTurmaId(turmaId);
+      await this.alocacoesRepository.findAllByTurmaId(turmaId, periodo.id);
 
     // Inicializar grade vazia
     const diasSemana = [

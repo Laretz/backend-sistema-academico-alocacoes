@@ -1,10 +1,21 @@
 import { describe, it, expect } from "vitest";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 import { BuscarAlocacoesTurnoManhaUseCase } from "@/use-cases/alocacao/buscar-alocacoes-turno-manha";
 
 describe("BuscarAlocacoesTurnoManhaUseCase", () => {
   it("deve retornar apenas alocações com horário de início antes das 12h (paginado)", async () => {
     const repo = new InMemoryAlocacoesRepository();
+    const periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
 
     // cria 15 alocações de manhã
     for (let i = 0; i < 15; i++) {
@@ -31,7 +42,7 @@ describe("BuscarAlocacoesTurnoManhaUseCase", () => {
       } as any);
     }
 
-    const sut = new BuscarAlocacoesTurnoManhaUseCase(repo);
+    const sut = new BuscarAlocacoesTurnoManhaUseCase(repo, periodosRepository);
     const page1 = await sut.execute({ page: 1 });
     const page2 = await sut.execute({ page: 2 });
 

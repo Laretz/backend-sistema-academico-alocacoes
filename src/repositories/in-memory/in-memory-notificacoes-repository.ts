@@ -1,9 +1,4 @@
-import {
-  Notificacao,
-  NotificacaoStatus,
-  NotificacaoType,
-  Prisma,
-} from "@prisma/client";
+import type { Notificacao, NotificacaoStatus, NotificacaoType, Prisma } from "@prisma/client";
 import { NotificacaoRepository } from "../notificacao-repository";
 
 export class InMemoryNotificacoesRepository implements NotificacaoRepository {
@@ -18,10 +13,10 @@ export class InMemoryNotificacoesRepository implements NotificacaoRepository {
         data.user.connect?.id
           ? data.user.connect.id
           : ((data as any).userId ?? "user-default"),
-      type: (data.type as NotificacaoType) ?? NotificacaoType.GENERICA,
+      type: (data.type as NotificacaoType) ?? ("GENERICA" as NotificacaoType),
       title: data.title,
       message: data.message,
-      status: (data.status as NotificacaoStatus) ?? NotificacaoStatus.PENDENTE,
+      status: (data.status as NotificacaoStatus) ?? ("PENDENTE" as NotificacaoStatus),
       replyMessage: (data.replyMessage as string | null) ?? null,
       // Converter InputJsonValue para JsonValue de forma segura
       metadata:
@@ -60,7 +55,7 @@ export class InMemoryNotificacoesRepository implements NotificacaoRepository {
       type: current.type,
       title: current.title,
       message: current.message,
-      status: NotificacaoStatus.LIDA,
+      status: "LIDA" as NotificacaoStatus,
       replyMessage: current.replyMessage ?? null,
       metadata: current.metadata,
       created_at: current.created_at,
@@ -83,7 +78,7 @@ export class InMemoryNotificacoesRepository implements NotificacaoRepository {
       type: current.type,
       title: current.title,
       message: current.message,
-      status: NotificacaoStatus.RESPONDIDA,
+      status: "RESPONDIDA" as NotificacaoStatus,
       replyMessage: replyMessage ?? current.replyMessage ?? null,
       metadata: current.metadata,
       created_at: current.created_at,

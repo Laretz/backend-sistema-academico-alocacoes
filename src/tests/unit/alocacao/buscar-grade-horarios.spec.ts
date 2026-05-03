@@ -1,14 +1,26 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { BuscarGradeHorariosUseCase } from "@/use-cases/alocacao/buscar-grade-horarios";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 
 let repo: InMemoryAlocacoesRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: BuscarGradeHorariosUseCase;
 
 describe("BuscarGradeHorariosUseCase", () => {
   beforeEach(() => {
     repo = new InMemoryAlocacoesRepository();
-    sut = new BuscarGradeHorariosUseCase(repo);
+    periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    sut = new BuscarGradeHorariosUseCase(repo, periodosRepository);
   });
 
   it("deve organizar alocações por dia e ordenar por horário de início (inclui variações com acento)", async () => {
@@ -147,9 +159,11 @@ describe("BuscarGradeHorariosUseCase", () => {
     expect(gradeHorarios.quarta).toHaveLength(0); // filtro por turma
 
     // Ordenação por horário de início
-    expect(gradeHorarios.segunda[0]!.horario_inicio.getHours()).toBe(8);
-    expect(gradeHorarios.segunda[0]!.horario_inicio.getMinutes()).toBe(0);
-    expect(gradeHorarios.segunda[1]!.horario_inicio.getMinutes()).toBe(50);
+    const h0 = new Date(String(gradeHorarios.segunda[0]!.horario_inicio));
+    const h1 = new Date(String(gradeHorarios.segunda[1]!.horario_inicio));
+    expect(h0.getHours()).toBe(8);
+    expect(h0.getMinutes()).toBe(0);
+    expect(h1.getMinutes()).toBe(50);
 
     // Registro sem horário deve ser ignorado
     const total =

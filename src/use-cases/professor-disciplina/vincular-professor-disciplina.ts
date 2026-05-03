@@ -1,22 +1,15 @@
 import { ProfessorDisciplinaRepository } from "@/repositories/professor-disciplina-repository";
 import { UsersRepository } from "@/repositories/users-repository";
 import { DisciplinasRepository } from "@/repositories/disciplinas-repository";
+import type { ProfessorDisciplinaResponse } from "@/schemas/professor-disciplina";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface VincularProfessorDisciplinaUseCaseRequest {
   id_user: string;
   id_disciplina: string;
 }
-
 interface VincularProfessorDisciplinaUseCaseResponse {
-  professorDisciplina: {
-    id: string;
-    id_user: string;
-    id_disciplina: string;
-    ativo: boolean;
-    created_at: Date;
-    updated_at: Date;
-  };
+  professorDisciplina: ProfessorDisciplinaResponse;
 }
 
 export class VincularProfessorDisciplinaUseCase {
@@ -56,10 +49,40 @@ export class VincularProfessorDisciplinaUseCase {
           await this.professorDisciplinaRepository.update(vinculoExistente.id, {
             ativo: true,
           });
-        return { professorDisciplina };
+        return {
+          professorDisciplina: {
+            id: String(professorDisciplina.id),
+            id_user: String(professorDisciplina.id_user),
+            id_disciplina: String(professorDisciplina.id_disciplina),
+            ativo: Boolean(professorDisciplina.ativo),
+            created_at:
+              professorDisciplina.created_at instanceof Date
+                ? professorDisciplina.created_at.toISOString()
+                : String(professorDisciplina.created_at),
+            updated_at:
+              professorDisciplina.updated_at instanceof Date
+                ? professorDisciplina.updated_at.toISOString()
+                : String(professorDisciplina.updated_at),
+          },
+        };
       }
       // Se já existe e está ativo, retornar o existente
-      return { professorDisciplina: vinculoExistente };
+      return {
+        professorDisciplina: {
+          id: String(vinculoExistente.id),
+          id_user: String(vinculoExistente.id_user),
+          id_disciplina: String(vinculoExistente.id_disciplina),
+          ativo: Boolean(vinculoExistente.ativo),
+          created_at:
+            vinculoExistente.created_at instanceof Date
+              ? vinculoExistente.created_at.toISOString()
+              : String(vinculoExistente.created_at),
+          updated_at:
+            vinculoExistente.updated_at instanceof Date
+              ? vinculoExistente.updated_at.toISOString()
+              : String(vinculoExistente.updated_at),
+        },
+      };
     }
 
     // Criar novo vínculo
@@ -74,6 +97,21 @@ export class VincularProfessorDisciplinaUseCase {
       }
     );
 
-    return { professorDisciplina };
+    return {
+      professorDisciplina: {
+        id: String(professorDisciplina.id),
+        id_user: String(professorDisciplina.id_user),
+        id_disciplina: String(professorDisciplina.id_disciplina),
+        ativo: Boolean(professorDisciplina.ativo),
+        created_at:
+          professorDisciplina.created_at instanceof Date
+            ? professorDisciplina.created_at.toISOString()
+            : String(professorDisciplina.created_at),
+        updated_at:
+          professorDisciplina.updated_at instanceof Date
+            ? professorDisciplina.updated_at.toISOString()
+            : String(professorDisciplina.updated_at),
+      },
+    };
   }
 }

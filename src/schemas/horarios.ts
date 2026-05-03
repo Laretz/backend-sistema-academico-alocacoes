@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { uuidSchema, paginationSchema, searchSchema, sortSchema } from "./common";
 
-// Helper para transformar Date em string
+// schema: date|string -> string
 const dateToStringTransform = z.union([z.date(), z.string()]).transform((val) => {
   if (val instanceof Date) {
     return val.toISOString();
@@ -9,44 +9,33 @@ const dateToStringTransform = z.union([z.date(), z.string()]).transform((val) =>
   return val;
 });
 
-// ========================================
-// SCHEMAS DE PARÂMETROS DE ROTA
-// ========================================
-
+// schema: params (horario)
 export const idHorarioParamsSchema = z.object({
   id: uuidSchema,
 });
 
-// ========================================
-// SCHEMAS DE CRIAÇÃO/CADASTRO
-// ========================================
-
+// schema: criar horario (body)
 export const criarHorarioSchema = z.object({
-  codigo: z.string().min(1, "Código é obrigatório"),
+  codigo: z.string().min(1, "Código é obrigatório").transform((v) => v.trim().toUpperCase()),
   dia_semana: z.string().min(1, "Dia da semana é obrigatório"),
   horario_inicio: z.string().transform(str => new Date(str)),
   horario_fim: z.string().transform(str => new Date(str)),
 });
 
+// schema: criar horario (codigo)
 export const criarHorarioCodigoSchema = z.object({
-  codigo: z.string().min(1, "Código é obrigatório"),
+  codigo: z.string().min(1, "Código é obrigatório").transform((v) => v.trim().toUpperCase()),
 });
 
-// ========================================
-// SCHEMAS DE ATUALIZAÇÃO
-// ========================================
-
+// schema: atualizar horario (body)
 export const atualizarHorarioSchema = z.object({
-  codigo: z.string().min(1, "Código é obrigatório").optional(),
+  codigo: z.string().min(1, "Código é obrigatório").transform((v) => v.trim().toUpperCase()).optional(),
   dia_semana: z.string().min(1, "Dia da semana é obrigatório").optional(),
   horario_inicio: z.string().transform(str => new Date(str)).optional(),
   horario_fim: z.string().transform(str => new Date(str)).optional(),
 });
 
-// ========================================
-// SCHEMAS DE BUSCA (QUERY PARAMS)
-// ========================================
-
+// schema: buscar horarios (query)
 export const buscarHorariosQuerySchema = z.object({
   ...paginationSchema.shape,
   ...searchSchema.shape,
@@ -56,10 +45,12 @@ export const buscarHorariosQuerySchema = z.object({
   orderBy: z.enum(["codigo", "dia_semana", "horario_inicio", "horario_fim", "created_at"]).default("codigo"),
 });
 
-// ========================================
-// SCHEMAS DE RESPOSTA
-// ========================================
+// schema: grade config (query)
+export const horariosGradeConfigQuerySchema = z.object({
+  regime: z.enum(["SUPERIOR", "TECNICO"]).optional(),
+});
 
+// schema: horario (response)
 export const horarioResponseSchema = z.object({
   id: uuidSchema,
   codigo: z.string(),
@@ -69,6 +60,7 @@ export const horarioResponseSchema = z.object({
   regime: z.enum(["SUPERIOR", "TECNICO"]).optional(),
 });
 
+// schema: horarios (response paginado)
 export const horariosListResponseSchema = z.object({
   horarios: z.array(horarioResponseSchema),
   total: z.number().int().nonnegative(),
@@ -77,19 +69,15 @@ export const horariosListResponseSchema = z.object({
   totalPages: z.number().int().nonnegative(),
 });
 
-// Schema simples para buscar todos os horários (sem paginação)
+// schema: horarios (response simples)
 export const horariosSimpleResponseSchema = z.object({
   horarios: z.array(horarioResponseSchema),
 });
 
-// ========================================
-// TIPOS TYPESCRIPT
-// ========================================
-
-export type IdHorarioParams = z.infer<typeof idHorarioParamsSchema>;
-export type CriarHorarioData = z.infer<typeof criarHorarioSchema>;
-export type CriarHorarioCodigoData = z.infer<typeof criarHorarioCodigoSchema>;
-export type AtualizarHorarioData = z.infer<typeof atualizarHorarioSchema>;
-export type BuscarHorariosQuery = z.infer<typeof buscarHorariosQuerySchema>;
-export type HorarioResponse = z.infer<typeof horarioResponseSchema>;
-export type HorariosListResponse = z.infer<typeof horariosListResponseSchema>;
+// schema: grade config (response)
+export const horariosGradeConfigResponseSchema = z.object({
+  regime: z.enum(["SUPERIOR", "TECNICO"]),
+  dias: z.array(z.object({ key: z.string(), label: z.string() })),
+  codigos: z.array(z.string()),
+});
+export type HorariosGradeConfigResponse = z.infer<typeof horariosGradeConfigResponseSchema>;

@@ -33,6 +33,26 @@ model Curso {
   cursos_disciplinas CursoDisciplina[]
 }
 
+model PeriodoLetivo {
+  id          String     @id @default(uuid())
+  nome        String     @unique
+  data_inicio DateTime
+  data_fim    DateTime
+  ativo       Boolean    @default(true)
+  status      PeriodoStatus @default(ATIVO)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  alocacoes   Alocacao[]
+  reservas    ReservaSala[]
+}
+
+enum PeriodoStatus {
+  ATIVO
+  ENCERRADO
+  FUTURO
+}
+
 model User {
   id                String                @id @default(uuid())
   nome              String
@@ -118,6 +138,7 @@ model Alocacao {
   id_sala             String
   id_horario          String
   id_curso_disciplina String
+  periodoId           String
   is_modulo_principal Boolean         @default(true)
   created_at          DateTime        @default(now())
   disciplina          Disciplina      @relation(fields: [id_disciplina], references: [id])
@@ -126,10 +147,11 @@ model Alocacao {
   sala                Sala            @relation(fields: [id_sala], references: [id])
   turma               Turma           @relation(fields: [id_turma], references: [id])
   user                User            @relation(fields: [id_user], references: [id])
+  periodo             PeriodoLetivo   @relation(fields: [periodoId], references: [id])
 
-  @@unique([id_user, id_horario], name: "uniq_alocacao_user_horario")
-  @@unique([id_sala, id_horario], name: "uniq_alocacao_sala_horario")
-  @@unique([id_turma, id_horario], name: "uniq_alocacao_turma_horario")
+  @@unique([id_user, id_horario, periodoId], name: "uniq_alocacao_user_horario_periodo")
+  @@unique([id_sala, id_horario, periodoId], name: "uniq_alocacao_sala_horario_periodo")
+  @@unique([id_turma, id_horario, periodoId], name: "uniq_alocacao_turma_horario_periodo")
 }
 
 enum ReservaStatus {
@@ -149,14 +171,16 @@ model ReservaSala {
   recurrenceRule String?
   recurrenceEnd DateTime?
   seriesId     String?
+  periodoId    String
   created_at   DateTime       @default(now())
   updated_at   DateTime       @updatedAt
 
   sala      Sala    @relation(fields: [salaId], references: [id])
   horario   Horario @relation(fields: [horarioId], references: [id])
   criadoPor User    @relation(fields: [criado_por], references: [id])
+  periodo   PeriodoLetivo @relation(fields: [periodoId], references: [id])
 
-  @@unique([salaId, horarioId, date], name: "uniq_reserva_sala_horario_date")
+  @@unique([salaId, horarioId, date, periodoId], name: "uniq_reserva_sala_horario_date_periodo")
 }
 
 model ProfessorDisciplina {

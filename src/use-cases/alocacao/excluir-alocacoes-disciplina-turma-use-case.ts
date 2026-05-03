@@ -1,4 +1,5 @@
 import { AlocacoesRepository } from "@/repositories/alocacoes-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface ExcluirAlocacoesDisciplinaTurmaUseCaseRequest {
   id_turma: string;
@@ -10,15 +11,24 @@ interface ExcluirAlocacoesDisciplinaTurmaUseCaseResponse {
 }
 
 export class ExcluirAlocacoesDisciplinaTurmaUseCase {
-  constructor(private alocacoesRepository: AlocacoesRepository) {}
+  constructor(
+    private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
+  ) {}
 
   async execute({
     id_turma,
     id_disciplina,
   }: ExcluirAlocacoesDisciplinaTurmaUseCaseRequest): Promise<ExcluirAlocacoesDisciplinaTurmaUseCaseResponse> {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     await this.alocacoesRepository.deleteAllByTurmaAndDisciplina(
       id_turma,
-      id_disciplina
+      id_disciplina,
+      periodoAtivo.id,
     );
 
     return {

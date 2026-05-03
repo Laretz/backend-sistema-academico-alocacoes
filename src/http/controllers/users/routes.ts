@@ -15,6 +15,7 @@ import {
   usersListResponseSchema,
   profileResponseSchema,
   verifyTokenResponseSchema,
+  gradeHorariosProfessorBootstrapResponseSchema,
   invalidCredentialsErrorSchema,
   userAlreadyExistsErrorSchema,
   userNotFoundErrorSchema,
@@ -34,6 +35,7 @@ import { verifyToken } from "./verify-token";
 import { profile } from "./profile";
 import { buscarUsuarios } from "./buscar-usuarios";
 import { buscarUsuario } from "./buscar-usuario";
+import { buscarGradeHorariosProfessorBootstrap } from "./buscar-grade-horarios-professor-bootstrap";
 import { atualizarUsuario } from "./atualizar-usuario";
 import { excluirUsuario } from "./excluir-usuario";
 
@@ -175,6 +177,29 @@ export async function routesUsers(app: FastifyTypedInstance) {
       },
     },
     buscarUsuario,
+  );
+
+  // GET /users/:id/grade-horarios/bootstrap - Buscar contexto completo da grade do professor
+  app.get(
+    "/users/:id/grade-horarios/bootstrap",
+    {
+      onRequest: [verifyJWT, verifyUseRole("ADMIN")],
+      schema: {
+        description:
+          "Retorna professor, alocações, cursos, disciplinas e gradeConfig para reduzir chamadas do front",
+        tags: ["Usuários 👤"],
+        security: [{ bearerAuth: [] }],
+        params: userParamsSchema,
+        response: {
+          200: gradeHorariosProfessorBootstrapResponseSchema,
+          401: invalidTokenErrorSchema,
+          403: invalidTokenErrorSchema,
+          404: userNotFoundErrorSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarGradeHorariosProfessorBootstrap,
   );
 
   // PUT /users/:id - Atualizar usuário

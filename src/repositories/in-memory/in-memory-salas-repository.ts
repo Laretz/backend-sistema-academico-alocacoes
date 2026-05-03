@@ -1,4 +1,4 @@
-import { Prisma, Sala } from "@prisma/client";
+import type { Prisma, Sala } from "@prisma/client";
 import { SalasRepository } from "../salas-repository";
 
 export class InMemorySalasRepository implements SalasRepository {

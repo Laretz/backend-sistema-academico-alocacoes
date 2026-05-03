@@ -1,4 +1,4 @@
-import { ReservaSala, Prisma } from "@prisma/client";
+import type { ReservaSala, Prisma } from "@prisma/client";
 import { ReservasSalaRepository } from "../reservas-sala-repository";
 import { randomUUID } from "crypto";
 
@@ -20,6 +20,7 @@ export class InMemoryReservasSalaRepository implements ReservasSalaRepository {
     horarioId,
     dateFrom,
     dateTo,
+    periodoId,
     page,
     limit = 20,
   }: {
@@ -27,10 +28,13 @@ export class InMemoryReservasSalaRepository implements ReservasSalaRepository {
     horarioId?: string;
     dateFrom?: Date;
     dateTo?: Date;
+    periodoId: string;
     page: number;
     limit?: number;
   }): Promise<{ reservas: ReservaSala[]; total: number }> {
     let filtered = this.items;
+
+    filtered = filtered.filter((item) => (item as any).periodoId === periodoId);
 
     if (salaId) {
       filtered = filtered.filter((item) => item.salaId === salaId);
@@ -58,12 +62,14 @@ export class InMemoryReservasSalaRepository implements ReservasSalaRepository {
   async findConflicts(
     salaId: string,
     horarioId: string,
-    dates: Date[]
+    dates: Date[],
+    periodoId: string,
   ): Promise<ReservaSala[]> {
     return this.items.filter(
       (item) =>
         item.salaId === salaId &&
         item.horarioId === horarioId &&
+        (item as any).periodoId === periodoId &&
         item.status === "ATIVA" &&
         dates.some((d) => d.getTime() === item.date.getTime())
     );
@@ -82,9 +88,10 @@ export class InMemoryReservasSalaRepository implements ReservasSalaRepository {
       recurrenceRule: data.recurrenceRule ?? null,
       recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null,
       seriesId: data.seriesId ?? null,
+      periodoId: data.periodoId,
       created_at: new Date(),
       updated_at: new Date(),
-    };
+    } as any;
 
     this.items.push(reserva);
     return reserva;

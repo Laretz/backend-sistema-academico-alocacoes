@@ -1,45 +1,29 @@
 import { z } from "zod";
-import {
-  uuidSchema,
-  paginationSchema,
-  searchSchema,
-  sortSchema,
-} from "./common";
+import { uuidSchema } from "./common";
 
-// ===== SCHEMAS DE PARÂMETROS =====
-
-// Schema para parâmetros de rota (ID do usuário/professor)
+// schema: params (user)
 export const idUserParamsSchema = z.object({
   id_user: uuidSchema,
 });
 
-// Schema para parâmetros de rota (ID da disciplina)
+// schema: params (disciplina)
 export const idDisciplinaParamsSchema = z.object({
   id_disciplina: uuidSchema,
 });
 
-// ===== SCHEMAS DE CRIAÇÃO/VINCULAÇÃO =====
-
-// Schema para vincular professor a disciplina
+// schema: vincular professor-disciplina (body)
 export const vincularProfessorDisciplinaSchema = z.object({
   id_user: uuidSchema,
   id_disciplina: uuidSchema,
 });
 
-// ===== SCHEMAS DE REMOÇÃO/DESVINCULAÇÃO =====
-
-// Schema para desvincular professor de disciplina
+// schema: desvincular professor-disciplina (body)
 export const desvincularProfessorDisciplinaSchema = z.object({
   id_user: uuidSchema,
   id_disciplina: uuidSchema,
 });
 
-// ===== SCHEMAS DE BUSCA =====
-// Nota: Query params removidos pois as buscas retornam poucos resultados
-
-// ===== SCHEMAS DE RESPOSTA =====
-
-// Schema para resposta de disciplina (usado em buscar disciplinas do professor)
+// schema: disciplina (professor response)
 export const disciplinaProfessorResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -58,11 +42,11 @@ export const disciplinaProfessorResponseSchema = z.object({
   vinculo: z.object({
     id: uuidSchema,
     ativo: z.boolean(),
-    created_at: z.date(),
+    created_at: z.string(),
   }),
 });
 
-// Schema para resposta de professor (usado em buscar professores da disciplina)
+// schema: professor (disciplina response)
 export const professorResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -73,49 +57,69 @@ export const professorResponseSchema = z.object({
   vinculo: z.object({
     id: uuidSchema,
     ativo: z.boolean(),
-    created_at: z.date(),
+    created_at: z.string(),
   }),
 });
 
-// Schema para resposta de vinculação professor-disciplina
+// schema: vinculo professor-disciplina (response)
 export const professorDisciplinaResponseSchema = z.object({
   id: uuidSchema,
   id_user: uuidSchema,
   id_disciplina: uuidSchema,
   ativo: z.boolean(),
-  created_at: z.date(),
-  updated_at: z.date(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
-// Schema simples de sucesso (usado em desvincular)
+// schema: success (response)
 export const successResponseSchema = z.object({
   success: z.boolean(),
 });
 
-// Schema para lista de disciplinas do professor (sem paginação)
+// schema: listar disciplinas do professor (response)
 export const disciplinasProfessorResponseSchema = z.object({
   disciplinas: z.array(disciplinaProfessorResponseSchema),
 });
 
-// Schema para lista de professores da disciplina (sem paginação)
+// schema: listar professores da disciplina (response)
 export const professoresDisciplinaResponseSchema = z.object({
   professores: z.array(professorResponseSchema),
 });
 
-// ===== TIPOS TYPESCRIPT =====
-
-export type IdUserParams = z.infer<typeof idUserParamsSchema>;
-export type IdDisciplinaParams = z.infer<typeof idDisciplinaParamsSchema>;
-export type VincularProfessorDisciplinaData = z.infer<
-  typeof vincularProfessorDisciplinaSchema
->;
-export type DesvincularProfessorDisciplinaData = z.infer<
-  typeof desvincularProfessorDisciplinaSchema
->;
-export type DisciplinaProfessorResponse = z.infer<
-  typeof disciplinaProfessorResponseSchema
->;
-export type ProfessorResponse = z.infer<typeof professorResponseSchema>;
+// schema: bootstrap professor-disciplina (response)
+export const professorDisciplinaBootstrapResponseSchema = z.object({
+  professores: z.array(
+    z.object({
+      id: uuidSchema,
+      nome: z.string(),
+      email: z.string().email(),
+      especializacao: z.string().nullable(),
+    }),
+  ),
+  disciplinas: z.array(
+    z.object({
+      id: uuidSchema,
+      nome: z.string(),
+      codigo: z.string().nullable(),
+      carga_horaria: z.number(),
+      tipo_de_sala: z.enum(["Sala", "Lab"]),
+      semestre: z.number(),
+      obrigatoria: z.boolean(),
+      curso: z.object({
+        id: uuidSchema,
+        nome: z.string(),
+        codigo: z.string(),
+      }),
+    }),
+  ),
+  cursos: z.array(
+    z.object({
+      id: uuidSchema,
+      nome: z.string(),
+      codigo: z.string(),
+    }),
+  ),
+});
 export type ProfessorDisciplinaResponse = z.infer<
   typeof professorDisciplinaResponseSchema
 >;
@@ -125,4 +129,7 @@ export type DisciplinasProfessorResponse = z.infer<
 >;
 export type ProfessoresDisciplinaResponse = z.infer<
   typeof professoresDisciplinaResponseSchema
+>;
+export type ProfessorDisciplinaBootstrapResponse = z.infer<
+  typeof professorDisciplinaBootstrapResponseSchema
 >;

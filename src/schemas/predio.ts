@@ -2,40 +2,30 @@ import { z } from 'zod';
 import { 
   uuidSchema, 
   searchSchema, 
-  sortSchema,
-  nonEmptyStringSchema,
   codigoSchema,
   nomeSchema
 } from './common';
 
-// ===== SCHEMAS DE PARÂMETROS =====
-
-// Schema para parâmetros de rota (ID)
+// schema: params (predio)
 export const predioParamsSchema = z.object({
   id: uuidSchema
 });
 
-// ===== SCHEMAS DE CRIAÇÃO =====
-
-// Schema para criação de prédio
+// schema: criar predio (body)
 export const createPredioSchema = z.object({
   codigo: codigoSchema,
   nome: nomeSchema,
   descricao: z.string().optional()
 });
 
-// ===== SCHEMAS DE ATUALIZAÇÃO =====
-
-// Schema para atualização de prédio
+// schema: atualizar predio (body)
 export const updatePredioSchema = z.object({
   codigo: codigoSchema.optional(),
   nome: nomeSchema.optional(),
   descricao: z.string().optional()
 });
 
-// ===== SCHEMAS DE BUSCA =====
-
-// Schema para query parameters de busca
+// schema: buscar predios (query)
 export const predioQuerySchema = z.object({
   ...searchSchema.shape,
   sortBy: z
@@ -45,9 +35,7 @@ export const predioQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });
 
-// ===== SCHEMAS DE RESPOSTA =====
-
-// Schema base do prédio
+// schema: predio (response)
 export const predioSchema = z.object({
   id: uuidSchema,
   codigo: z.string(),
@@ -57,7 +45,7 @@ export const predioSchema = z.object({
   updated_at: z.date()
 });
 
-// Schema da sala simplificado para uso no prédio
+// schema: sala simplificada (predio response)
 export const salaSimplificadaSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -68,27 +56,17 @@ export const salaSimplificadaSchema = z.object({
   ativa: z.boolean(),
 });
 
-// Schema do prédio com salas incluídas
+// schema: predio com salas (response)
 export const predioComSalasSchema = predioSchema.extend({
   salas: z.array(salaSimplificadaSchema)
 });
 
-// Schema de resposta para criação/atualização
+// schema: predio (response wrapper)
 export const predioResponseSchema = z.object({
   predio: predioSchema
 });
 
-// Schema de resposta para listagem (com salas)
+// schema: predios (response)
 export const prediosListResponseSchema = z.object({
   predios: z.array(predioComSalasSchema)
 });
-
-// ===== TIPOS TYPESCRIPT =====
-
-export type PredioParams = z.infer<typeof predioParamsSchema>;
-export type CreatePredioData = z.infer<typeof createPredioSchema>;
-export type UpdatePredioData = z.infer<typeof updatePredioSchema>;
-export type PredioQuery = z.infer<typeof predioQuerySchema>;
-export type Predio = z.infer<typeof predioSchema>;
-export type PredioResponse = z.infer<typeof predioResponseSchema>;
-export type PrediosListResponse = z.infer<typeof prediosListResponseSchema>;

@@ -2,6 +2,7 @@ import { ReservaSala } from "@prisma/client";
 import { ReservasSalaRepository } from "@/repositories/reservas-sala-repository";
 import { AlocacoesRepository } from "@/repositories/alocacoes-repository";
 import { HorariosRepository } from "@/repositories/horarios-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 import { DataInvalidaError } from "../errors/data-invalida";
 import { HorarioInexistenteError } from "../errors/horario-inexistente";
 import { DataIncompativelDiaSemanaError } from "../errors/data-incompativel-dia-semana";
@@ -63,7 +64,8 @@ export class CriarReservaUseCase {
   constructor(
     private reservasRepository: ReservasSalaRepository,
     private alocacoesRepository: AlocacoesRepository,
-    private horariosRepository: HorariosRepository
+    private horariosRepository: HorariosRepository,
+    private periodosRepository: PeriodosLetivosRepository,
   ) {}
 
   async execute({
@@ -76,6 +78,11 @@ export class CriarReservaUseCase {
     recurrenceRule,
     recurrenceEnd,
   }: CriarReservaUseCaseRequest): Promise<CriarReservaUseCaseResponse> {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     const startDateStr = ensureDateString(date);
     const startDate = parseDateUTC(startDateStr);
     
@@ -113,13 +120,22 @@ export class CriarReservaUseCase {
     const conflicts: { type: "ALOCACAO" | "RESERVA"; date?: string }[] = [];
 
     // checa reservas conflitantes
-    const reservasConflitantes = await this.reservasRepository.findConflicts(salaId, horarioId, dates);
+    const reservasConflitantes = await this.reservasRepository.findConflicts(
+      salaId,
+      horarioId,
+      dates,
+      periodoAtivo.id,
+    );
     for (const reserva of reservasConflitantes) {
       conflicts.push({ type: "RESERVA", date: reserva.date.toISOString().slice(0, 10) });
     }
 
     // checa alocacoes fixas no mesmo horario
-    const alocacao = await this.alocacoesRepository.findBySalaIdAndHorarioId(salaId, horarioId);
+    const alocacao = await this.alocacoesRepository.findBySalaIdAndHorarioId(
+      salaId,
+      horarioId,
+      periodoAtivo.id,
+    );
     if (alocacao) {
       conflicts.push({ type: "ALOCACAO" });
     }
@@ -141,6 +157,7 @@ export class CriarReservaUseCase {
         ? parseDateUTC(ensureDateString(recurrenceEnd))
         : null,
       seriesId: seriesId ?? null,
+      periodoId: periodoAtivo.id,
     }));
 
     const reservas = await this.reservasRepository.createMany(reservasToCreate);

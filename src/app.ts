@@ -16,11 +16,11 @@ import {
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
-// Configurar compiladores Zod
+// configuracao dos compiladores Zod
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-// Configurar Swagger para documentação da API
+// configuracao do Swagger para documentação da API
 app.register(fastifySwagger, {
     openapi: {
         openapi: '3.0.0',
@@ -75,11 +75,11 @@ app.register(fastifyCors, {
     origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    // Permitir envio do header Authorization pelo front-end
+    // permitir envio do header Authorization pelo front-end
     allowedHeaders: ["Authorization", "Content-Type"],
 });
 
-// Registrar cookie ANTES do JWT para melhor compatibilidade com verificação via cookie
+// registrar cookie ANTES do JWT para melhor compatibilidade com verificação via cookie
 app.register(fastifyCookie);
 
 app.register(fastifyJwt, {
@@ -95,9 +95,8 @@ app.register(fastifyJwt, {
 
 app.register(appRoutes);
 
-// Error Handler Global Melhorado
+// error Handler Global
 app.setErrorHandler((error, request, reply) => {
-    // Erros de validação do Fastify com Zod (schema validation)
     if (error.validation) {
         const errorMessages: string[] = error.validation.map((value) => {
             return value.message || 'Erro de validação'
@@ -116,7 +115,7 @@ app.setErrorHandler((error, request, reply) => {
             })
     }
 
-    // Erros de validação Zod diretos
+    // erros de validação Zod diretos
     if (error instanceof ZodError) {
         const formattedErrors = error.issues.map(issue => ({
             field: issue.path.join('.'),
@@ -133,7 +132,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de autenticação JWT (token ausente)
+    // erros de autenticação JWT (token ausente)
     if (
         error.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
         error.code === 'FST_JWT_NO_AUTHORIZATION_IN_COOKIE'
@@ -146,7 +145,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de autenticação JWT (token inválido ou expirado)
+    // erros de autenticação JWT (token inválido ou expirado)
     if (
         error.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
         error.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID'
@@ -159,7 +158,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de autorização (role)
+    // erros de autorização (role)
     if (error.message?.includes('Insufficient permissions') || 
         error.message?.includes('Access denied')) {
         return reply.status(403).send({
@@ -170,7 +169,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de recurso não encontrado
+    // erros de recurso não encontrado
     if (error.statusCode === 404 || error.message?.includes('not found')) {
         return reply.status(404).send({
             error: 'Recurso Não Encontrado',
@@ -180,7 +179,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de conflito (duplicação, etc.)
+    // erros de conflito (duplicação, etc.)
     if (error.statusCode === 409 || error.message?.includes('already exists')) {
         return reply.status(409).send({
             error: 'Conflito',
@@ -190,7 +189,7 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Erros de serialização de resposta
+    // erros de serialização de resposta
     if (error.code === 'FST_ERR_RESPONSE_SERIALIZATION') {
         return reply.status(400).send({
             error: 'Validation Schema Error',
@@ -201,18 +200,17 @@ app.setErrorHandler((error, request, reply) => {
         });
     }
 
-    // Log detalhado para desenvolvimento
+    // log detalhado para desenvolvimento
     if (env.NODE_ENV !== 'prod') {
         console.error('🚨 Erro capturado pelo Error Handler:');
         console.error('📍 URL:', request.method, request.url);
         console.error('🔍 Erro:', error);
         console.error('📊 Stack:', error.stack);
     } else {
-        // TODO: Implementar logger profissional (Winston, Pino, etc.)
         console.error(`[${new Date().toISOString()}] Error: ${error.message} - URL: ${request.method} ${request.url}`);
     }
 
-    // Erro interno do servidor (fallback)
+    // erro interno do servidor (fallback)
     return reply.status(500).send({
         error: 'Erro Interno do Servidor',
         message: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',

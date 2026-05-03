@@ -4,10 +4,11 @@ import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-cons
 import { HorariosRepository } from "../../repositories/horarios-repository";
 import { TurmasRepository } from "../../repositories/turmas-repository";
 import { CursoDisciplinaRepository } from "../../repositories/curso-disciplina-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface CriarAlocacaoUseCaseRequest {
     id_user: string;
-    id_curso_disciplina: string; // obrigatório
+    id_curso_disciplina: string;
     id_turma: string;
     id_sala: string;
     id_horarios: string[];
@@ -20,10 +21,17 @@ export class CriarAlocacaoUseCase {
         private turmasRepository: TurmasRepository,
         private cursoDisciplinaRepository: CursoDisciplinaRepository,
         private horariosRepository: HorariosRepository,
+        private periodosRepository: PeriodosLetivosRepository,
     ) {}
 
     async execute({ id_user, id_curso_disciplina, id_turma, id_sala, id_horarios }: CriarAlocacaoUseCaseRequest) {
         const alocacoes: any[] = [];
+
+        const periodoAtivo = await this.periodosRepository.findActive();
+        if (!periodoAtivo) {
+            throw new Error("Nenhum período letivo ativo encontrado");
+        }
+        const periodoId = periodoAtivo.id;
 
         // Validar turma e obter curso
         const turma = await this.turmasRepository.findById(id_turma);
@@ -50,19 +58,19 @@ export class CriarAlocacaoUseCase {
                 const inicio = new Date(horarioSelecionado.horario_inicio);
                 const fim = new Date(horarioSelecionado.horario_fim);
 
-                const overlapSala = await this.alocacoesRepository.findOverlapBySala(id_sala, dia, inicio, fim);
+                const overlapSala = await this.alocacoesRepository.findOverlapBySala(id_sala, dia, inicio, fim, periodoId);
                 if (overlapSala) {
                     const h = await this.horariosRepository.findById(overlapSala.id_horario);
                     throw new Error(`Conflito temporal: sala já ocupada em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
                 }
 
-                const overlapUser = await this.alocacoesRepository.findOverlapByUser(id_user, dia, inicio, fim);
+                const overlapUser = await this.alocacoesRepository.findOverlapByUser(id_user, dia, inicio, fim, periodoId);
                 if (overlapUser) {
                     const h = await this.horariosRepository.findById(overlapUser.id_horario);
                     throw new Error(`Conflito temporal: professor já alocado em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
                 }
 
-                const overlapTurma = await this.alocacoesRepository.findOverlapByTurma(id_turma, dia, inicio, fim);
+                const overlapTurma = await this.alocacoesRepository.findOverlapByTurma(id_turma, dia, inicio, fim, periodoId);
                 if (overlapTurma) {
                     const h = await this.horariosRepository.findById(overlapTurma.id_horario);
                     throw new Error(`Conflito temporal: turma já alocada em ${dia} (${h?.codigo || horarioSelecionado.codigo})`);
@@ -70,19 +78,19 @@ export class CriarAlocacaoUseCase {
             }
 
             // Verificar se professor já tem alocação neste horário
-            const conflitoUser = await this.alocacoesRepository.findByUserIdAndHorarioId(id_user, id_horario);
+            const conflitoUser = await this.alocacoesRepository.findByUserIdAndHorarioId(id_user, id_horario, periodoId);
             if (conflitoUser) {
                 throw new Error(`Professor já possui alocação no horário ${id_horario}`);
             }
 
             // Verificar se sala já está ocupada neste horário
-            const conflitoSala = await this.alocacoesRepository.findBySalaIdAndHorarioId(id_sala, id_horario);
+            const conflitoSala = await this.alocacoesRepository.findBySalaIdAndHorarioId(id_sala, id_horario, periodoId);
             if (conflitoSala) {
                 throw new Error(`Sala já está ocupada no horário ${id_horario}`);
             }
 
             // Verificar se turma já tem alocação neste horário
-            const conflitoTurma = await this.alocacoesRepository.findByTurmaIdAndHorarioId(id_turma, id_horario);
+            const conflitoTurma = await this.alocacoesRepository.findByTurmaIdAndHorarioId(id_turma, id_horario, periodoId);
             if (conflitoTurma) {
                 throw new Error(`Turma já possui alocação no horário ${id_horario}`);
             }
@@ -95,6 +103,7 @@ export class CriarAlocacaoUseCase {
                 turma: { connect: { id: id_turma } },
                 sala: { connect: { id: id_sala } },
                 horario: { connect: { id: id_horario } },
+                periodo: { connect: { id: periodoId } },
             });
 
             alocacoes.push(alocacao);
@@ -103,7 +112,7 @@ export class CriarAlocacaoUseCase {
         // Gerar horário consolidado automaticamente após criar alocações (se houve alguma)
         if (alocacoes.length > 0) {
             const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
-            const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId: disciplinaId! });
+            const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId: disciplinaId!, periodoId });
             
             // Atualizar disciplina com o horário consolidado
             if (horarioConsolidado) {

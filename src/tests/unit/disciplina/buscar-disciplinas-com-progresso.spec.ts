@@ -2,18 +2,31 @@ import { expect, describe, it, beforeEach } from "vitest";
 import { InMemoryDisciplinasRepository } from "@/repositories/in-memory/in-memory-disciplinas-repository";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
 import { BuscarDisciplinasComProgressoUseCase } from "@/use-cases/disciplina/buscar-disciplinas-com-progresso";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 
 let disciplinasRepository: InMemoryDisciplinasRepository;
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: BuscarDisciplinasComProgressoUseCase;
 
 describe("Buscar Disciplinas Com Progresso Use Case", () => {
   beforeEach(() => {
     disciplinasRepository = new InMemoryDisciplinasRepository();
     alocacoesRepository = new InMemoryAlocacoesRepository();
+    periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
     sut = new BuscarDisciplinasComProgressoUseCase(
       disciplinasRepository,
       alocacoesRepository,
+      periodosRepository,
     );
   });
 
@@ -94,6 +107,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario1.id } },
       cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     await alocacoesRepository.create({
@@ -103,6 +117,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario2.id } },
       cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     const result = await sut.execute({
@@ -210,6 +225,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       sala: { connect: { id: sala.id } },
       horario: { connect: { id: horario.id } },
       cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     const result = await sut.execute({
@@ -305,6 +321,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       sala: { connect: { id: sala1.id } },
       horario: { connect: { id: horario1.id } },
       cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     await alocacoesRepository.create({
@@ -314,6 +331,7 @@ describe("Buscar Disciplinas Com Progresso Use Case", () => {
       sala: { connect: { id: sala2.id } },
       horario: { connect: { id: horario2.id } },
       cursoDisciplina: { connect: { id: "curso-disciplina-1" } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     const result = await sut.execute({

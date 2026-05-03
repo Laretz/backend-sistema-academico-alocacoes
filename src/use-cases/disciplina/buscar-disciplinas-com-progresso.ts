@@ -3,6 +3,7 @@ import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { TurmasRepository } from "../../repositories/turmas-repository";
 import { CursosRepository } from "../../repositories/cursos-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface BuscarDisciplinasComProgressoRequest {
   turmaId?: string;
@@ -35,11 +36,17 @@ export class BuscarDisciplinasComProgressoUseCase {
   constructor(
     private disciplinasRepository: DisciplinasRepository,
     private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
     private turmasRepository?: TurmasRepository,
     private cursosRepository?: CursosRepository
   ) {}
 
   async execute({ turmaId, cursoId }: BuscarDisciplinasComProgressoRequest) {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     // Buscar disciplinas baseado nos filtros
     let disciplinas;
 
@@ -50,7 +57,10 @@ export class BuscarDisciplinasComProgressoUseCase {
           throw new RecursoNaoEncontradoError();
         }
       }
-      const alocacoes = await this.alocacoesRepository.findByTurma(turmaId);
+      const alocacoes = await this.alocacoesRepository.findByTurma(
+        turmaId,
+        periodoAtivo.id,
+      );
       const disciplinaIds = [...new Set(alocacoes.map((a) => a.id_disciplina))];
       disciplinas = await this.disciplinasRepository.findByIds(disciplinaIds);
     } else if (cursoId) {
@@ -68,7 +78,10 @@ export class BuscarDisciplinasComProgressoUseCase {
     // Calcular progresso para cada disciplina
     const disciplinasComProgresso: DisciplinaComProgresso[] = await Promise.all(
       disciplinas.map(async (disciplina) => {
-        const progresso = await this.calcularProgressoDisciplina(disciplina);
+        const progresso = await this.calcularProgressoDisciplina(
+          disciplina,
+          periodoAtivo.id,
+        );
         return {
           ...disciplina,
           ...progresso
@@ -113,12 +126,13 @@ export class BuscarDisciplinasComProgressoUseCase {
     return contador;
   }
 
-  private async calcularProgressoDisciplina(disciplina: any) {
+  private async calcularProgressoDisciplina(disciplina: any, periodoId: string) {
     const hoje = new Date();
 
     // Buscar todas as alocações desta disciplina
     const alocacoes = await this.alocacoesRepository.findByDisciplinaId(
-      disciplina.id
+      disciplina.id,
+      periodoId,
     );
 
     // Calcular aulas ministradas baseado na data de início e dias da semana

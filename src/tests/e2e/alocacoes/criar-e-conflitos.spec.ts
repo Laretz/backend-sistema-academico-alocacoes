@@ -7,6 +7,19 @@ import { createAndAuthenticateUser } from "@/tests/e2e/helpers/create-and-authen
 describe("Alocações (e2e)", () => {
   beforeAll(async () => {
     await app.ready();
+
+    await prisma.periodoLetivo.updateMany({
+      where: { ativo: true },
+      data: { ativo: false },
+    });
+    await prisma.periodoLetivo.create({
+      data: {
+        nome: `e2e-${Date.now()}`,
+        data_inicio: new Date("2026-01-01T00:00:00.000Z"),
+        data_fim: new Date("2026-06-30T00:00:00.000Z"),
+        ativo: true,
+      },
+    });
   });
 
   afterAll(async () => {
@@ -19,7 +32,7 @@ describe("Alocações (e2e)", () => {
     const curso = await prisma.curso.create({
       data: {
         nome: "Curso E2E",
-        codigo: "CE2E",
+        codigo: `CE2E-${Date.now()}`,
         duracao_semestres: 8,
         turno: "MATUTINO",
       },
@@ -28,7 +41,7 @@ describe("Alocações (e2e)", () => {
     const disciplina = await prisma.disciplina.create({
       data: {
         nome: "Disciplina E2E",
-        codigo: "DE2E",
+        codigo: `DE2E-${Date.now()}`,
         carga_horaria: 60,
         id_curso: curso.id,
         tipo_de_sala: "Sala",
@@ -53,7 +66,7 @@ describe("Alocações (e2e)", () => {
     const horario = await prisma.horario.create({
       data: {
         codigo: "H1",
-        dia_semana: "segunda",
+        dia_semana: "SEGUNDA",
         horario_inicio: new Date("1970-01-01T08:00:00Z"),
         horario_fim: new Date("1970-01-01T10:00:00Z"),
       },
@@ -101,7 +114,7 @@ describe("Alocações (e2e)", () => {
     const curso = await prisma.curso.create({
       data: {
         nome: "Curso E2E 2",
-        codigo: "CE2E2",
+        codigo: `CE2E2-${Date.now()}`,
         duracao_semestres: 8,
         turno: "MATUTINO",
       },
@@ -110,7 +123,7 @@ describe("Alocações (e2e)", () => {
     const disciplina = await prisma.disciplina.create({
       data: {
         nome: "Disciplina 2",
-        codigo: "D2",
+        codigo: `D2-${Date.now()}`,
         carga_horaria: 60,
         id_curso: curso.id,
         tipo_de_sala: "Sala",
@@ -134,7 +147,7 @@ describe("Alocações (e2e)", () => {
     const horario = await prisma.horario.create({
       data: {
         codigo: "H2",
-        dia_semana: "segunda",
+        dia_semana: "SEGUNDA",
         horario_inicio: new Date("1970-01-01T08:00:00Z"),
         horario_fim: new Date("1970-01-01T10:00:00Z"),
       },
@@ -175,6 +188,13 @@ describe("Alocações (e2e)", () => {
         id_sala: sala.id,
         id_horario: horario.id,
       })
-      .expect(500);
+      .expect(409);
+
+    expect(resConflict.body).toEqual(
+      expect.objectContaining({
+        code: expect.any(String),
+        message: expect.any(String),
+      }),
+    );
   });
 });

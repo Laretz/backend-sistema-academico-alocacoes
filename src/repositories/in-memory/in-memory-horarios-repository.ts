@@ -1,4 +1,4 @@
-import { Prisma, Horario, RegimeHorario } from "@prisma/client";
+import type { Prisma, Horario, RegimeHorario } from "@prisma/client";
 import { HorariosRepository } from "../horarios-repository";
 import { randomUUID } from "node:crypto";
 
@@ -12,7 +12,7 @@ export class InMemoryHorariosRepository implements HorariosRepository {
       dia_semana: data.dia_semana,
       horario_inicio: new Date(data.horario_inicio as Date),
       horario_fim: new Date(data.horario_fim as Date),
-      regime: data.regime ?? RegimeHorario.SUPERIOR,
+      regime: data.regime ?? ("SUPERIOR" as RegimeHorario),
     };
 
     this.items.push(horario);

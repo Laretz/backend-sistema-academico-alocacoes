@@ -4,21 +4,16 @@ import {
   paginationSchema, 
   searchSchema, 
   sortSchema,
-  nonEmptyStringSchema,
   nomeSchema,
   turnoEnum
 } from './common';
 
-// ===== SCHEMAS DE PARÂMETROS =====
-
-// Schema para parâmetros de rota (ID)
+// schema: params (turma)
 export const turmaParamsSchema = z.object({
   id: uuidSchema
 });
 
-// ===== SCHEMAS DE CRIAÇÃO =====
-
-// Schema para criação de turma
+// schema: criar turma (body)
 export const createTurmaSchema = z.object({
   nome: nomeSchema,
   num_alunos: z.number().int().positive({ message: 'Número de alunos deve ser positivo' }),
@@ -28,9 +23,7 @@ export const createTurmaSchema = z.object({
   ativa: z.boolean().optional()
 });
 
-// ===== SCHEMAS DE ATUALIZAÇÃO =====
-
-// Schema para atualização de turma
+// schema: atualizar turma (body)
 export const updateTurmaSchema = z.object({
   nome: nomeSchema.optional(),
   num_alunos: z.number().int().positive({ message: 'Número de alunos deve ser positivo' }).optional(),
@@ -40,9 +33,7 @@ export const updateTurmaSchema = z.object({
   ativa: z.boolean().optional()
 });
 
-// ===== SCHEMAS DE BUSCA =====
-
-// Schema para query parameters de busca
+// schema: buscar turmas (query)
 export const turmaQuerySchema = z.object({
   ...paginationSchema.shape,
   ...searchSchema.shape,
@@ -53,9 +44,7 @@ export const turmaQuerySchema = z.object({
   id_curso: uuidSchema.optional()
 });
 
-// ===== SCHEMAS DE RESPOSTA =====
-
-// Schema base da turma
+// schema: turma (response)
 export const turmaSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -66,12 +55,12 @@ export const turmaSchema = z.object({
   ativa: z.boolean()
 });
 
-// Schema de resposta para criação/atualização
+// schema: turma (response wrapper)
 export const turmaResponseSchema = z.object({
   turma: turmaSchema
 });
 
-// Schema de resposta para listagem
+// schema: turmas (response paginado)
 export const turmasListResponseSchema = z.object({
   turmas: z.array(turmaSchema),
   pagination: z.object({
@@ -83,13 +72,3 @@ export const turmasListResponseSchema = z.object({
     hasPrev: z.boolean()
   })
 });
-
-// ===== TIPOS TYPESCRIPT =====
-
-export type TurmaParams = z.infer<typeof turmaParamsSchema>;
-export type CreateTurmaData = z.infer<typeof createTurmaSchema>;
-export type UpdateTurmaData = z.infer<typeof updateTurmaSchema>;
-export type TurmaQuery = z.infer<typeof turmaQuerySchema>;
-export type Turma = z.infer<typeof turmaSchema>;
-export type TurmaResponse = z.infer<typeof turmaResponseSchema>;
-export type TurmasListResponse = z.infer<typeof turmasListResponseSchema>;

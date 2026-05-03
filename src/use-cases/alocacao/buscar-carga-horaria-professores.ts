@@ -1,13 +1,20 @@
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { UsersRepository } from "../../repositories/users-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 export class BuscarCargaHorariaProfessoresUseCase {
   constructor(
     private alocacoesRepository: AlocacoesRepository,
-    private usersRepository: UsersRepository
+    private usersRepository: UsersRepository,
+    private periodosRepository: PeriodosLetivosRepository,
   ) {}
 
   async execute() {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     // Buscar todos os usuários (todas as páginas) e filtrar apenas professores
     let todosUsuarios = [];
     let page = 1;
@@ -39,7 +46,8 @@ export class BuscarCargaHorariaProfessoresUseCase {
         do {
           alocacoesPagina = await this.alocacoesRepository.findByUserId(
             professor.id,
-            page
+            page,
+            periodoAtivo.id,
           );
           todasAlocacoes.push(...alocacoesPagina);
           page++;

@@ -218,13 +218,11 @@ describe("Use Cases UserCurso", () => {
 
   describe("Erros — UserCursoAlreadyExistsError (teste direto)", () => {
     it("deve instanciar e lançar UserCursoAlreadyExistsError corretamente", async () => {
-      console.log("[LOG TEST] Instanciando UserCursoAlreadyExistsError");
       const error = new UserCursoAlreadyExistsError();
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe("Error");
       expect(typeof error.message).toBe("string");
 
-      console.log("[LOG TEST] Lançando e capturando UserCursoAlreadyExistsError");
       try {
         throw error;
       } catch (e: any) {

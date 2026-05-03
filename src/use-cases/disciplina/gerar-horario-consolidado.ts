@@ -2,6 +2,7 @@ import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 
 interface GerarHorarioConsolidadoUseCaseRequest {
   disciplinaId: string;
+  periodoId: string;
 }
 
 interface GerarHorarioConsolidadoUseCaseResponse {
@@ -11,8 +12,14 @@ interface GerarHorarioConsolidadoUseCaseResponse {
 export class GerarHorarioConsolidadoUseCase {
   constructor(private alocacoesRepository: AlocacoesRepository) {}
 
-  async execute({ disciplinaId }: GerarHorarioConsolidadoUseCaseRequest): Promise<GerarHorarioConsolidadoUseCaseResponse> {
-    const alocacoes = await this.alocacoesRepository.findByDisciplinaId(disciplinaId);
+  async execute({
+    disciplinaId,
+    periodoId,
+  }: GerarHorarioConsolidadoUseCaseRequest): Promise<GerarHorarioConsolidadoUseCaseResponse> {
+    const alocacoes = await this.alocacoesRepository.findByDisciplinaId(
+      disciplinaId,
+      periodoId,
+    );
 
     if (!alocacoes || alocacoes.length === 0) {
       return { horarioConsolidado: '' };

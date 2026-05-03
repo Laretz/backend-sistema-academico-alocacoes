@@ -7,15 +7,19 @@ import {
   paginationSchema,
   nonEmptyStringSchema,
 } from "./common";
+import { alocacaoResponseSchema } from "./alocacao";
+import { disciplinaProfessorResponseSchema } from "./professor-disciplina";
+import {
+  horarioResponseSchema,
+  horariosGradeConfigResponseSchema,
+} from "./horarios";
 
-// ===== SCHEMAS DE REQUEST =====
-
-// Schema para parâmetros de rota (ID)
+// schema: params (user)
 export const userParamsSchema = z.object({
   id: uuidSchema,
 });
 
-// Schema para registro de usuário
+// schema: registrar usuario (body)
 export const registerUserSchema = z
   .object({
     nome: nonEmptyStringSchema,
@@ -53,7 +57,7 @@ export const registerUserSchema = z
     return cleaned;
   });
 
-// Schema para autenticação
+// schema: autenticar usuario (body)
 export const authenticateUserSchema = z.object({
   email: z.string().email({
     message: "Email deve ter um formato válido",
@@ -63,7 +67,7 @@ export const authenticateUserSchema = z.object({
   }),
 });
 
-// Schema para atualização de usuário (campos opcionais)
+// schema: atualizar usuario (body)
 export const updateUserSchema = z.object({
   nome: nonEmptyStringSchema.optional(),
   email: z.string().email().optional(),
@@ -74,7 +78,7 @@ export const updateUserSchema = z.object({
   preferencia: z.string().optional(),
 });
 
-// Schema para query de busca de usuários
+// schema: buscar usuarios (query)
 export const userQuerySchema = z.object({
   ...searchSchema.shape,
   ...sortSchema.shape,
@@ -82,14 +86,12 @@ export const userQuerySchema = z.object({
   role: z.nativeEnum(Role).optional(),
 });
 
-// Schema para refresh token
+// schema: refresh token (body)
 export const refreshTokenSchema = z.object({
   token: z.string().min(1, "Token é obrigatório"),
 });
 
-// ===== SCHEMAS DE RESPOSTA =====
-
-// Schema base do usuário (sem senha)
+// schema: user (response)
 export const userSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -100,36 +102,35 @@ export const userSchema = z.object({
   preferencia: z.string().nullable(),
 });
 
-// Schema de resposta para autenticação
+// schema: auth (response)
 export const authResponseSchema = z.object({
   token: z.string(),
   refreshToken: z.string(),
   user: userSchema,
 });
 
-// Schema de resposta para refresh token
+// schema: refresh token (response)
 export const refreshResponseSchema = z.object({
   token: z.string(),
 });
 
-// Schema de resposta para criação/atualização/consulta de usuário
-// Aceita tanto { usuario: User } quanto { user: User } para compatibilidade
+// schema: user (response wrapper)
 export const userResponseSchema = z.union([
   z.object({ usuario: userSchema }),
   z.object({ user: userSchema }),
 ]);
 
-// Schema de resposta para listagem de usuários
+// schema: listar usuarios (response)
 export const usersListResponseSchema = z.object({
   usuarios: z.array(userSchema),
 });
 
-// Schema de resposta para perfil do usuário
+// schema: perfil (response)
 export const profileResponseSchema = z.object({
   user: userSchema,
 });
 
-// Schema de resposta para verificação de token
+// schema: verify token (response)
 export const verifyTokenResponseSchema = z.object({
   valid: z.boolean(),
   user: z
@@ -140,40 +141,48 @@ export const verifyTokenResponseSchema = z.object({
     .optional(),
 });
 
-// ===== SCHEMAS DE ERRO =====
+// schema: bootstrap grade horarios professor (response)
+export const gradeHorariosProfessorBootstrapResponseSchema = z.object({
+  professor: userSchema,
+  alocacoes: z.array(alocacaoResponseSchema),
+  cursos: z.array(
+    z.object({
+      id: uuidSchema,
+      codigo: z.string(),
+      nome: z.string(),
+      turno: z.enum(["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRAL"]),
+      duracao_semestres: z.number(),
+      vinculo: z.object({
+        id: uuidSchema,
+        ativo: z.boolean(),
+        created_at: z.string(),
+      }),
+    }),
+  ),
+  disciplinas: z.array(disciplinaProfessorResponseSchema),
+  gradeConfig: horariosGradeConfigResponseSchema,
+  horarios: z.array(horarioResponseSchema),
+});
 
-// Schema para erro de credenciais inválidas
+// schema: erro (credenciais invalidas)
 export const invalidCredentialsErrorSchema = z.object({
   message: z.string(),
 });
 
-// Schema para erro de usuário já existe
+// schema: erro (usuario ja existe)
 export const userAlreadyExistsErrorSchema = z.object({
   message: z.string(),
 });
 
-// Schema para erro de usuário não encontrado
+// schema: erro (usuario nao encontrado)
 export const userNotFoundErrorSchema = z.object({
   message: z.string(),
 });
 
-// Schema para erro de token inválido
+// schema: erro (token invalido)
 export const invalidTokenErrorSchema = z.object({
   message: z.string(),
 });
-
-// ===== TIPOS TYPESCRIPT =====
-
-export type UserParams = z.infer<typeof userParamsSchema>;
-export type RegisterUserData = z.infer<typeof registerUserSchema>;
-export type AuthenticateUserData = z.infer<typeof authenticateUserSchema>;
-export type UpdateUserData = z.infer<typeof updateUserSchema>;
-export type UserQueryData = z.infer<typeof userQuerySchema>;
-export type RefreshTokenData = z.infer<typeof refreshTokenSchema>;
-export type User = z.infer<typeof userSchema>;
-export type AuthResponse = z.infer<typeof authResponseSchema>;
-export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
-export type UserResponse = z.infer<typeof userResponseSchema>;
-export type UsersListResponse = z.infer<typeof usersListResponseSchema>;
-export type ProfileResponse = z.infer<typeof profileResponseSchema>;
-export type VerifyTokenResponse = z.infer<typeof verifyTokenResponseSchema>;
+export type GradeHorariosProfessorBootstrapResponse = z.infer<
+  typeof gradeHorariosProfessorBootstrapResponseSchema
+>;

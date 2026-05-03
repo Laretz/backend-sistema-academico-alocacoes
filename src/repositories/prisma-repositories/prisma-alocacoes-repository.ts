@@ -10,9 +10,9 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
-  async findById(id: string) {
-    const alocacao = await prisma.alocacao.findUnique({
-      where: { id },
+  async findById(id: string, periodoId: string) {
+    const alocacao = await prisma.alocacao.findFirst({
+      where: { id, periodoId },
       include: {
         user: true,
         disciplina: true,
@@ -30,33 +30,48 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
-  async findByUserIdAndHorarioId(id_user: string, id_horario: string) {
+  async findByUserIdAndHorarioId(
+    id_user: string,
+    id_horario: string,
+    periodoId: string,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_user,
         id_horario,
+        periodoId,
       },
     });
 
     return alocacao;
   }
 
-  async findBySalaIdAndHorarioId(id_sala: string, id_horario: string) {
+  async findBySalaIdAndHorarioId(
+    id_sala: string,
+    id_horario: string,
+    periodoId: string,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_sala,
         id_horario,
+        periodoId,
       },
     });
 
     return alocacao;
   }
 
-  async findByTurmaIdAndHorarioId(id_turma: string, id_horario: string) {
+  async findByTurmaIdAndHorarioId(
+    id_turma: string,
+    id_horario: string,
+    periodoId: string,
+  ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_turma,
         id_horario,
+        periodoId,
       },
     });
 
@@ -68,10 +83,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_sala,
+        periodoId,
         horario: {
           dia_semana,
           horario_inicio: { lt: fim },
@@ -88,10 +105,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_user,
+        periodoId,
         horario: {
           dia_semana,
           horario_inicio: { lt: fim },
@@ -108,10 +127,12 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ) {
     const alocacao = await prisma.alocacao.findFirst({
       where: {
         id_turma,
+        periodoId,
         horario: {
           dia_semana,
           horario_inicio: { lt: fim },
@@ -123,7 +144,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacao || null;
   }
 
-  async findMany(page: number) {
+  async findMany(page: number, periodoId: string) {
     const ordemDias = {
       SEGUNDA: 1,
       TERCA: 2,
@@ -134,6 +155,7 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     };
 
     const alocacoes = await prisma.alocacao.findMany({
+      where: { periodoId },
       take: 20,
       skip: (page - 1) * 20,
       include: {
@@ -190,10 +212,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     });
   }
 
-  async findByUserId(id_user: string, page: number) {
+  async findByUserId(id_user: string, page: number, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_user,
+        periodoId,
       },
       take: 20,
       skip: (page - 1) * 20,
@@ -214,10 +237,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async findByTurmaId(id_turma: string, page: number) {
+  async findByTurmaId(id_turma: string, page: number, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        periodoId,
         turma: { curso: { isDeleted: null } },
       },
       take: 20,
@@ -239,10 +263,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async findByTurma(turmaId: string) {
+  async findByTurma(turmaId: string, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma: turmaId,
+        periodoId,
         turma: { curso: { isDeleted: null } },
       },
       include: {
@@ -262,10 +287,11 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async findAllByTurmaId(id_turma: string) {
+  async findAllByTurmaId(id_turma: string, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        periodoId,
         turma: { curso: { isDeleted: null } },
       },
       include: {
@@ -301,22 +327,31 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     };
 
     return alocacoes.sort((a, b) => {
-      const diaA = daysMap[a.horario.dia_semana.toUpperCase()] ?? 99;
-      const diaB = daysMap[b.horario.dia_semana.toUpperCase()] ?? 99;
+      const diaKeyA = a.horario?.dia_semana
+        ? a.horario.dia_semana.toUpperCase()
+        : "";
+      const diaKeyB = b.horario?.dia_semana
+        ? b.horario.dia_semana.toUpperCase()
+        : "";
+      const diaA = daysMap[diaKeyA] ?? 99;
+      const diaB = daysMap[diaKeyB] ?? 99;
 
       if (diaA !== diaB) return diaA - diaB;
 
       // Se mesmo dia, ordena por horário
-      if (a.horario.horario_inicio < b.horario.horario_inicio) return -1;
-      if (a.horario.horario_inicio > b.horario.horario_inicio) return 1;
+      const inicioA = a.horario?.horario_inicio?.getTime?.() ?? Number.MAX_SAFE_INTEGER;
+      const inicioB = b.horario?.horario_inicio?.getTime?.() ?? Number.MAX_SAFE_INTEGER;
+      if (inicioA < inicioB) return -1;
+      if (inicioA > inicioB) return 1;
       return 0;
     });
   }
 
-  async findBySalaId(id_sala: string, page: number) {
+  async findBySalaId(id_sala: string, page: number, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_sala,
+        periodoId,
       },
       take: 20,
       skip: (page - 1) * 20,
@@ -337,10 +372,18 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async update(id: string, data: Prisma.AlocacaoUpdateInput) {
-    const alocacao = await prisma.alocacao.update({
-      where: { id },
+  async update(id: string, data: Prisma.AlocacaoUpdateInput, periodoId: string) {
+    const updated = await prisma.alocacao.updateMany({
+      where: { id, periodoId },
       data,
+    });
+
+    if (updated.count === 0) {
+      throw new Error("Alocação não encontrada");
+    }
+
+    const alocacao = await prisma.alocacao.findUnique({
+      where: { id },
       include: {
         user: true,
         disciplina: true,
@@ -351,12 +394,16 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
       },
     });
 
+    if (!alocacao) {
+      throw new Error("Alocação não encontrada");
+    }
+
     return alocacao;
   }
 
-  async findByDisciplinaId(id_disciplina: string) {
+  async findByDisciplinaId(id_disciplina: string, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
-      where: { id_disciplina },
+      where: { id_disciplina, periodoId },
       include: {
         user: true,
         disciplina: true,
@@ -386,9 +433,10 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async findByTurnoManha(page: number) {
+  async findByTurnoManha(page: number, periodoId: string) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
+        periodoId,
         horario: {
           codigo: {
             startsWith: "M",
@@ -426,10 +474,16 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async findByTurmaIdWithTurno(id_turma: string, turno: string, page: number) {
+  async findByTurmaIdWithTurno(
+    id_turma: string,
+    turno: string,
+    page: number,
+    periodoId: string,
+  ) {
     const alocacoes = await prisma.alocacao.findMany({
       where: {
         id_turma,
+        periodoId,
         turma: { curso: { isDeleted: null } },
         horario: {
           codigo: {
@@ -468,25 +522,34 @@ export class PrismaAlocacoesRepository implements AlocacoesRepository {
     return alocacoes;
   }
 
-  async deleteAllByTurmaId(id_turma: string) {
+  async deleteAllByTurmaId(id_turma: string, periodoId: string) {
     // Usando deleteMany direto, que é eficiente e deve funcionar se não houver constraints restritivas
     await prisma.alocacao.deleteMany({
-      where: { id_turma },
+      where: { id_turma, periodoId },
     });
   }
 
-  async deleteAllByTurmaAndDisciplina(id_turma: string, id_disciplina: string) {
+  async deleteAllByTurmaAndDisciplina(
+    id_turma: string,
+    id_disciplina: string,
+    periodoId: string,
+  ) {
     await prisma.alocacao.deleteMany({
       where: {
         id_turma,
         id_disciplina,
+        periodoId,
       },
     });
   }
 
-  async delete(id: string) {
-    await prisma.alocacao.delete({
-      where: { id },
+  async delete(id: string, periodoId: string) {
+    const deleted = await prisma.alocacao.deleteMany({
+      where: { id, periodoId },
     });
+
+    if (deleted.count === 0) {
+      throw new Error("Alocação não encontrada");
+    }
   }
 }

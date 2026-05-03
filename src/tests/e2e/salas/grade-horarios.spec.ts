@@ -16,6 +16,19 @@ describe("Salas - Grade de horários (e2e)", () => {
   it("deve retornar grade preenchida para sala com alocação", async () => {
     const { token: adminToken } = await createAndAuthenticateUser(app, true);
 
+    await prisma.periodoLetivo.updateMany({
+      where: { ativo: true },
+      data: { ativo: false },
+    });
+    await prisma.periodoLetivo.create({
+      data: {
+        nome: `e2e-${Date.now()}`,
+        data_inicio: new Date("2026-01-01T00:00:00.000Z"),
+        data_fim: new Date("2026-06-30T00:00:00.000Z"),
+        ativo: true,
+      },
+    });
+
     const curso = await prisma.curso.create({
       data: { nome: "Curso Sala", codigo: "CSL", duracao_semestres: 8, turno: "MATUTINO" },
     });

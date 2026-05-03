@@ -6,46 +6,36 @@ import {
   sortSchema,
 } from "./common";
 
-// ===== SCHEMAS DE PARÂMETROS =====
-
-// Schema para parâmetros de rota (ID do usuário)
+// schema: params (user)
 export const userCursoUserParamsSchema = z.object({
   id_user: uuidSchema,
 });
 
-// Schema para parâmetros de rota (ID do curso)
+// schema: params (curso)
 export const userCursoCursoParamsSchema = z.object({
   id_curso: uuidSchema,
 });
 
-// ===== SCHEMAS DE CRIAÇÃO/VINCULAÇÃO =====
-
-// Schema para vincular usuário a curso
+// schema: vincular user-curso (body)
 export const vincularUserCursoSchema = z.object({
   id_user: uuidSchema,
   id_curso: uuidSchema,
 });
 
-// ===== SCHEMAS DE REMOÇÃO/DESVINCULAÇÃO =====
-
-// Schema para desvincular usuário de curso
+// schema: desvincular user-curso (body)
 export const desvincularUserCursoSchema = z.object({
   id_user: uuidSchema,
   id_curso: uuidSchema,
 });
 
-// ===== SCHEMAS DE BUSCA =====
-
-// Schema para query parameters de busca
+// schema: buscar user-curso (query)
 export const userCursoQuerySchema = z.object({
   ...paginationSchema.shape,
   ...searchSchema.shape,
   ...sortSchema.shape,
 });
 
-// ===== SCHEMAS DE RESPOSTA =====
-
-// Schema para resposta de curso (alinhado ao retorno do repositório PrismaUserCursoRepository)
+// schema: curso vinculado (response)
 export const cursoVinculadoResponseSchema = z.object({
   id: uuidSchema,
   codigo: z.string(),
@@ -59,7 +49,7 @@ export const cursoVinculadoResponseSchema = z.object({
   }),
 });
 
-// Schema para resposta de usuário (alinhado ao retorno do repositório PrismaUserCursoRepository)
+// schema: usuario vinculado (response)
 export const usuarioResponseSchema = z.object({
   id: uuidSchema,
   nome: z.string(),
@@ -75,7 +65,7 @@ export const usuarioResponseSchema = z.object({
   }),
 });
 
-// Schema para resposta de vinculação user-curso
+// schema: vinculo user-curso (response)
 export const userCursoResponseSchema = z.object({
   id: uuidSchema,
   id_user: uuidSchema,
@@ -85,7 +75,7 @@ export const userCursoResponseSchema = z.object({
   updated_at: z.date(),
 });
 
-// Schema para lista de cursos do usuário
+// schema: cursos do usuario (response)
 export const cursosUsuarioListResponseSchema = z.object({
   cursos: z.array(cursoVinculadoResponseSchema),
   total: z.number().optional(),
@@ -94,7 +84,7 @@ export const cursosUsuarioListResponseSchema = z.object({
   totalPages: z.number().optional(),
 });
 
-// Schema para lista de usuários do curso
+// schema: usuarios do curso (response)
 export const usuariosCursoListResponseSchema = z.object({
   usuarios: z.array(usuarioResponseSchema),
   total: z.number().optional(),

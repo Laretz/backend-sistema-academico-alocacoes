@@ -28,8 +28,6 @@ export default <Environment>{
     const databaseUrl = generateDatabaseUrl(schema);
     process.env.DATABASE_URL = databaseUrl;
 
-    console.log("DATABASE_URL", databaseUrl);
-
     // 🟢 Cria o schema temporário e aplica as tabelas
     execSync("npx prisma db push --force-reset --accept-data-loss", {
       env: {

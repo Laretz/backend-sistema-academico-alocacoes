@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Prisma, TurnoCurso, Curso } from "@prisma/client";
+import type { Prisma, TurnoCurso, Curso } from "@prisma/client";
 import { CursosRepository } from "../cursos-repository";
 
 // interface Curso {
@@ -76,7 +76,7 @@ export class InMemoryCursosRepository implements CursosRepository {
       nome: typeof data.nome === "string" ? data.nome : (curso?.nome ?? ""),
       turno: data.turno
         ? (data.turno as TurnoCurso)
-        : (curso?.turno ?? TurnoCurso.MATUTINO),
+        : (curso?.turno ?? ("MATUTINO" as TurnoCurso)),
       duracao_semestres:
         typeof data.duracao_semestres === "number"
           ? data.duracao_semestres

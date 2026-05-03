@@ -50,6 +50,27 @@ async function seed() {
   const dataInicio = dateOnlyUTC("2026-02-01");
   const dataFimPrevista = dateOnlyUTC("2026-07-31");
 
+  const periodo = await prisma.periodoLetivo.upsert({
+    where: { nome: periodoLetivo },
+    create: {
+      nome: periodoLetivo,
+      data_inicio: dataInicio,
+      data_fim: dataFimPrevista,
+      ativo: true,
+    },
+    update: {
+      data_inicio: dataInicio,
+      data_fim: dataFimPrevista,
+      ativo: true,
+    },
+    select: { id: true },
+  });
+
+  await prisma.periodoLetivo.updateMany({
+    where: { id: { not: periodo.id }, ativo: true },
+    data: { ativo: false },
+  });
+
   const curso = await prisma.curso.upsert({
     where: { codigo: "TADS" },
     create: {
@@ -117,12 +138,14 @@ async function seed() {
     });
   }
 
+  const adminEmail = "admin@admin.com";
+  const senhaAdmin = await hash("123123", 6);
   const senhaPadrao = await hash("123456", 6);
 
   const usuarios = [
     {
       nome: "admin",
-      email: "admin@tads.edu.br",
+      email: adminEmail,
       role: "ADMIN" as const,
       especializacao: "administração do sistema",
       carga_horaria_max: null,
@@ -164,12 +187,13 @@ async function seed() {
 
   const usersByEmail = new Map<string, { id: string }>();
   for (const u of usuarios) {
+    const senha = u.email === adminEmail ? senhaAdmin : senhaPadrao;
     const user = await prisma.user.upsert({
       where: { email: u.email },
       create: {
         nome: u.nome,
         email: u.email,
-        senha: senhaPadrao,
+        senha,
         role: u.role,
         especializacao: u.especializacao,
         carga_horaria_max: u.carga_horaria_max ?? null,
@@ -177,6 +201,7 @@ async function seed() {
       },
       update: {
         nome: u.nome,
+        senha,
         role: u.role,
         especializacao: u.especializacao,
         carga_horaria_max: u.carga_horaria_max ?? null,
@@ -205,22 +230,17 @@ async function seed() {
         const slot = slots[i];
         if (!slot) continue;
         const codigo = `${turno}${i + 1}`;
+
         const existente = await prisma.horario.findFirst({
-          where: { dia_semana, codigo },
+          where: { dia_semana, codigo, regime: "SUPERIOR" },
           select: { id: true },
         });
 
-        if (existente) continue;
-
-        await prisma.horario.create({
-          data: {
-            dia_semana,
-            codigo,
-            horario_inicio: timeOnlyUTC(slot.inicio.hora, slot.inicio.minuto),
-            horario_fim: timeOnlyUTC(slot.fim.hora, slot.fim.minuto),
-            regime: "SUPERIOR",
-          },
-        });
+        if (!existente) {
+          throw new Error(
+            `Horário ausente no banco: regime=SUPERIOR dia_semana=${dia_semana} codigo=${codigo}. Rode 'npm run setup:horarios' antes do seed.`,
+          );
+        }
       }
     }
   }
@@ -481,6 +501,15 @@ async function seed() {
     const cursoDisciplinaId = cursoDisciplinaIdByDisciplinaId.get(disciplina.id);
     if (!cursoDisciplinaId) continue;
 
+    const turno = a.horarioCodigo.slice(0, 1);
+    const numero = a.horarioCodigo.slice(1);
+    const dia = diaNumero[a.dia_semana];
+    if (dia && numero) {
+      const set = horarioConsolidadoByDisciplinaId.get(disciplina.id) ?? new Set<string>();
+      set.add(`${dia}${turno}${numero}`);
+      horarioConsolidadoByDisciplinaId.set(disciplina.id, set);
+    }
+
     alocacaoData.push({
       id_user: user.id,
       id_disciplina: disciplina.id,
@@ -488,18 +517,9 @@ async function seed() {
       id_sala: salaId,
       id_horario: horarioId,
       id_curso_disciplina: cursoDisciplinaId,
+      periodoId: periodo.id,
       is_modulo_principal: true,
     });
-
-    const dia = diaNumero[a.dia_semana];
-    const periodo = a.horarioCodigo.slice(0, 1);
-    const slots = a.horarioCodigo.slice(1);
-    if (dia && periodo && slots) {
-      const padrao = `${dia}${periodo}${slots}`;
-      const set = horarioConsolidadoByDisciplinaId.get(disciplina.id) ?? new Set<string>();
-      set.add(padrao);
-      horarioConsolidadoByDisciplinaId.set(disciplina.id, set);
-    }
   }
 
   if (alocacaoData.length > 0) {
@@ -536,7 +556,7 @@ async function seed() {
   }
 
   const totalDisciplinas = await prisma.disciplina.count({ where: { id_curso: curso.id } });
-  const totalUsuarios = await prisma.user.count({ where: { email: { endsWith: "@tads.edu.br" } } });
+  const totalUsuarios = await prisma.user.count();
   const totalSalas = await prisma.sala.count({ where: { nome: { in: salasBase.map((s) => s.nome) } } });
   const totalTurmas = await prisma.turma.count({ where: { id_curso: curso.id } });
   const totalHorarios = await prisma.horario.count({ where: { regime: "SUPERIOR" } });

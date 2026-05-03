@@ -18,9 +18,9 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reportsDirectory: "./coverage",
-      // Focar apenas nos use-cases no relatório de cobertura
+      // focar apenas nos use-cases no relatório de cobertura
       include: ["src/use-cases/**/*.{ts,tsx}"],
-      // Excluir schemas e factories dos use-cases para não poluir a cobertura
+      // excluir schemas e factories dos use-cases para não poluir a cobertura
       exclude: [
         "src/tests/**/*",
         "**/*.spec.ts",

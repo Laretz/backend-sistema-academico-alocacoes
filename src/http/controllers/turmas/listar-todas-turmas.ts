@@ -13,9 +13,11 @@ export async function listarTodasTurmas(
     const turmasPayload = turmas.map((turma: any) => ({
       id: turma.id,
       nome: turma.nome,
+      num_alunos: turma.num_alunos,
       semestre: turma.semestre,
       turno: turma.turno,
       id_curso: turma.id_curso ?? turma.curso?.id,
+      ativa: turma.ativa,
       curso: turma.curso,
     }));
 

@@ -132,12 +132,7 @@ export class GeneticAlgorithm {
       const stagnated = stagnationCount >= patience;
 
       if (reachedTarget && passedMinimum && stagnated) {
-        console.log(`Pare por critério inteligente na geração ${gen}`);
         break;
-      }
-
-      if (gen % 50 === 0) {
-        console.log(`Geração ${gen}: Best Fitness = ${best.fitness}`);
       }
 
       if (gen < maxGenerations - 1) {

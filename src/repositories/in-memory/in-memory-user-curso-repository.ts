@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { UserCursoRepository } from "../user-curso-repository";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 interface UserCurso {
   id: string;

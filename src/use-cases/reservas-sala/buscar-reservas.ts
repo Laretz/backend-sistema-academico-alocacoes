@@ -1,5 +1,6 @@
 import { ReservaSala } from "@prisma/client";
 import { ReservasSalaRepository } from "@/repositories/reservas-sala-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface BuscarReservasUseCaseRequest {
   salaId?: string;
@@ -15,7 +16,10 @@ interface BuscarReservasUseCaseResponse {
 }
 
 export class BuscarReservasUseCase {
-  constructor(private reservasRepository: ReservasSalaRepository) {}
+  constructor(
+    private reservasRepository: ReservasSalaRepository,
+    private periodosRepository: PeriodosLetivosRepository,
+  ) {}
 
   async execute({
     salaId,
@@ -24,6 +28,10 @@ export class BuscarReservasUseCase {
     dateTo,
     page = 1,
   }: BuscarReservasUseCaseRequest): Promise<BuscarReservasUseCaseResponse> {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
     
     let parsedDateFrom: Date | undefined;
     if (dateFrom) {
@@ -35,7 +43,7 @@ export class BuscarReservasUseCase {
       parsedDateTo = new Date(`${dateTo}T00:00:00.000Z`);
     }
 
-    const requestParams: any = { page };
+    const requestParams: any = { page, periodoId: periodoAtivo.id };
     if (salaId !== undefined) requestParams.salaId = salaId;
     if (horarioId !== undefined) requestParams.horarioId = horarioId;
     if (parsedDateFrom !== undefined) requestParams.dateFrom = parsedDateFrom;

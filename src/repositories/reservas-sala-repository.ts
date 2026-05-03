@@ -8,12 +8,18 @@ export interface ReservasSalaRepository {
     horarioId?: string;
     dateFrom?: Date;
     dateTo?: Date;
+    periodoId: string;
     page: number;
     limit?: number;
   }): Promise<{ reservas: ReservaSala[]; total: number }>;
   
   // Verifica se já existe reserva para a mesma sala, horário e data(s)
-  findConflicts(salaId: string, horarioId: string, dates: Date[]): Promise<ReservaSala[]>;
+  findConflicts(
+    salaId: string,
+    horarioId: string,
+    dates: Date[],
+    periodoId: string,
+  ): Promise<ReservaSala[]>;
 
   create(data: Prisma.ReservaSalaUncheckedCreateInput): Promise<ReservaSala>;
   createMany(data: Prisma.ReservaSalaUncheckedCreateInput[]): Promise<ReservaSala[]>;

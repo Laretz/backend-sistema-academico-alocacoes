@@ -1,4 +1,4 @@
-import { Prisma, Turma } from "@prisma/client";
+import type { Prisma, Turma } from "@prisma/client";
 import { TurmasRepository } from "../turmas-repository";
 
 export class InMemoryTurmasRepository implements TurmasRepository {

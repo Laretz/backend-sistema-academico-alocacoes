@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Schema de resposta para a rota /stats
+// schema: response /stats
 export const statsResponseSchema = z.object({
   timestamp: z.string().describe("Data/hora ISO da geração dos dados"),
   totals: z.object({
@@ -20,5 +20,3 @@ export const statsResponseSchema = z.object({
     salasOcupadasAgora: z.number().int().nonnegative(),
   }),
 });
-
-export type StatsResponse = z.infer<typeof statsResponseSchema>;

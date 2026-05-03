@@ -1,15 +1,13 @@
 import { z } from "zod";
 
-/**
- * Schemas comuns reutilizáveis para validações
- */
+/* schemas comuns (reutilizáveis) */
 
-// Schema para UUID
+// schema: uuid
 export const uuidSchema = z.uuid({
   message: "Deve ser um UUID válido"
 });
 
-// Schema para paginação
+// schema: paginacao
 export const paginationSchema = z.object({
   page: z
     .union([z.string(), z.number()])
@@ -35,7 +33,7 @@ export const paginationSchema = z.object({
     })
 });
 
-// Schema para busca/filtros
+// schema: busca
 export const searchSchema = z.object({
   search: z
     .string()
@@ -46,18 +44,18 @@ export const searchSchema = z.object({
     })
 });
 
-// Schema para ordenação
+// schema: ordenacao
 export const sortSchema = z.object({
   sortBy: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc")
 });
 
-// Enum para turnos
+// schema: turno
 export const turnoEnum = z.enum(["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRAL"], {
   message: "Turno deve ser MATUTINO, VESPERTINO, NOTURNO ou INTEGRAL"
 });
 
-// Schema para strings não vazias
+// schema: string nao vazia
 export const nonEmptyStringSchema = z
   .string()
   .min(1, "Campo obrigatório")
@@ -66,18 +64,18 @@ export const nonEmptyStringSchema = z
     message: "Campo não pode estar vazio"
   });
 
-// Schema para números positivos
+// schema: numero positivo
 export const positiveNumberSchema = z
   .number()
   .positive("Deve ser um número positivo");
 
-// Schema para números inteiros positivos
+// schema: inteiro positivo
 export const positiveIntegerSchema = z
   .number()
   .int("Deve ser um número inteiro")
   .positive("Deve ser um número positivo");
 
-// Schema para códigos (letras e números)
+// schema: codigo
 export const codigoSchema = z
   .string()
   .min(1, "Código é obrigatório")
@@ -85,7 +83,7 @@ export const codigoSchema = z
   .regex(/^[A-Z0-9-_]+$/i, "Código deve conter apenas letras, números, hífens e underscores")
   .transform((val) => val.trim().toUpperCase());
 
-// Schema para nomes
+// schema: nome
 export const nomeSchema = z
   .string()
   .min(2, "Nome deve ter pelo menos 2 caracteres")
@@ -94,3 +92,27 @@ export const nomeSchema = z
   .refine((val) => val.length >= 2, {
     message: "Nome não pode estar vazio após remoção de espaços"
   });
+
+// schema: erro (padrao)
+export const errorResponseSchema = z.object({
+  error: z.string(),
+  message: z.string(),
+});
+
+// schema: erro (validacao)
+export const validationErrorResponseSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  details: z.unknown().optional(),
+});
+
+// schema: erro (not found)
+export const notFoundResponseSchema = z.object({
+  error: z.string().default("Recurso não encontrado"),
+  message: z.string(),
+});
+
+// schema: erro (500)
+export const internalServerErrorResponseSchema = z.object({
+  message: z.string().default("Ocorreu um erro inesperado"),
+});

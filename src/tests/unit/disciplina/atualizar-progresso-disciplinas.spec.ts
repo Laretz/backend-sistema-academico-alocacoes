@@ -2,18 +2,31 @@ import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { InMemoryDisciplinasRepository } from '@/repositories/in-memory/in-memory-disciplinas-repository';
 import { InMemoryAlocacoesRepository } from '@/repositories/in-memory/in-memory-alocacoes-repository';
 import { AtualizarProgressoDisciplinasUseCase } from '@/use-cases/disciplina/atualizar-progresso-disciplinas';
+import { InMemoryPeriodosLetivosRepository } from '@/repositories/in-memory/in-memory-periodos-letivos-repository';
 
 let disciplinasRepository: InMemoryDisciplinasRepository;
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: AtualizarProgressoDisciplinasUseCase;
 
 describe('Atualizar Progresso Disciplinas Use Case', () => {
   beforeEach(() => {
     disciplinasRepository = new InMemoryDisciplinasRepository();
     alocacoesRepository = new InMemoryAlocacoesRepository();
+    periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
     sut = new AtualizarProgressoDisciplinasUseCase(
       disciplinasRepository,
-      alocacoesRepository
+      alocacoesRepository,
+      periodosRepository,
     );
   });
 
@@ -301,6 +314,7 @@ describe('Atualizar Progresso Disciplinas Use Case', () => {
       sala: { connect: { id: 'sala-1' } },
       horario: { connect: { id: 'horario-1' } },
       cursoDisciplina: { connect: { id: 'curso-disciplina-1' } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     await alocacoesRepository.create({
@@ -310,6 +324,7 @@ describe('Atualizar Progresso Disciplinas Use Case', () => {
       sala: { connect: { id: 'sala-1' } },
       horario: { connect: { id: 'horario-2' } },
       cursoDisciplina: { connect: { id: 'curso-disciplina-1' } },
+      periodo: { connect: { id: "periodo-1" } },
     });
 
     const result = await sut.execute({

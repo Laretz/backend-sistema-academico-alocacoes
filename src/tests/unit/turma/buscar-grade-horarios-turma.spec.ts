@@ -1,14 +1,29 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import { BuscarGradeHorariosTurmaUseCase } from "@/use-cases/turma/buscar-grade-horarios-turma";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: BuscarGradeHorariosTurmaUseCase;
 
 describe("Buscar Grade Horários Turma Use Case", () => {
   beforeEach(() => {
     alocacoesRepository = new InMemoryAlocacoesRepository();
-    sut = new BuscarGradeHorariosTurmaUseCase(alocacoesRepository);
+    periodosRepository = new InMemoryPeriodosLetivosRepository();
+    periodosRepository.items.push({
+      id: "periodo-1",
+      nome: "2026.1",
+      data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+      data_fim: new Date("2026-07-31T00:00:00.000Z"),
+      ativo: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    sut = new BuscarGradeHorariosTurmaUseCase(
+      alocacoesRepository,
+      periodosRepository,
+    );
   });
 
   it("deve retornar grade vazia quando turma não possui alocações", async () => {

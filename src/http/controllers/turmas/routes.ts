@@ -78,9 +78,11 @@ export const routesTurmas = async (app: FastifyTypedInstance) => {
               z.object({
                 id: z.string(),
                 nome: z.string(),
+                num_alunos: z.number().optional(),
                 semestre: z.number().optional(),
                 turno: z.string().optional(),
                 id_curso: z.string(),
+                ativa: z.boolean().optional(),
                 curso: z
                   .object({
                     id: z.string(),

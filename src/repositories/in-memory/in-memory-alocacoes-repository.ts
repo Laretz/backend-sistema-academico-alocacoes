@@ -1,4 +1,4 @@
-import { Prisma, Alocacao } from "@prisma/client";
+import type { Prisma, Alocacao } from "@prisma/client";
 import { AlocacoesRepository } from "../alocacoes-repository";
 import { randomUUID } from "node:crypto";
 
@@ -45,6 +45,14 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
         ? data.horario.connect.id
         : randomUUID();
 
+    const periodoId =
+      typeof data.periodo === "object" &&
+      data.periodo &&
+      "connect" in data.periodo &&
+      data.periodo.connect?.id
+        ? data.periodo.connect.id
+        : "periodo-1";
+
     const alocacao: AlocacaoWithRelations = {
       id: randomUUID(),
       id_user: idUser,
@@ -53,9 +61,9 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       id_turma: idTurma,
       id_sala: idSala,
       id_horario: idHorario,
+      periodoId,
       is_modulo_principal: true,
       created_at: new Date(),
-      // Dados mockados para as relações - em um teste real, você forneceria estes dados
       user: {
         id: idUser,
         nome: "Professor Teste",
@@ -129,17 +137,26 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
-  async findById(id: string): Promise<AlocacaoWithRelations | null> {
-    const alocacao = this.items.find((item) => item.id === id);
+  async findById(
+    id: string,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations | null> {
+    const alocacao = this.items.find(
+      (item) => item.id === id && item.periodoId === periodoId,
+    );
     return alocacao || null;
   }
 
   async findByUserIdAndHorarioId(
     id_user: string,
     id_horario: string,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const alocacao = this.items.find(
-      (item) => item.id_user === id_user && item.id_horario === id_horario,
+      (item) =>
+        item.id_user === id_user &&
+        item.id_horario === id_horario &&
+        item.periodoId === periodoId,
     );
     return alocacao || null;
   }
@@ -147,9 +164,13 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   async findBySalaIdAndHorarioId(
     id_sala: string,
     id_horario: string,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const alocacao = this.items.find(
-      (item) => item.id_sala === id_sala && item.id_horario === id_horario,
+      (item) =>
+        item.id_sala === id_sala &&
+        item.id_horario === id_horario &&
+        item.periodoId === periodoId,
     );
     return alocacao || null;
   }
@@ -157,24 +178,32 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   async findByTurmaIdAndHorarioId(
     id_turma: string,
     id_horario: string,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const alocacao = this.items.find(
-      (item) => item.id_turma === id_turma && item.id_horario === id_horario,
+      (item) =>
+        item.id_turma === id_turma &&
+        item.id_horario === id_horario &&
+        item.periodoId === periodoId,
     );
     return alocacao || null;
   }
 
-  async findMany(page: number): Promise<AlocacaoWithRelations[]> {
+  async findMany(page: number, periodoId: string): Promise<AlocacaoWithRelations[]> {
     const startIndex = (page - 1) * 20;
     const endIndex = startIndex + 20;
-    return this.items.slice(startIndex, endIndex);
+    const filtered = this.items.filter((i) => i.periodoId === periodoId);
+    return filtered.slice(startIndex, endIndex);
   }
 
   async findByUserId(
     id_user: string,
     page: number,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations[]> {
-    const userAlocacoes = this.items.filter((item) => item.id_user === id_user);
+    const userAlocacoes = this.items.filter(
+      (item) => item.id_user === id_user && item.periodoId === periodoId,
+    );
     const startIndex = (page - 1) * 20;
     const endIndex = startIndex + 20;
     return userAlocacoes.slice(startIndex, endIndex);
@@ -183,28 +212,42 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   async findByTurmaId(
     id_turma: string,
     page: number,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations[]> {
     const turmaAlocacoes = this.items.filter(
-      (item) => item.id_turma === id_turma,
+      (item) => item.id_turma === id_turma && item.periodoId === periodoId,
     );
     const startIndex = (page - 1) * 20;
     const endIndex = startIndex + 20;
     return turmaAlocacoes.slice(startIndex, endIndex);
   }
 
-  async findAllByTurmaId(id_turma: string): Promise<AlocacaoWithRelations[]> {
-    return this.items.filter((item) => item.id_turma === id_turma);
+  async findAllByTurmaId(
+    id_turma: string,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]> {
+    return this.items.filter(
+      (item) => item.id_turma === id_turma && item.periodoId === periodoId,
+    );
   }
 
-  async findByTurma(turmaId: string): Promise<AlocacaoWithRelations[]> {
-    return this.items.filter((item) => item.id_turma === turmaId);
+  async findByTurma(
+    turmaId: string,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]> {
+    return this.items.filter(
+      (item) => item.id_turma === turmaId && item.periodoId === periodoId,
+    );
   }
 
   async findBySalaId(
     id_sala: string,
     page: number,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations[]> {
-    const salaAlocacoes = this.items.filter((item) => item.id_sala === id_sala);
+    const salaAlocacoes = this.items.filter(
+      (item) => item.id_sala === id_sala && item.periodoId === periodoId,
+    );
     const startIndex = (page - 1) * 20;
     const endIndex = startIndex + 20;
     return salaAlocacoes.slice(startIndex, endIndex);
@@ -213,8 +256,11 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
   async update(
     id: string,
     data: Prisma.AlocacaoUpdateInput,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations> {
-    const alocacaoIndex = this.items.findIndex((item) => item.id === id);
+    const alocacaoIndex = this.items.findIndex(
+      (item) => item.id === id && item.periodoId === periodoId,
+    );
 
     if (alocacaoIndex === -1) {
       throw new Error("Alocação não encontrada");
@@ -284,8 +330,10 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return alocacao;
   }
 
-  async delete(id: string): Promise<void> {
-    const alocacaoIndex = this.items.findIndex((item) => item.id === id);
+  async delete(id: string, periodoId: string): Promise<void> {
+    const alocacaoIndex = this.items.findIndex((item) => {
+      return item.id === id && item.periodoId === periodoId;
+    });
 
     if (alocacaoIndex === -1) {
       throw new Error("Alocação não encontrada");
@@ -306,6 +354,7 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
       id_turma: alocacaoData.id_turma || randomUUID(),
       id_sala: alocacaoData.id_sala || randomUUID(),
       id_horario: alocacaoData.id_horario || randomUUID(),
+      periodoId: alocacaoData.periodoId || "periodo-1",
       is_modulo_principal:
         alocacaoData.is_modulo_principal !== undefined
           ? alocacaoData.is_modulo_principal
@@ -386,8 +435,11 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
 
   async findByDisciplinaId(
     id_disciplina: string,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations[]> {
-    return this.items.filter((item) => item.id_disciplina === id_disciplina);
+    return this.items.filter(
+      (item) => item.id_disciplina === id_disciplina && item.periodoId === periodoId,
+    );
   }
 
   async findOverlapBySala(
@@ -395,12 +447,14 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const inicioTime = new Date(inicio).getTime();
     const fimTime = new Date(fim).getTime();
     const found = this.items.find((item) => {
       return (
         item.id_sala === id_sala &&
+        item.periodoId === periodoId &&
         item.horario?.dia_semana === dia_semana &&
         new Date(item.horario.horario_inicio).getTime() < fimTime &&
         new Date(item.horario.horario_fim).getTime() > inicioTime
@@ -414,12 +468,14 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const inicioTime = new Date(inicio).getTime();
     const fimTime = new Date(fim).getTime();
     const found = this.items.find((item) => {
       return (
         item.id_user === id_user &&
+        item.periodoId === periodoId &&
         item.horario?.dia_semana === dia_semana &&
         new Date(item.horario.horario_inicio).getTime() < fimTime &&
         new Date(item.horario.horario_fim).getTime() > inicioTime
@@ -433,12 +489,14 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     dia_semana: string,
     inicio: Date,
     fim: Date,
+    periodoId: string,
   ): Promise<Alocacao | null> {
     const inicioTime = new Date(inicio).getTime();
     const fimTime = new Date(fim).getTime();
     const found = this.items.find((item) => {
       return (
         item.id_turma === id_turma &&
+        item.periodoId === periodoId &&
         item.horario?.dia_semana === dia_semana &&
         new Date(item.horario.horario_inicio).getTime() < fimTime &&
         new Date(item.horario.horario_fim).getTime() > inicioTime
@@ -447,9 +505,13 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return found || null;
   }
 
-  async findByTurnoManha(page: number): Promise<AlocacaoWithRelations[]> {
+  async findByTurnoManha(
+    page: number,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]> {
     // Filtra alocações do período da manhã (horários que começam antes das 12:00)
     const alocacoesManha = this.items.filter((item) => {
+      if (item.periodoId !== periodoId) return false;
       const horarioInicio = new Date(item.horario.horario_inicio);
       return horarioInicio.getHours() < 12;
     });
@@ -463,10 +525,12 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     id_turma: string,
     turno: string,
     page: number,
+    periodoId: string,
   ): Promise<AlocacaoWithRelations[]> {
     // Filtra alocações por turma e turno
     const alocacoesFiltradas = this.items.filter((item) => {
       if (item.id_turma !== id_turma) return false;
+      if (item.periodoId !== periodoId) return false;
 
       const horarioInicio = new Date(item.horario.horario_inicio);
       const hora = horarioInicio.getHours();
@@ -491,18 +555,25 @@ export class InMemoryAlocacoesRepository implements AlocacoesRepository {
     return alocacoesFiltradas.slice(startIndex, endIndex);
   }
 
-  async deleteAllByTurmaId(id_turma: string): Promise<void> {
+  async deleteAllByTurmaId(id_turma: string, periodoId: string): Promise<void> {
     // Remove todas as alocações da turma especificada
-    this.items = this.items.filter((item) => item.id_turma !== id_turma);
+    this.items = this.items.filter(
+      (item) => !(item.id_turma === id_turma && item.periodoId === periodoId),
+    );
   }
 
   async deleteAllByTurmaAndDisciplina(
     id_turma: string,
     id_disciplina: string,
+    periodoId: string,
   ): Promise<void> {
     this.items = this.items.filter(
       (item) =>
-        !(item.id_turma === id_turma && item.id_disciplina === id_disciplina),
+        !(
+          item.id_turma === id_turma &&
+          item.id_disciplina === id_disciplina &&
+          item.periodoId === periodoId
+        ),
     );
   }
 }

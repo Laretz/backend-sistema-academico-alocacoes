@@ -89,14 +89,11 @@ describe('Criar Curso Use Case', () => {
 // Erros — teste direto em contexto do módulo de Curso
 describe('Erros — DadosInvalidosError (teste direto)', () => {
   it('deve instanciar e lançar DadosInvalidosError corretamente', async () => {
-    // TODO remover logs após validação
-    console.log('[LOG TEST] Instanciando DadosInvalidosError');
     const error = new DadosInvalidosError('curso');
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toBe('Error');
     expect(typeof error.message).toBe('string');
 
-    console.log('[LOG TEST] Lançando e capturando DadosInvalidosError');
     try {
       throw error;
     } catch (e: any) {

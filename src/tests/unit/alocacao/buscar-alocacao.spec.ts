@@ -2,14 +2,26 @@ import { expect, describe, it, beforeEach } from "vitest";
 import { BuscarAlocacaoUseCase } from "@/use-cases/alocacao/buscar-alocacao";
 import { InMemoryAlocacoesRepository } from "@/repositories/in-memory/in-memory-alocacoes-repository";
 import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
+import { InMemoryPeriodosLetivosRepository } from "@/repositories/in-memory/in-memory-periodos-letivos-repository";
 
 let alocacoesRepository: InMemoryAlocacoesRepository;
+let periodosRepository: InMemoryPeriodosLetivosRepository;
 let sut: BuscarAlocacaoUseCase;
 
 describe('Buscar Alocação Use Case', () => {
     beforeEach(() => {
         alocacoesRepository = new InMemoryAlocacoesRepository();
-        sut = new BuscarAlocacaoUseCase(alocacoesRepository);
+        periodosRepository = new InMemoryPeriodosLetivosRepository();
+        periodosRepository.items.push({
+            id: "periodo-1",
+            nome: "2026.1",
+            data_inicio: new Date("2026-02-01T00:00:00.000Z"),
+            data_fim: new Date("2026-07-31T00:00:00.000Z"),
+            ativo: true,
+            created_at: new Date(),
+            updated_at: new Date(),
+        });
+        sut = new BuscarAlocacaoUseCase(alocacoesRepository, periodosRepository);
     });
 
     it('deve ser possível buscar uma alocação pelo id', async () => {

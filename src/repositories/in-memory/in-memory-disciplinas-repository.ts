@@ -1,4 +1,4 @@
-import { Prisma, Disciplina, TipoDeSala } from "@prisma/client";
+import type { Prisma, Disciplina, TipoDeSala } from "@prisma/client";
 import { DisciplinasRepository } from "../disciplinas-repository";
 
 export class InMemoryDisciplinasRepository implements DisciplinasRepository {
