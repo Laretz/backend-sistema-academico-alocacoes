@@ -17,7 +17,6 @@ export class InMemoryFeedbackRepository implements FeedbackRepository {
       comment: data.comment,
       page: data.page ?? null,
       feature: data.feature ?? null,
-      // Converter InputJsonValue para JsonValue compatível com o tipo do modelo
       metadata:
         data.metadata !== undefined
           ? ((data.metadata as unknown) as Prisma.JsonValue)

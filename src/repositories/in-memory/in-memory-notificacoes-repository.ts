@@ -18,7 +18,6 @@ export class InMemoryNotificacoesRepository implements NotificacaoRepository {
       message: data.message,
       status: (data.status as NotificacaoStatus) ?? ("PENDENTE" as NotificacaoStatus),
       replyMessage: (data.replyMessage as string | null) ?? null,
-      // Converter InputJsonValue para JsonValue de forma segura
       metadata:
         data.metadata !== undefined
           ? (data.metadata as unknown as Prisma.JsonValue)
