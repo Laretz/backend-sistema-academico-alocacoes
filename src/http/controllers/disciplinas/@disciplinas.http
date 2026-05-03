@@ -7,9 +7,17 @@ POST {{baseURL}}/session
 Content-Type: application/json
 
 {
-  "email": "test@admin.com",
-  "senha": "123456"
+  "email": "admin@admin.com",
+  "senha": "123123"
 }
+
+###
+
+# Listar turmas (para pegar um turmaId válido)
+# @name GetTurmasTodas
+GET {{baseURL}}/turmas/todas
+Content-Type: application/json
+Authorization: Bearer {{Login.response.body.token}}
 
 ###
 
@@ -21,7 +29,14 @@ Content-Type: application/json
 ###
 
 # @name GetDisciplinasComProgresso
-GET {{baseURL}}/disciplinas/com-progresso
+GET {{baseURL}}/disciplinas/com-progresso?turmaId=a17e1658-83f1-4029-9e65-5a006bdd6a94
+Content-Type: application/json
+Authorization: Bearer {{Login.response.body.token}}
+
+###
+
+# @name GetGradeHorariosTurma
+GET {{baseURL}}/turmas/3d38f9d8-2265-48ea-af2e-88ca9fe1b972/grade-horarios
 Content-Type: application/json
 Authorization: Bearer {{Login.response.body.token}}
 

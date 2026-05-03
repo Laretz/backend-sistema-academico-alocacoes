@@ -5,8 +5,24 @@ import { createAndAuthenticateUser } from "@/tests/e2e/helpers/create-and-authen
 import { prisma } from "@/lib/prisma";
 
 describe("Buscar Disciplinas com Progresso (e2e)", () => {
+  let periodoId: string;
+
   beforeAll(async () => {
     await app.ready();
+
+    await prisma.periodoLetivo.updateMany({
+      where: { ativo: true },
+      data: { ativo: false },
+    });
+    const periodo = await prisma.periodoLetivo.create({
+      data: {
+        nome: `e2e-${Date.now()}`,
+        data_inicio: new Date("2026-01-01T00:00:00.000Z"),
+        data_fim: new Date("2026-06-30T00:00:00.000Z"),
+        ativo: true,
+      },
+    });
+    periodoId = periodo.id;
   });
 
   afterAll(async () => {
@@ -28,9 +44,8 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
 
     const turma = await prisma.turma.create({
       data: {
-        nome: "2024.1",
+        nome: "Turma 1",
         num_alunos: 30,
-        periodo: 1,
         turno: "MATUTINO",
         id_curso: curso.id,
         semestre: 1,
@@ -69,19 +84,28 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
     const horario = await prisma.horario.create({
       data: {
         codigo: "M1",
-        dia_semana: "segunda",
+        dia_semana: "SEGUNDA",
         horario_inicio: new Date("1970-01-01T07:30:00Z"),
         horario_fim: new Date("1970-01-01T08:20:00Z"),
       },
     });
 
+    const cursoDisciplina = await prisma.cursoDisciplina.create({
+      data: {
+        id_curso: curso.id,
+        id_disciplina: disciplina.id,
+      },
+    });
+
     await prisma.alocacao.create({
       data: {
+        id_user: user.id,
         id_disciplina: disciplina.id,
         id_turma: turma.id,
-        id_user: user.id,
         id_sala: sala.id,
         id_horario: horario.id,
+        id_curso_disciplina: cursoDisciplina.id,
+        periodoId,
       },
     });
 
@@ -100,7 +124,7 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
         total_aulas: expect.any(Number),
         aulas_ministradas: expect.any(Number),
         tipo_de_sala: "Lab",
-      })
+      }),
     );
   });
 
@@ -120,7 +144,6 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       data: {
         nome: "2024.1",
         num_alunos: 35,
-        periodo: 1,
         turno: "MATUTINO",
         id_curso: curso.id,
         semestre: 1,
@@ -131,7 +154,6 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       data: {
         nome: "2024.2",
         num_alunos: 40,
-        periodo: 2,
         turno: "VESPERTINO",
         id_curso: curso.id,
         semestre: 2,
@@ -181,31 +203,47 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
     const horario2 = await prisma.horario.create({
       data: {
         codigo: "M2",
-        dia_semana: "terça",
+        dia_semana: "TERCA",
         horario_inicio: new Date("1970-01-01T10:00:00Z"),
         horario_fim: new Date("1970-01-01T12:00:00Z"),
       },
     });
 
-    // Alocar disciplina1 para turma1
+    const cd1 = await prisma.cursoDisciplina.create({
+      data: { id_curso: curso.id, id_disciplina: disciplina1.id },
+    });
     await prisma.alocacao.create({
       data: {
+        id_user: user2.id,
         id_disciplina: disciplina1.id,
         id_turma: turma1.id,
-        id_user: user2.id,
         id_sala: sala2.id,
         id_horario: horario2.id,
+        id_curso_disciplina: cd1.id,
+        periodoId,
       },
     });
 
-    // Alocar disciplina2 para turma2
+    const cd2 = await prisma.cursoDisciplina.create({
+      data: { id_curso: curso.id, id_disciplina: disciplina2.id },
+    });
+    const horario3 = await prisma.horario.create({
+      data: {
+        codigo: "M3",
+        dia_semana: "QUARTA",
+        horario_inicio: new Date("1970-01-01T10:00:00Z"),
+        horario_fim: new Date("1970-01-01T12:00:00Z"),
+      },
+    });
     await prisma.alocacao.create({
       data: {
+        id_user: user2.id,
         id_disciplina: disciplina2.id,
         id_turma: turma2.id,
-        id_user: user2.id,
         id_sala: sala2.id,
-        id_horario: horario2.id,
+        id_horario: horario3.id,
+        id_curso_disciplina: cd2.id,
+        periodoId,
       },
     });
 
@@ -265,16 +303,82 @@ describe("Buscar Disciplinas com Progresso (e2e)", () => {
       .get(`/disciplinas/com-progresso?cursoId=${curso1.id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
+    const user = await prisma.user.create({
+      data: {
+        nome: "Professor Curso",
+        email: `prof_curso_${Date.now()}@example.com`,
+        senha: "senha-secreta",
+        role: "PROFESSOR",
+      },
+    });
+    const sala = await prisma.sala.create({
+      data: { nome: "Sala Curso", capacidade: 30, tipo: "Sala" },
+    });
+    const horario = await prisma.horario.create({
+      data: {
+        codigo: "M4",
+        dia_semana: "SEXTA",
+        horario_inicio: new Date("1970-01-01T08:00:00Z"),
+        horario_fim: new Date("1970-01-01T10:00:00Z"),
+      },
+    });
+    const turma = await prisma.turma.create({
+      data: {
+        nome: "2024.1",
+        num_alunos: 25,
+        turno: "MATUTINO",
+        id_curso: curso1.id,
+        semestre: 1,
+      },
+    });
+    const cd = await prisma.cursoDisciplina.create({
+      data: { id_curso: curso1.id, id_disciplina: disciplina1.id },
+    });
+    await prisma.alocacao.create({
+      data: {
+        id_user: user.id,
+        id_disciplina: disciplina1.id,
+        id_turma: turma.id,
+        id_sala: sala.id,
+        id_horario: horario.id,
+        id_curso_disciplina: cd.id,
+        periodoId,
+      },
+    });
 
-    expect(response.body.disciplinas).toHaveLength(1);
-    expect(response.body.disciplinas[0].nome).toBe("Banco de Dados");
+    const response2 = await request(app.server)
+      .get(`/disciplinas/com-progresso?cursoId=${curso1.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
+
+    expect(response2.body.disciplinas).toHaveLength(1);
+    expect(response2.body.disciplinas[0].nome).toBe("Banco de Dados");
   });
 
   it("should return empty array when no disciplines found", async () => {
     const { token } = await createAndAuthenticateUser(app);
 
+    const curso = await prisma.curso.create({
+      data: {
+        nome: "Curso Vazio",
+        codigo: `CVAZIO-${Date.now()}`,
+        duracao_semestres: 8,
+        turno: "MATUTINO",
+      },
+    });
+
+    const turma = await prisma.turma.create({
+      data: {
+        nome: `TVAZIA-${Date.now()}`,
+        num_alunos: 25,
+        turno: "MATUTINO",
+        id_curso: curso.id,
+        semestre: 1,
+      },
+    });
+
     const response = await request(app.server)
-      .get("/disciplinas/com-progresso?turmaId=00000000-0000-0000-0000-000000000000")
+      .get(`/disciplinas/com-progresso?turmaId=${turma.id}`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
 

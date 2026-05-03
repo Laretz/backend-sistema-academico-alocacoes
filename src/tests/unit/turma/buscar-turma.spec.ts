@@ -16,8 +16,8 @@ describe('Buscar Turma Use Case', () => {
     const turmaCriada = await turmasRepository.create({
       nome: 'Turma A',
       num_alunos: 30,
-      periodo: 1,
       turno: 'MATUTINO',
+      semestre: 1,
       curso: {
         connect: { id: 'curso-id-teste' }
       }
@@ -30,7 +30,7 @@ describe('Buscar Turma Use Case', () => {
     expect(turma.id).toEqual(turmaCriada.id);
     expect(turma.nome).toEqual('Turma A');
     expect(turma.num_alunos).toEqual(30);
-    expect(turma.periodo).toEqual(1);
+    expect(turma.semestre).toEqual(1);
     expect(turma.turno).toEqual('MATUTINO');
   });
 
@@ -46,8 +46,8 @@ describe('Buscar Turma Use Case', () => {
     const turma1 = await turmasRepository.create({
       nome: 'Turma A',
       num_alunos: 30,
-      periodo: 1,
       turno: 'MATUTINO',
+      semestre: 1,
       curso: {
         connect: { id: 'curso-id-teste' }
       }
@@ -56,8 +56,8 @@ describe('Buscar Turma Use Case', () => {
     const turma2 = await turmasRepository.create({
       nome: 'Turma B',
       num_alunos: 25,
-      periodo: 2,
       turno: 'VESPERTINO',
+      semestre: 2,
       curso: {
         connect: { id: 'curso-id-teste' }
       }
@@ -70,7 +70,7 @@ describe('Buscar Turma Use Case', () => {
     expect(turma.id).toEqual(turma2.id);
     expect(turma.nome).toEqual('Turma B');
     expect(turma.num_alunos).toEqual(25);
-    expect(turma.periodo).toEqual(2);
+    expect(turma.semestre).toEqual(2);
     expect(turma.turno).toEqual('VESPERTINO');
   });
 });

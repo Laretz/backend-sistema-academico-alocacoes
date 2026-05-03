@@ -37,7 +37,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
       },
     });
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('2M12');
   });
@@ -90,7 +93,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
       },
     });
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('23M12');
   });
@@ -143,7 +149,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
       },
     });
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('2M12, 4M23');
   });
@@ -196,7 +205,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
       },
     });
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('2T12, 6T34');
   });
@@ -204,7 +216,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
   it('deve retornar string vazia para disciplina sem alocações', async () => {
     const disciplinaId = 'disciplina-sem-alocacoes';
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('');
   });
@@ -235,7 +250,10 @@ describe('Gerar Horário Consolidado Use Case', () => {
       },
     });
 
-    const { horarioConsolidado } = await sut.execute({ disciplinaId });
+    const { horarioConsolidado } = await sut.execute({
+      disciplinaId,
+      periodoId: "periodo-1",
+    });
 
     expect(horarioConsolidado).toBe('2M1, 4M3');
   });

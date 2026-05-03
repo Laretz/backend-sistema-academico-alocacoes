@@ -7,7 +7,7 @@ export class InMemoryProfessorDisciplinaRepository implements ProfessorDisciplin
   private usersRepository?: any;
   private disciplinasRepository?: any;
 
-  // Métodos auxiliares para simular relacionamentos
+  // metodos auxiliares para simular relacionamentos
   setUsersRepository(usersRepository: any) {
     this.usersRepository = usersRepository;
   }

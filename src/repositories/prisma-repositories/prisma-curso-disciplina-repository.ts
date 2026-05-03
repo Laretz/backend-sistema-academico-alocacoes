@@ -25,4 +25,16 @@ export class PrismaCursoDisciplinaRepository implements CursoDisciplinaRepositor
     });
     return res;
   }
+
+  async findManyByCursoId(id_curso: string): Promise<CursoDisciplina[]> {
+    const res = await prisma.cursoDisciplina.findMany({
+      where: { id_curso },
+      select: { id: true, id_curso: true, id_disciplina: true },
+    });
+    return res ?? [];
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await prisma.cursoDisciplina.delete({ where: { id } });
+  }
 }

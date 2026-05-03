@@ -1,5 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { verifyJWT } from "@/http/middlewares/verify-jwt";
+import { verifyUseRole } from "@/http/middlewares/verify-user-role";
 import {
   createPredioSchema,
   updatePredioSchema,
@@ -27,6 +29,7 @@ export async function prediosRoutes(app: FastifyInstance) {
   app.post(
     "/predios",
     {
+      onRequest: [verifyJWT, verifyUseRole("ADMIN")],
       schema: {
         description: "Essa rota serve para criar um novo prédio no sistema",
         tags: ["Prédios 🏢"],
@@ -45,6 +48,7 @@ export async function prediosRoutes(app: FastifyInstance) {
   app.get(
     "/predios",
     {
+      onRequest: [verifyJWT],
       schema: {
         description:
           "Essa rota serve para buscar prédios com filtros e paginação",
@@ -64,6 +68,7 @@ export async function prediosRoutes(app: FastifyInstance) {
   app.get(
     "/predios/:id",
     {
+      onRequest: [verifyJWT],
       schema: {
         description: "Essa rota serve para buscar um prédio específico pelo ID",
         tags: ["Prédios 🏢"],
@@ -83,6 +88,7 @@ export async function prediosRoutes(app: FastifyInstance) {
   app.put(
     "/predios/:id",
     {
+      onRequest: [verifyJWT, verifyUseRole("ADMIN")],
       schema: {
         description:
           "Essa rota serve para atualizar os dados de um prédio existente",
@@ -104,6 +110,7 @@ export async function prediosRoutes(app: FastifyInstance) {
   app.delete(
     "/predios/:id",
     {
+      onRequest: [verifyJWT, verifyUseRole("ADMIN")],
       schema: {
         description: "Essa rota serve para remover um prédio do sistema",
         tags: ["Prédios 🏢"],

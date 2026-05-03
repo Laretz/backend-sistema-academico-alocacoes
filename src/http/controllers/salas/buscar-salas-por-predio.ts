@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeBuscarSalasPorPredioUseCase } from "@/use-cases/factories/make-buscar-salas-por-predio-use-case";
+import { makeBuscarSalasPorPredioUseCase } from "@/use-cases/@factories/sala/make-buscar-salas-por-predio-use-case";
 
 export async function buscarSalasPorPredio(
   request: FastifyRequest,

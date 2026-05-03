@@ -27,11 +27,11 @@ Content-Type: application/json
 }
 
 ### 3. Registrar novo usuário (Coordenador)
-POST {{baseURL}}/users
+POST {{baseURL}}/register
 Content-Type: application/json
 
 {
-  "nome": "Carlos Coordenador",
+  "nome": 1,
   "email": "carlos.coord@email.com",
   "senha": "123456",
   "role": "COORDENADOR",
@@ -73,7 +73,7 @@ GET {{baseURL}}/users?search=João
 Authorization: Bearer {{authToken}}
 
 ### 11. Buscar usuário por ID (Admin apenas)
-GET {{baseURL}}/users/05fa5ac1-28a0-4994-bda5-3d45ac372d0a
+GET {{baseURL}}/users/71a03754-a644-46e8-9b17-c7440ec4b575
 Authorization: Bearer {{authToken}}
 
 ### 12. Atualizar usuário (Admin apenas)

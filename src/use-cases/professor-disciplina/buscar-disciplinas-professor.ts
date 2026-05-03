@@ -1,34 +1,11 @@
 import { ProfessorDisciplinaRepository } from "@/repositories/professor-disciplina-repository";
 import { DisciplinasRepository } from "@/repositories/disciplinas-repository";
 import { UsersRepository } from "@/repositories/users-repository";
+import type { DisciplinasProfessorResponse } from "@/schemas/professor-disciplina";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 
 interface BuscarDisciplinasProfessorUseCaseRequest {
   id_user: string;
-}
-
-interface BuscarDisciplinasProfessorUseCaseResponse {
-  disciplinas: Array<{
-    id: string;
-    nome: string;
-    carga_horaria: number;
-    total_aulas: number;
-    carga_horaria_atual: number;
-    tipo_de_sala: string;
-    codigo: string | null;
-    semestre: number;
-    obrigatoria: boolean;
-    curso: {
-      id: string;
-      nome: string;
-      codigo: string;
-    };
-    vinculo: {
-      id: string;
-      ativo: boolean;
-      created_at: Date;
-    };
-  }>;
 }
 
 export class BuscarDisciplinasProfessorUseCase {
@@ -40,7 +17,7 @@ export class BuscarDisciplinasProfessorUseCase {
 
   async execute({
     id_user,
-  }: BuscarDisciplinasProfessorUseCaseRequest): Promise<BuscarDisciplinasProfessorUseCaseResponse> {
+  }: BuscarDisciplinasProfessorUseCaseRequest): Promise<DisciplinasProfessorResponse> {
     // Verificar se o usuário existe
     const usuario = await this.usuarioRepository.findById(id_user);
     if (!usuario) {
@@ -51,6 +28,31 @@ export class BuscarDisciplinasProfessorUseCase {
     const disciplinas =
       await this.professorDisciplinaRepository.findDisciplinasByUser(id_user);
 
-    return { disciplinas };
+    return {
+      disciplinas: disciplinas.map((d: any) => ({
+        id: String(d.id),
+        nome: String(d.nome),
+        carga_horaria: Number(d.carga_horaria ?? 0),
+        total_aulas: Number(d.total_aulas ?? 0),
+        carga_horaria_atual: Number(d.carga_horaria_atual ?? 0),
+        tipo_de_sala: d.tipo_de_sala === "Lab" ? "Lab" : "Sala",
+        codigo: d.codigo ?? null,
+        semestre: Number(d.semestre ?? 0),
+        obrigatoria: Boolean(d.obrigatoria ?? true),
+        curso: {
+          id: String(d.curso?.id || ""),
+          nome: String(d.curso?.nome || ""),
+          codigo: String(d.curso?.codigo || ""),
+        },
+        vinculo: {
+          id: String(d.vinculo?.id || ""),
+          ativo: Boolean(d.vinculo?.ativo ?? true),
+          created_at:
+            d.vinculo?.created_at instanceof Date
+              ? d.vinculo.created_at.toISOString()
+              : String(d.vinculo?.created_at || ""),
+        },
+      })),
+    };
   }
 }

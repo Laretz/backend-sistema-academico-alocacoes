@@ -28,9 +28,19 @@ interface AllocationResult {
     conflictsResolved: number;
   };
   error?: string;
+  details?: unknown;
+  turmaId?: string;
+  fitness?: number;
+  conflitos?: unknown;
+  relatorio?: unknown;
+  geracoes?: number;
+  tempoExecucao?: number;
+  melhorFitness?: number;
+  convergencia?: boolean;
+  gradeHorarios?: Record<string, AlocacaoData[]>;
 }
 
-interface AllocationMetrics {
+interface AllocationReportMetrics {
   totalDisciplinas: number;
   conflitosIniciais: number;
   conflitosFinais: number;
@@ -48,18 +58,6 @@ interface AllocationStatus {
   ultimaExecucao: Date | null;
 }
 
-interface AllocationMetrics {
-  turmaId: string;
-  alocacoes: AlocacaoData[];
-  estatisticas: {
-    totalAlocacoes: number;
-    disciplinasUnicas: number;
-    professoresUnicos: number;
-    turmasUnicas: number;
-  };
-  gradeHorarios: Record<string, AlocacaoData[]>;
-}
-
 export class AllocationService {
   private defaultParams: GeneticAlgorithmParams;
 
@@ -67,6 +65,9 @@ export class AllocationService {
     this.defaultParams = {
       populationSize: env.GA_POPULATION_SIZE,
       generations: env.GA_GENERATIONS,
+      minGenerations: 100,
+      patience: 50,
+      fitnessTarget: 10000,
       mutationRate: env.GA_MUTATION_RATE,
       crossoverRate: env.GA_CROSSOVER_RATE,
       elitismRate: env.GA_ELITISM_RATE
@@ -86,7 +87,6 @@ export class AllocationService {
       };
     }
 
-    // Salvar alocações no banco de dados
     if (result.alocacoes) {
       await this.saveAllocations(request.turmaId, result.alocacoes);
     }
@@ -116,17 +116,11 @@ export class AllocationService {
     const startTime = Date.now();
     
     try {
-      console.log('🔄 Iniciando geração de preview para:', { turmaId: request.turmaId, disciplinaIds: request.disciplinaIds });
-      
-      // Executar algoritmo genético apenas para as disciplinas selecionadas (sem criar registros temporários)
-      console.log('🧬 Executando algoritmo genético...');
       const result = await this.allocateScheduleForPreview({
         turmaId: request.turmaId,
         disciplinaIds: request.disciplinaIds,
         params: request.params
       });
-      
-      console.log('🧬 Resultado do algoritmo genético (preview):', { success: result.success, error: result.error, alocacoes: result.alocacoes?.length });
       
       if (!result.success) {
         console.error('❌ Falha no algoritmo genético:', result.error);
@@ -136,10 +130,7 @@ export class AllocationService {
         };
       }
 
-      // Gerar grade de horários para visualização (somente leitura)
-      console.log('📊 Gerando grade de horários...');
       const gradeHorarios = await this.generateScheduleGrid(result.alocacoes || []);
-      console.log('📊 Grade de horários gerada:', Object.keys(gradeHorarios).length, 'slots');
       
       const finalResult = {
         success: true,
@@ -153,13 +144,6 @@ export class AllocationService {
         convergencia: true,
         gradeHorarios
       };
-      
-      console.log('✅ Preview gerado com sucesso:', {
-        alocacoes: finalResult.alocacoes?.length,
-        fitness: finalResult.fitness,
-        conflitos: finalResult.conflitos,
-        gradeSlots: Object.keys(finalResult.gradeHorarios || {}).length
-      });
       
       return finalResult;
       
@@ -179,7 +163,6 @@ export class AllocationService {
     const startTime = Date.now();
     
     try {
-      // Validar entrada
       const validation = await this.validateRequest(request);
       if (!validation.isValid) {
         return {
@@ -188,7 +171,6 @@ export class AllocationService {
         };
       }
 
-      // Buscar dados necessários
       const data = await this.fetchAllocationData(request.turmaId);
       if (!data) {
         return {
@@ -197,10 +179,8 @@ export class AllocationService {
         };
       }
 
-      // Configurar parâmetros do algoritmo
       const params = { ...this.defaultParams, ...request.params };
       
-      // Executar algoritmo genético
       const algorithm = new GeneticAlgorithm(
         params,
         data.turma,
@@ -208,23 +188,17 @@ export class AllocationService {
         data.salas,
         data.horarios
       );
-
-      console.log(`Iniciando algoritmo genético para turma ${request.turmaId}`);
-      console.log(`Parâmetros: ${JSON.stringify(params)}`);
       
       const bestSolution = await algorithm.execute();
       const executionTime = Date.now() - startTime;
 
-      // Validar solução
       const solutionValidation = this.validateSolution(bestSolution, data);
       if (!solutionValidation.isValid) {
         console.warn('Solução gerada contém violações:', solutionValidation.violations);
       }
 
-      // Converter para formato de alocações
       const alocacoes = await this.convertToAllocations(bestSolution, data);
 
-      // Calcular métricas
       const metrics = {
         fitness: bestSolution.fitness,
         generations: params.generations,
@@ -232,8 +206,6 @@ export class AllocationService {
         conflictsResolved: this.countResolvedConflicts(bestSolution)
       };
 
-      console.log(`Algoritmo concluído em ${executionTime}ms`);
-      console.log(`Fitness final: ${bestSolution.fitness}`);
 
       return {
         success: true,
@@ -367,7 +339,6 @@ export class AllocationService {
         }
       });
 
-      console.log(`${alocacoes.length} alocações salvas para turma ${turmaId}`);
       return true;
 
     } catch (error) {
@@ -384,6 +355,7 @@ export class AllocationService {
       const turma = await prisma.turma.findUnique({
         where: { id: turmaId },
         include: {
+          curso: true,
           alocacoes: {
             include: {
               disciplina: true
@@ -394,6 +366,10 @@ export class AllocationService {
 
       if (!turma) {
         throw new Error(`Turma ${turmaId} não encontrada`);
+      }
+
+      if (!turma.curso || turma.curso.isDeleted !== null) {
+        return { success: false, error: 'Turma pertence a curso deletado' } as any;
       }
 
       // Buscar professores vinculados ao curso da turma através da tabela UserCurso
@@ -416,7 +392,6 @@ export class AllocationService {
           }
         }
       });
-      console.log(`Professores vinculados ao curso ${turma.id_curso}:`, professores.map(p => p.nome));
       if (!professores || professores.length === 0) {
         return {
           success: false,
@@ -811,7 +786,7 @@ export class AllocationService {
   /**
    * Gera relatório detalhado da alocação
    */
-  public async generateAllocationReport(turmaId: string): Promise<AllocationMetrics | null> {
+  public async generateAllocationReport(turmaId: string): Promise<AllocationReportMetrics | null> {
     try {
       const alocacoes = await prisma.alocacao.findMany({
          where: { id_turma: turmaId },
@@ -827,7 +802,6 @@ export class AllocationService {
         return null;
       }
 
-      // Calcular métricas
       const disciplinasUnicas = new Set(alocacoes.map(a => a.disciplinaId)).size;
       const conflitos = this.analyzeConflicts(alocacoes);
       
@@ -1058,18 +1032,27 @@ export class AllocationService {
   private async updateConsolidatedSchedules(disciplinaIds: string[]): Promise<void> {
     try {
       const { GerarHorarioConsolidadoUseCase } = await import('../../use-cases/disciplina/gerar-horario-consolidado');
-      const { PrismaAlocacoesRepository } = await import('../../repositories/prisma/prisma-alocacoes-repository');
-      const { PrismaDisciplinasRepository } = await import('../../repositories/prisma/prisma-disciplinas-repository');
+      const { PrismaAlocacoesRepository } = await import('../../repositories/prisma-repositories/prisma-alocacoes-repository');
+      const { PrismaDisciplinasRepository } = await import('../../repositories/prisma-repositories/prisma-disciplinas-repository');
       
       const alocacoesRepository = new PrismaAlocacoesRepository();
       const disciplinasRepository = new PrismaDisciplinasRepository();
       const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(alocacoesRepository);
+
+      const periodoAtivo = await prisma.periodoLetivo.findFirst({
+        where: { ativo: true },
+        orderBy: { data_inicio: "desc" },
+      });
+      if (!periodoAtivo) return;
       
       for (const disciplinaId of disciplinaIds) {
-        const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
-        if (horarioConsolidado) {
-          await disciplinasRepository.update(disciplinaId, { horario_consolidado: horarioConsolidado });
-        }
+        const { horarioConsolidado } = await gerarHorarioUseCase.execute({
+          disciplinaId,
+          periodoId: periodoAtivo.id,
+        });
+        await disciplinasRepository.update(disciplinaId, {
+          horario_consolidado: horarioConsolidado || null,
+        });
       }
     } catch (error) {
       console.error('Erro ao atualizar horários consolidados:', error);

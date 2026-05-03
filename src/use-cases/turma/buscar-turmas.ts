@@ -7,7 +7,6 @@ interface BuscarTurmasUseCaseRequest {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   turno?: string;
-  periodo?: number;
   semestre?: number;
   ativa?: boolean;
   id_curso?: string;
@@ -23,7 +22,6 @@ export class BuscarTurmasUseCase {
     sortBy,
     sortOrder,
     turno,
-    periodo,
     semestre,
     ativa,
     id_curso,
@@ -34,7 +32,6 @@ export class BuscarTurmasUseCase {
     if (sortBy !== undefined) params.sortBy = sortBy;
     if (sortOrder !== undefined) params.sortOrder = sortOrder;
     if (turno !== undefined) params.turno = turno;
-    if (periodo !== undefined) params.periodo = periodo;
     if (semestre !== undefined) params.semestre = semestre;
     if (ativa !== undefined) params.ativa = ativa;
     if (id_curso !== undefined) params.id_curso = id_curso;

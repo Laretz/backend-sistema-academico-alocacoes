@@ -2,6 +2,7 @@ import { DisciplinasRepository } from "../../repositories/disciplinas-repository
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 import { GerarHorarioConsolidadoUseCase } from "./gerar-horario-consolidado";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 // Função auxiliar para calcular número de aulas baseado na carga horária
 function calcularTotalAulas(cargaHoraria: number): number {
@@ -22,7 +23,8 @@ interface AtualizarDisciplinaUseCaseRequest {
 export class AtualizarDisciplinaUseCase {
   constructor(
     private disciplinasRepository: DisciplinasRepository,
-    private alocacoesRepository: AlocacoesRepository
+    private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
   ) {}
 
   async execute({
@@ -34,6 +36,11 @@ export class AtualizarDisciplinaUseCase {
     data_fim_prevista,
     data_fim_real,
   }: AtualizarDisciplinaUseCaseRequest) {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     const disciplinaExiste = await this.disciplinasRepository.findById(id);
 
     if (!disciplinaExiste) {
@@ -65,12 +72,15 @@ export class AtualizarDisciplinaUseCase {
 
     // Gerar horário consolidado automaticamente após atualização
     const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
-    const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId: id });
+    const { horarioConsolidado } = await gerarHorarioUseCase.execute({
+      disciplinaId: id,
+      periodoId: periodoAtivo.id,
+    });
     
     // Atualizar disciplina com o horário consolidado
-    if (horarioConsolidado) {
-      await this.disciplinasRepository.update(id, { horario_consolidado: horarioConsolidado });
-    }
+    await this.disciplinasRepository.update(id, {
+      horario_consolidado: horarioConsolidado || null,
+    });
 
     return { disciplina };
   }

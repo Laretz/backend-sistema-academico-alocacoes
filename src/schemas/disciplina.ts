@@ -3,20 +3,13 @@ import {
   uuidSchema,
   searchSchema,
   sortSchema,
-  nonEmptyStringSchema,
   positiveIntegerSchema,
   positiveNumberSchema,
   codigoSchema,
   nomeSchema,
 } from "./common";
-import {
-  errorResponseSchema,
-  validationErrorResponseSchema,
-  notFoundResponseSchema,
-  internalServerErrorResponseSchema,
-} from "./curso";
 
-// Helper para transformar Date nullable em string nullable
+// schema: date|string|null -> string|null
 const nullableDateToStringTransform = z.union([z.date(), z.string(), z.null()]).transform((val) => {
   if (val instanceof Date) {
     return val.toISOString();
@@ -24,21 +17,17 @@ const nullableDateToStringTransform = z.union([z.date(), z.string(), z.null()]).
   return val;
 });
 
-// ===== ENUMS =====
-
-// Enum para tipo de sala
+// schema: enum tipo de sala
 export const tipoDeSalaEnum = z.enum(["Sala", "Lab"], {
   message: "Tipo de sala deve ser 'Sala' ou 'Lab'",
 });
 
-// ===== SCHEMAS DE REQUEST =====
-
-// Schema para parâmetros de rota (ID)
+// schema: params (disciplina)
 export const disciplinaParamsSchema = z.object({
   id: uuidSchema,
 });
 
-// Schema para criação de disciplina
+// schema: criar disciplina (body)
 export const criarDisciplinaBodySchema = z.object({
   nome: nomeSchema,
   codigo: codigoSchema.optional(),
@@ -52,7 +41,7 @@ export const criarDisciplinaBodySchema = z.object({
   data_fim_prevista: z.iso.datetime().optional(),
 });
 
-// Schema para atualização de disciplina (campos opcionais)
+// schema: atualizar disciplina (body)
 export const atualizarDisciplinaBodySchema = z
   .object({
     nome: nomeSchema.optional(),
@@ -73,7 +62,7 @@ export const atualizarDisciplinaBodySchema = z
     message: "Pelo menos um campo deve ser fornecido para atualização",
   });
 
-// Schema para busca de disciplinas
+// schema: buscar disciplinas (query)
 export const buscarDisciplinasQuerySchema = searchSchema
   .merge(sortSchema)
   .merge(
@@ -87,15 +76,13 @@ export const buscarDisciplinasQuerySchema = searchSchema
     })
   );
 
-// Schema para buscar disciplinas com progresso
+// schema: buscar disciplinas com progresso (query)
 export const buscarDisciplinasComProgressoQuerySchema = z.object({
   turmaId: uuidSchema.optional(),
   cursoId: uuidSchema.optional(),
 });
 
-// ===== SCHEMAS DE RESPONSE =====
-
-// Schema base da disciplina para responses
+// schema: disciplina (response)
 export const disciplinaResponseSchema = z.object({
   id: z.string().uuid(),
   nome: z.string(),
@@ -122,7 +109,7 @@ export const disciplinaResponseSchema = z.object({
     .optional(),
 });
 
-// Schema para disciplina com progresso
+// schema: disciplina com progresso (response)
 export const disciplinaComProgressoResponseSchema =
   disciplinaResponseSchema.extend({
     percentual_concluido: z.number().min(0).max(200),
@@ -133,65 +120,29 @@ export const disciplinaComProgressoResponseSchema =
     aulas_previstas_ate_hoje: z.number().int().nonnegative(),
   });
 
-// Responses para criar disciplina
+// schema: criar disciplina (response)
 export const criarDisciplinaResponseSchema = z.object({
   disciplina: disciplinaResponseSchema,
   message: z.string().optional(),
 });
 
-// Responses para buscar disciplina
+// schema: buscar disciplina (response)
 export const buscarDisciplinaResponseSchema = z.object({
   disciplina: disciplinaResponseSchema,
 });
 
-// Responses para atualizar disciplina
+// schema: atualizar disciplina (response)
 export const atualizarDisciplinaResponseSchema = z.object({
   disciplina: disciplinaResponseSchema,
   message: z.string().optional(),
 });
 
-// Responses para buscar disciplinas
+// schema: buscar disciplinas (response)
 export const buscarDisciplinasResponseSchema = z.object({
   disciplinas: z.array(disciplinaResponseSchema),
 });
 
-// Responses para buscar disciplinas com progresso
+// schema: buscar disciplinas com progresso (response)
 export const buscarDisciplinasComProgressoResponseSchema = z.object({
   disciplinas: z.array(disciplinaComProgressoResponseSchema),
 });
-
-// ===== TYPES =====
-
-// Types para request
-export type DisciplinaParams = z.infer<typeof disciplinaParamsSchema>;
-export type CriarDisciplinaBody = z.infer<typeof criarDisciplinaBodySchema>;
-export type AtualizarDisciplinaBody = z.infer<
-  typeof atualizarDisciplinaBodySchema
->;
-export type BuscarDisciplinasQuery = z.infer<
-  typeof buscarDisciplinasQuerySchema
->;
-export type BuscarDisciplinasComProgressoQuery = z.infer<
-  typeof buscarDisciplinasComProgressoQuerySchema
->;
-
-// Types para response
-export type DisciplinaResponse = z.infer<typeof disciplinaResponseSchema>;
-export type DisciplinaComProgressoResponse = z.infer<
-  typeof disciplinaComProgressoResponseSchema
->;
-export type CriarDisciplinaResponse = z.infer<
-  typeof criarDisciplinaResponseSchema
->;
-export type BuscarDisciplinaResponse = z.infer<
-  typeof buscarDisciplinaResponseSchema
->;
-export type AtualizarDisciplinaResponse = z.infer<
-  typeof atualizarDisciplinaResponseSchema
->;
-export type BuscarDisciplinasResponse = z.infer<
-  typeof buscarDisciplinasResponseSchema
->;
-export type BuscarDisciplinasComProgressoResponse = z.infer<
-  typeof buscarDisciplinasComProgressoResponseSchema
->;

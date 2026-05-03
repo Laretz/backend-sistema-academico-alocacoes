@@ -15,15 +15,14 @@ describe("Criar Turma Use Case", () => {
     const { turma } = await sut.execute({
       nome: "Turma A",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
       id_curso: "curso-id-teste",
+      semestre: 1,
     });
 
     expect(turma.id).toEqual(expect.any(String));
-    expect(turma.nome).toEqual("Turma A");
+    expect(turma.semestre).toEqual(1);
     expect(turma.num_alunos).toEqual(30);
-    expect(turma.periodo).toEqual(1);
     expect(turma.turno).toEqual("MATUTINO");
   });
 
@@ -31,7 +30,6 @@ describe("Criar Turma Use Case", () => {
     const { turma: turmaMatutino } = await sut.execute({
       nome: "Turma Manhã",
       num_alunos: 25,
-      periodo: 2,
       turno: "MATUTINO",
       id_curso: "curso-id-teste-1",
       semestre: 1,
@@ -41,7 +39,6 @@ describe("Criar Turma Use Case", () => {
     const { turma: turmaVespertino } = await sut.execute({
       nome: "Turma Tarde",
       num_alunos: 28,
-      periodo: 3,
       turno: "VESPERTINO",
       id_curso: "curso-id-teste-2",
     });
@@ -49,7 +46,6 @@ describe("Criar Turma Use Case", () => {
     const { turma: turmaNoturno } = await sut.execute({
       nome: "Turma Noite",
       num_alunos: 20,
-      periodo: 4,
       turno: "NOTURNO",
       id_curso: "curso-id-teste-3",
     });
@@ -63,7 +59,6 @@ describe("Criar Turma Use Case", () => {
     const { turma: turmaPequena } = await sut.execute({
       nome: "Turma Pequena",
       num_alunos: 15,
-      periodo: 1,
       turno: "MATUTINO",
       id_curso: "curso-id-teste-4",
     });
@@ -71,7 +66,6 @@ describe("Criar Turma Use Case", () => {
     const { turma: turmaGrande } = await sut.execute({
       nome: "Turma Grande",
       num_alunos: 40,
-      periodo: 1,
       turno: "VESPERTINO",
       id_curso: "curso-id-teste-5",
     });
@@ -84,7 +78,6 @@ describe("Criar Turma Use Case", () => {
     const { turma } = await sut.execute({
       nome: "Turma Padrão",
       num_alunos: 30,
-      periodo: 1,
       turno: "MATUTINO",
       id_curso: "curso-id-teste",
       // semestre e ativa não informados
@@ -98,7 +91,6 @@ describe("Criar Turma Use Case", () => {
     const { turma } = await sut.execute({
       nome: "Turma Customizada",
       num_alunos: 25,
-      periodo: 2,
       turno: "VESPERTINO",
       id_curso: "curso-id-teste",
       semestre: 3,

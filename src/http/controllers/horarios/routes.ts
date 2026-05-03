@@ -11,6 +11,8 @@ import {
   horarioResponseSchema,
   horariosListResponseSchema,
   horariosSimpleResponseSchema,
+  horariosGradeConfigQuerySchema,
+  horariosGradeConfigResponseSchema,
 } from "@/schemas/horarios";
 import {
   notFoundResponseSchema,
@@ -23,6 +25,7 @@ import {
 import { criarHorario } from "./criar-horario";
 import { criarHorarioCodigo } from "./criar-horario-codigo";
 import { buscarHorarios } from "./buscar-horarios";
+import { buscarHorariosGradeConfig } from "./buscar-horarios-grade-config";
 import { buscarHorario } from "./buscar-horario";
 import { atualizarHorario } from "./atualizar-horario";
 import { excluirHorario } from "./excluir-horario";
@@ -44,7 +47,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarHorario,
+    criarHorario
   );
 
   // POST /horarios/codigo - Criar horário por código
@@ -63,7 +66,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    criarHorarioCodigo,
+    criarHorarioCodigo
   );
 
   // GET /horarios - Buscar todos os horários
@@ -82,7 +85,25 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarHorarios,
+    buscarHorarios
+  );
+
+  app.get(
+    "/horarios/grade-config",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        description: "Configuração da grade (dias e códigos) para um regime",
+        tags: ["Horários ⏰"],
+        querystring: horariosGradeConfigQuerySchema,
+        response: {
+          200: horariosGradeConfigResponseSchema,
+          400: validationErrorResponseSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarHorariosGradeConfig,
   );
 
   // GET /horarios/:id - Buscar horário por ID
@@ -102,7 +123,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    buscarHorario,
+    buscarHorario
   );
 
   // PUT /horarios/:id - Atualizar horário
@@ -123,7 +144,7 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    atualizarHorario,
+    atualizarHorario
   );
 
   // DELETE /horarios/:id - Excluir horário
@@ -143,6 +164,6 @@ export const routesHorarios = async (app: FastifyTypedInstance) => {
         },
       },
     },
-    excluirHorario,
+    excluirHorario
   );
-}
+};

@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { Role } from "@prisma/client";
-import { validationErrorResponseSchema, internalServerErrorResponseSchema } from "./curso";
+import { validationErrorResponseSchema, internalServerErrorResponseSchema } from "./common";
 
-// ===== Request Schemas =====
+// schema: criar feedback (body)
 export const createFeedbackBodySchema = z.object({
   npsScore: z.number().int().min(0).max(10),
   comment: z.string().min(1).max(1000),
@@ -11,19 +11,20 @@ export const createFeedbackBodySchema = z.object({
   metadata: z.any().optional(),
 });
 
+// schema: listar feedbacks (query)
 export const listFeedbacksQuerySchema = z.object({
   page: z.string().optional(),
   feature: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),
 });
 
-// Query de métricas (filtros opcionais)
+// schema: metricas feedback (query)
 export const metricsQuerySchema = z.object({
   page: z.string().optional(),
   feature: z.string().optional(),
 });
 
-// ===== Response Schemas =====
+// schema: user (feedback)
 export const feedbackUserSchema = z.object({
   id: z.string(),
   nome: z.string(),
@@ -31,6 +32,7 @@ export const feedbackUserSchema = z.object({
   role: z.nativeEnum(Role),
 });
 
+// schema: feedback (item)
 export const feedbackSchema = z.object({
   id: z.string(),
   userId: z.string(),
@@ -43,15 +45,18 @@ export const feedbackSchema = z.object({
   user: feedbackUserSchema.optional(),
 });
 
+// schema: criar feedback (response)
 export const createFeedbackResponseSchema = z.object({
   feedback: feedbackSchema,
   message: z.string().default("Feedback registrado com sucesso"),
 });
 
+// schema: listar feedbacks (response)
 export const listFeedbacksResponseSchema = z.object({
   feedbacks: z.array(feedbackSchema),
 });
 
+// schema: metricas feedback (response)
 export const feedbackMetricsSchema = z.object({
   total: z.number().int(),
   averageNps: z.number().nullable(),
@@ -66,14 +71,4 @@ export const feedbackMetricsSchema = z.object({
   ),
 });
 
-// ===== Error Schemas (re-export common)
 export { validationErrorResponseSchema, internalServerErrorResponseSchema };
-
-// ===== TS Types =====
-export type CreateFeedbackBody = z.infer<typeof createFeedbackBodySchema>;
-export type ListFeedbacksQuery = z.infer<typeof listFeedbacksQuerySchema>;
-export type FeedbackItem = z.infer<typeof feedbackSchema>;
-export type CreateFeedbackResponse = z.infer<typeof createFeedbackResponseSchema>;
-export type ListFeedbacksResponse = z.infer<typeof listFeedbacksResponseSchema>;
-export type FeedbackMetricsResponse = z.infer<typeof feedbackMetricsSchema>;
-export type FeedbackMetricsQuery = z.infer<typeof metricsQuerySchema>;

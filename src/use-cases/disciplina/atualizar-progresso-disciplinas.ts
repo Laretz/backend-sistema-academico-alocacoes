@@ -1,6 +1,7 @@
 import { DisciplinasRepository } from "../../repositories/disciplinas-repository";
 import { AlocacoesRepository } from "../../repositories/alocacoes-repository";
 import { parseHorarioConsolidado, calcularUltimoDiaAula } from "../../utils/parse-horario-consolidado";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface AtualizarProgressoDisciplinasUseCaseRequest {
   disciplinaId?: string;
@@ -14,13 +15,19 @@ interface AtualizarProgressoDisciplinasUseCaseResponse {
 export class AtualizarProgressoDisciplinasUseCase {
   constructor(
     private disciplinasRepository: DisciplinasRepository,
-    private alocacoesRepository: AlocacoesRepository
+    private alocacoesRepository: AlocacoesRepository,
+    private periodosRepository: PeriodosLetivosRepository,
   ) {}
 
   async execute({
     disciplinaId,
     turmaId,
   }: AtualizarProgressoDisciplinasUseCaseRequest): Promise<AtualizarProgressoDisciplinasUseCaseResponse> {
+    const periodoAtivo = await this.periodosRepository.findActive();
+    if (!periodoAtivo) {
+      throw new Error("Nenhum período letivo ativo encontrado");
+    }
+
     let disciplinas;
 
     if (disciplinaId) {
@@ -28,7 +35,10 @@ export class AtualizarProgressoDisciplinasUseCase {
         await this.disciplinasRepository.findById(disciplinaId);
       disciplinas = disciplina ? [disciplina] : [];
     } else if (turmaId) {
-      const alocacoes = await this.alocacoesRepository.findByTurma(turmaId);
+      const alocacoes = await this.alocacoesRepository.findByTurma(
+        turmaId,
+        periodoAtivo.id,
+      );
       const disciplinaIds = alocacoes.map((alocacao) => alocacao.id_disciplina);
       disciplinas = await this.disciplinasRepository.findByIds(disciplinaIds);
     } else {
@@ -39,7 +49,7 @@ export class AtualizarProgressoDisciplinasUseCase {
     const dataAtual = new Date();
 
     for (const disciplina of disciplinas) {
-      const horarios = parseHorarioConsolidado(disciplina.horario_consolidado);
+      const horarios = parseHorarioConsolidado(disciplina.horario_consolidado || "");
 
       if (horarios.length === 0) {
         continue;

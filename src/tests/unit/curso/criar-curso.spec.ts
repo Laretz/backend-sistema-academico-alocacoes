@@ -85,3 +85,20 @@ describe('Criar Curso Use Case', () => {
     expect(curso8Semestres.duracao_semestres).toEqual(8);
   });
 });
+
+// Erros — teste direto em contexto do módulo de Curso
+describe('Erros — DadosInvalidosError (teste direto)', () => {
+  it('deve instanciar e lançar DadosInvalidosError corretamente', async () => {
+    const error = new DadosInvalidosError('curso');
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe('Error');
+    expect(typeof error.message).toBe('string');
+
+    try {
+      throw error;
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(DadosInvalidosError);
+      expect(e.stack).toEqual(expect.any(String));
+    }
+  });
+});

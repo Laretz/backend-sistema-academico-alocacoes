@@ -39,7 +39,7 @@ export type AlocacaoWithRelations = Alocacao & {
     id: string;
     nome: string;
     num_alunos: number;
-    periodo: number;
+    semestre: number;
     turno: string;
     id_curso: string;
     ativa: boolean;
@@ -72,21 +72,86 @@ export type AlocacaoWithRelations = Alocacao & {
 };
 
 export interface AlocacoesRepository {
-    create(data: Prisma.AlocacaoCreateInput): Promise<Alocacao>
-    findById(id: string): Promise<AlocacaoWithRelations | null>
-    findByUserIdAndHorarioId(id_user: string, id_horario: string): Promise<Alocacao | null>
-    findBySalaIdAndHorarioId(id_sala: string, id_horario: string): Promise<Alocacao | null>
-    findByTurmaIdAndHorarioId(id_turma: string, id_horario: string): Promise<Alocacao | null>
-    findMany(page: number): Promise<AlocacaoWithRelations[]>
-    findByUserId(id_user: string, page: number): Promise<AlocacaoWithRelations[]>
-    findByTurmaId(id_turma: string, page: number): Promise<AlocacaoWithRelations[]>
-    findByTurma(turmaId: string): Promise<AlocacaoWithRelations[]>
-    findAllByTurmaId(id_turma: string): Promise<AlocacaoWithRelations[]>
-    findBySalaId(id_sala: string, page: number): Promise<AlocacaoWithRelations[]>
-    findByDisciplinaId(id_disciplina: string): Promise<AlocacaoWithRelations[]>
-    findByPeriodoManha(page: number): Promise<AlocacaoWithRelations[]>
-    findByTurmaIdWithPeriodo(id_turma: string, periodo: string, page: number): Promise<AlocacaoWithRelations[]>
-    deleteAllByTurmaId(id_turma: string): Promise<void>
-    update(id: string, data: Prisma.AlocacaoUpdateInput): Promise<Alocacao>
-    delete(id: string): Promise<void>
+  create(data: Prisma.AlocacaoCreateInput): Promise<Alocacao>;
+  findById(id: string, periodoId: string): Promise<AlocacaoWithRelations | null>;
+  findByUserIdAndHorarioId(
+    id_user: string,
+    id_horario: string,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findBySalaIdAndHorarioId(
+    id_sala: string,
+    id_horario: string,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findByTurmaIdAndHorarioId(
+    id_turma: string,
+    id_horario: string,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findOverlapBySala(
+    id_sala: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findOverlapByUser(
+    id_user: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findOverlapByTurma(
+    id_turma: string,
+    dia_semana: string,
+    inicio: Date,
+    fim: Date,
+    periodoId: string,
+  ): Promise<Alocacao | null>;
+  findMany(page: number, periodoId: string): Promise<AlocacaoWithRelations[]>;
+  findByUserId(
+    id_user: string,
+    page: number,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  findByTurmaId(
+    id_turma: string,
+    page: number,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  findByTurma(turmaId: string, periodoId: string): Promise<AlocacaoWithRelations[]>;
+  findAllByTurmaId(
+    id_turma: string,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  findBySalaId(
+    id_sala: string,
+    page: number,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  findByDisciplinaId(
+    id_disciplina: string,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  findByTurnoManha(page: number, periodoId: string): Promise<AlocacaoWithRelations[]>;
+  findByTurmaIdWithTurno(
+    id_turma: string,
+    turno: string,
+    page: number,
+    periodoId: string,
+  ): Promise<AlocacaoWithRelations[]>;
+  deleteAllByTurmaId(id_turma: string, periodoId: string): Promise<void>;
+  deleteAllByTurmaAndDisciplina(
+    id_turma: string,
+    id_disciplina: string,
+    periodoId: string,
+  ): Promise<void>;
+  update(
+    id: string,
+    data: Prisma.AlocacaoUpdateInput,
+    periodoId: string,
+  ): Promise<Alocacao>;
+  delete(id: string, periodoId: string): Promise<void>;
 }

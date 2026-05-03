@@ -1,14 +1,12 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { makeExcluirTodasAlocacoesTurmaUseCase } from "@/use-cases/factories/make-excluir-todas-alocacoes-turma-use-case";
+import { makeExcluirTodasAlocacoesTurmaUseCase } from "@/use-cases/@factories/alocacao/make-excluir-todas-alocacoes-turma-use-case";
 import { excluirAlocacoesTurmaParamsSchema } from "@/schemas";
 
 export async function excluirTodasAlocacoesTurma(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
-  const { id_turma } = excluirAlocacoesTurmaParamsSchema.parse(
-    request.params
-  );
+  const { id_turma } = excluirAlocacoesTurmaParamsSchema.parse(request.params);
 
   try {
     const excluirTodasAlocacoesTurmaUseCase =

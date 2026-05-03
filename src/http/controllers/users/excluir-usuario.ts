@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { RecursoNaoEncontradoError } from "../../../use-cases/errors/recurso-nao-encontrado";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
+import { PossuiDependenciasError } from "@/use-cases/errors/possui-dependencias";
 import { makeExcluirUsuarioUseCase } from "@/use-cases/@factories/usuario/make-excluir-usuario-use-case";
 
 export async function excluirUsuario(
@@ -23,7 +24,7 @@ export async function excluirUsuario(
     if (error instanceof RecursoNaoEncontradoError) {
       return reply.status(404).send({ message: error.message });
     }
-
-    throw error;
+    const err = new PossuiDependenciasError("usuário");
+    return reply.status(409).send({ error: "Conflict", message: err.message });
   }
 }

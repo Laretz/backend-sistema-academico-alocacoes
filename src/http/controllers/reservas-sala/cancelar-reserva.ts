@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "@/lib/prisma";
 import { reservaParamsSchema } from "@/schemas/reserva-sala";
+import { makeCancelarReservaUseCase } from "@/use-cases/@factories/reservas-sala/make-cancelar-reserva-use-case";
+import { RecursoNaoEncontradoError } from "@/use-cases/errors/recurso-nao-encontrado";
 
 export async function cancelarReservaSala(
   request: FastifyRequest,
@@ -9,18 +10,15 @@ export async function cancelarReservaSala(
   try {
     const { id } = reservaParamsSchema.parse(request.params);
 
-    const reserva = await prisma.reservaSala.findUnique({ where: { id } });
-    if (!reserva) {
-      return reply.status(404).send({ message: "Reserva não encontrada" });
-    }
-
-    const updated = await prisma.reservaSala.update({
-      where: { id },
-      data: { status: "CANCELADA" },
-    });
+    const cancelarReservaUseCase = makeCancelarReservaUseCase();
+    await cancelarReservaUseCase.execute({ id });
 
     return reply.status(200).send({ message: "reserva cancelada" });
   } catch (error) {
+    if (error instanceof RecursoNaoEncontradoError) {
+      return reply.status(404).send({ message: "Reserva não encontrada" });
+    }
+
     console.error(
       "[DELETE /reservas-sala/:id] Erro ao cancelar reserva:",
       error

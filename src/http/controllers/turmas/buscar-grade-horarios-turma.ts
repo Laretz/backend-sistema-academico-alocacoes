@@ -11,6 +11,10 @@ export async function buscarGradeHorariosTurma(
   });
 
   const { id } = buscarGradeHorariosTurmaParamsSchema.parse(request.params);
+  const buscarGradeHorariosTurmaQuerySchema = z.object({
+    periodoId: z.string().uuid().optional(),
+  });
+  const { periodoId } = buscarGradeHorariosTurmaQuerySchema.parse(request.query);
 
   try {
     const buscarGradeHorariosTurmaUseCase =
@@ -19,6 +23,7 @@ export async function buscarGradeHorariosTurma(
     const { turmaId, grade, resumo } =
       await buscarGradeHorariosTurmaUseCase.execute({
         turmaId: id,
+        ...(periodoId ? { periodoId } : {}),
       });
 
     return reply.status(200).send({

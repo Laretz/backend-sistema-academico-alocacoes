@@ -19,6 +19,8 @@ import { routesUsers } from "./controllers/users/routes";
 import { routesAlocacoes } from "./controllers/alocacoes/routes";
 import { routesFeedback } from "./controllers/feedback/routes";
 import { routesNotificacoes } from "./controllers/notificacoes/routes";
+import { routesStats } from "./controllers/stats/routes";
+import { routesPeriodosLetivos } from "./controllers/periodos-letivos/routes";
 
 import { verifyJWT } from "./middlewares/verify-jwt";
 import { verifyUseRole } from "./middlewares/verify-user-role";
@@ -63,7 +65,13 @@ export async function appRoutes(app: FastifyInstance) {
   // Reservas de Sala - Novas rotas organizadas com schemas Zod
   await app.register(routesReservasSala);
 
-  // Alocações Genéticas (sem autenticação para testes)
+  // Períodos Letivos
+  await app.register(routesPeriodosLetivos);
+
+  // Dashboard/Estatísticas
+  await app.register(routesStats);
+
+  // Alocações Genéticas 
   app.post("/alocacoes/genetica", executeGeneticAllocation);
   app.post("/alocacoes/genetica/preview", previewGeneticAllocation);
   app.get("/alocacoes/genetica/:turmaId/status", getGeneticAllocationStatus);

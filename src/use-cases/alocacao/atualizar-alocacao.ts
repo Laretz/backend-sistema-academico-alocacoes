@@ -4,6 +4,7 @@ import { RecursoNaoEncontradoError } from "../errors/recurso-nao-encontrado";
 import { GerarHorarioConsolidadoUseCase } from "../disciplina/gerar-horario-consolidado";
 import { TurmasRepository } from "../../repositories/turmas-repository";
 import { CursoDisciplinaRepository } from "../../repositories/curso-disciplina-repository";
+import { PeriodosLetivosRepository } from "@/repositories/periodos-letivos-repository";
 
 interface AtualizarAlocacaoUseCaseRequest {
     id: string;
@@ -20,10 +21,16 @@ export class AtualizarAlocacaoUseCase {
         private disciplinasRepository: DisciplinasRepository,
         private turmasRepository: TurmasRepository,
         private cursoDisciplinaRepository: CursoDisciplinaRepository,
+        private periodosRepository: PeriodosLetivosRepository,
     ) {}
 
     async execute({ id, id_user, id_curso_disciplina, id_turma, id_sala, id_horario }: AtualizarAlocacaoUseCaseRequest) {
-        const alocacaoExiste = await this.alocacoesRepository.findById(id);
+        const periodoAtivo = await this.periodosRepository.findActive();
+        if (!periodoAtivo) {
+            throw new Error("Nenhum período letivo ativo encontrado");
+        }
+
+        const alocacaoExiste = await this.alocacoesRepository.findById(id, periodoAtivo.id);
 
         if (!alocacaoExiste) {
             throw new RecursoNaoEncontradoError();
@@ -91,18 +98,25 @@ export class AtualizarAlocacaoUseCase {
             };
         }
         
-        const alocacao = await this.alocacoesRepository.update(id, updateData);
+        const alocacao = await this.alocacoesRepository.update(
+            id,
+            updateData,
+            periodoAtivo.id,
+        );
 
         // Gerar horário consolidado automaticamente após atualizar alocação
         const disciplinaId = disciplinaIdParaConsolidar || alocacaoExiste.id_disciplina;
         if (disciplinaId) {
             const gerarHorarioUseCase = new GerarHorarioConsolidadoUseCase(this.alocacoesRepository);
-            const { horarioConsolidado } = await gerarHorarioUseCase.execute({ disciplinaId });
+            const { horarioConsolidado } = await gerarHorarioUseCase.execute({
+                disciplinaId,
+                periodoId: periodoAtivo.id,
+            });
             
             // Atualizar disciplina com o horário consolidado
-            if (horarioConsolidado) {
-                await this.disciplinasRepository.update(disciplinaId, { horario_consolidado: horarioConsolidado });
-            }
+            await this.disciplinasRepository.update(disciplinaId, {
+                horario_consolidado: horarioConsolidado || null,
+            });
         }
 
         return { alocacao };

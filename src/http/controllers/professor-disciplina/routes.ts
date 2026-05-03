@@ -11,6 +11,7 @@ import {
   disciplinasProfessorResponseSchema,
   professoresDisciplinaResponseSchema,
   successResponseSchema,
+  professorDisciplinaBootstrapResponseSchema,
 } from "@/schemas/professor-disciplina";
 import {
   notFoundResponseSchema,
@@ -24,8 +25,26 @@ import { vincularProfessorDisciplina } from "./vincular-professor-disciplina";
 import { desvincularProfessorDisciplina } from "./desvincular-professor-disciplina";
 import { buscarDisciplinasProfessor } from "./buscar-disciplinas-professor";
 import { buscarProfessoresDisciplina } from "./buscar-professores-disciplina";
+import { buscarProfessorDisciplinaBootstrap } from "./buscar-professor-disciplina-bootstrap";
 
 export const routesProfessorDisciplina = async (app: FastifyTypedInstance) => {
+  app.get(
+    "/professor-disciplina/bootstrap",
+    {
+      onRequest: [verifyJWT],
+      schema: {
+        description:
+          "Carrega dados base (professores, disciplinas e cursos) para a tela de vinculação",
+        tags: ["Professor-Disciplina 🔗"],
+        response: {
+          200: professorDisciplinaBootstrapResponseSchema,
+          500: internalServerErrorResponseSchema,
+        },
+      },
+    },
+    buscarProfessorDisciplinaBootstrap,
+  );
+
   // POST /professor-disciplina/vincular - Vincular professor a disciplina
   app.post(
     "/professor-disciplina/vincular",
